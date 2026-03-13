@@ -2,6 +2,14 @@
 """Generate gaming.html from SteamGames.csv and game_image_mapping.csv"""
 import csv
 import html
+from urllib.parse import quote
+
+IMG_DIR = 'Steam 社区 __ [CN]Alexander-Zaychik __ 游戏_files'
+IMG_DIR_ENCODED = quote(IMG_DIR, safe='')
+
+def encode_img_src(filename):
+    """URL-encode the full image path for use in HTML src attributes."""
+    return IMG_DIR_ENCODED + '/' + quote(filename, safe='')
 
 # Read image mapping
 image_map = {}
@@ -30,8 +38,6 @@ with open('SteamGames.csv', 'r', encoding='utf-8') as f:
                 'image': img
             })
 
-IMG_DIR = 'Steam 社区 __ [CN]Alexander-Zaychik __ 游戏_files'
-
 # Build game cards HTML
 cards = []
 for g in games:
@@ -40,7 +46,8 @@ for g in games:
     achievements = html.escape(g['achievements']) if g['achievements'] else ''
 
     if g['image']:
-        img_html = f'<img class="game-cover" src="{IMG_DIR}/{g["image"]}" alt="{name_escaped}" loading="lazy">'
+        img_src = encode_img_src(g['image'])
+        img_html = f'<img class="game-cover" src="{img_src}" alt="{name_escaped}" loading="lazy">'
     else:
         img_html = '<div class="game-cover-placeholder"></div>'
 
@@ -226,3 +233,100 @@ print(f"  {sum(1 for g in games if g['image'])} games with images")
 print(f"  {sum(1 for g in games if not g['image'])} games without images")
 print(f"  Total hours: {total_hours:,.0f}")
 print(f"  Full achievements: {full_ach}")
+
+# ---- Update index.html gaming brief with top-scored games ----
+import re
+
+def parse_hours(pt):
+    if '小时' in pt:
+        try: return float(pt.replace(',', '').replace(' 小时', ''))
+        except: return 0
+    elif '分钟' in pt:
+        try: return float(pt.replace(',', '').replace(' 分钟', '')) / 60
+        except: return 0
+    return 0
+
+def parse_ach(ach):
+    if ach and '/' in ach:
+        parts = ach.split('/')
+        try:
+            done, total = int(parts[0]), int(parts[1])
+            return (done / total) if total > 0 else 0, done, total
+        except ValueError:
+            pass
+    return 0, 0, 0
+
+# Score each game: normalize playtime (0-1) + achievement rate (0-1)
+max_hours = max((parse_hours(g['playtime']) for g in games), default=1) or 1
+scored = []
+for g in games:
+    hrs = parse_hours(g['playtime'])
+    ach_rate, ach_done, ach_total = parse_ach(g['achievements'])
+    # Combined score: 50% playtime weight + 50% achievement weight
+    score = 0.5 * (hrs / max_hours) + 0.5 * ach_rate
+    scored.append((score, hrs, ach_done, ach_total, g))
+
+scored.sort(key=lambda x: x[0], reverse=True)
+top_games = scored[:6]
+
+# Build brief cards HTML
+brief_cards = []
+for score, hrs, ach_done, ach_total, g in top_games:
+    name_escaped = html.escape(g['name'])
+    # Format hours
+    if hrs >= 1:
+        time_str = f'{hrs:,.0f}h'
+    else:
+        time_str = f'{hrs * 60:.0f}min'
+    # Achievement text
+    if ach_total > 0:
+        ach_text = f'{ach_done}/{ach_total}'
+    else:
+        ach_text = ''
+    # Cover image
+    if g['image']:
+        img_src = encode_img_src(g['image'])
+        img_html = f'<img class="brief-cover" src="{img_src}" alt="{name_escaped}" loading="lazy">'
+    else:
+        img_html = '<div class="brief-cover-placeholder"></div>'
+    # Meta line
+    meta_parts = [time_str]
+    if ach_text:
+        meta_parts.append(ach_text)
+    meta_str = ' · '.join(meta_parts)
+
+    card = f'''        <a href="gaming.html" class="brief-card">
+            {img_html}
+            <div class="brief-body">
+                <h3>{name_escaped}</h3>
+                <span class="brief-meta">{meta_str}</span>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>'''
+    brief_cards.append(card)
+
+brief_html = '\n'.join(brief_cards)
+
+# Read index.html and replace the gaming brief section
+with open('index.html', 'r', encoding='utf-8') as f:
+    index_content = f.read()
+
+# Replace the gaming brief section specifically (between <!-- Gaming Brief --> and <!-- Contact -->)
+gaming_match = re.search(
+    r'(<!-- Gaming Brief -->\n<section id="gaming-brief">.*?<div class="brief-list">\n)(.*?)(    </div>\n    <p style="text-align:center.*?</p>\n</section>)',
+    index_content, re.DOTALL
+)
+if gaming_match:
+    new_section = gaming_match.group(1) + brief_html + f'\n    </div>\n    <p style="text-align:center; margin-top:1.5rem;">\n        <a href="gaming.html" class="view-all" data-en="View all {total_games} titles ">查看全部 {total_games} 款游戏 </a>\n    </p>\n</section>'
+    index_content = index_content[:gaming_match.start()] + new_section + index_content[gaming_match.end():]
+
+    with open('index.html', 'w', encoding='utf-8') as f:
+        f.write(index_content)
+    print(f"\nUpdated index.html gaming brief with top {len(top_games)} games:")
+    for score, hrs, ach_done, ach_total, g in top_games:
+        try:
+            print(f"  {g['name']}: {hrs:.0f}h, {ach_done}/{ach_total}, score={score:.3f}")
+        except UnicodeEncodeError:
+            print(f"  (name has special chars): {hrs:.0f}h, {ach_done}/{ach_total}, score={score:.3f}")
+else:
+    print("\nWARNING: Could not find gaming brief section in index.html")

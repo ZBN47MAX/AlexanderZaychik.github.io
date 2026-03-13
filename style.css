@@ -568,6 +568,23 @@ section {
     border: 1px solid var(--border);
 }
 
+.brief-cover {
+    width: 120px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: var(--tag-bg);
+}
+
+.brief-cover-placeholder {
+    width: 120px;
+    height: 56px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: var(--tag-bg);
+}
+
 .brief-card .brief-body h3 {
     color: var(--text-bright);
     font-size: 1rem;
