@@ -256,10 +256,21 @@ def parse_ach(ach):
             pass
     return 0, 0, 0
 
+# Read brief blacklist
+blacklist = set()
+with open('brief_blacklist.csv', 'r', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    next(reader)  # skip header
+    for row in reader:
+        if row and row[0].strip():
+            blacklist.add(row[0].strip())
+
 # Score each game: normalize playtime (0-1) + achievement rate (0-1)
 max_hours = max((parse_hours(g['playtime']) for g in games), default=1) or 1
 scored = []
 for g in games:
+    if g['name'] in blacklist:
+        continue
     hrs = parse_hours(g['playtime'])
     ach_rate, ach_done, ach_total = parse_ach(g['achievements'])
     # Combined score: 50% playtime weight + 50% achievement weight
@@ -267,7 +278,7 @@ for g in games:
     scored.append((score, hrs, ach_done, ach_total, g))
 
 scored.sort(key=lambda x: x[0], reverse=True)
-top_games = scored[:6]
+top_games = scored[:5]
 
 # Build brief cards HTML
 brief_cards = []
