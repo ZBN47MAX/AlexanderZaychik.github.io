@@ -7,7 +7,11 @@
       "Bash(cd \"C:/Github/AlexanderZaychik.github.io\" && python parse_steam.py 2>&1)",
       "Bash(cd \"C:/Github/AlexanderZaychik.github.io\" && python generate_gaming.py)",
       "WebFetch(domain:alexanderzaychik.github.io)",
-      "WebFetch(domain:zbn47max.github.io)"
+      "WebFetch(domain:zbn47max.github.io)",
+      "Bash(grep -r \"游戏\" \"C:\\\\Github\\\\AlexanderZaychik.github.io\" --include=\"*.html\" --include=\"*.js\" --include=\"*.json\" --include=\"*.md\" -l 2>/dev/null | head -20)",
+      "Bash(python3 -c \"\nimport csv, re\nwith open\\('SteamGames.csv', 'r', encoding='utf-8'\\) as f:\n    reader = csv.reader\\(f\\)\n    next\\(reader\\)\n    for row in reader:\n        name = row[0].strip\\(\\)\n        if re.search\\(r'[\\\\u4e00-\\\\u9fff\\\\u3000-\\\\u303f\\\\uff00-\\\\uffef]', name\\):\n            print\\(name\\)\n\")",
+      "Bash(python -c \"\nimport csv, re\nwith open\\('SteamGames.csv', 'r', encoding='utf-8'\\) as f:\n    reader = csv.reader\\(f\\)\n    next\\(reader\\)\n    for row in reader:\n        name = row[0].strip\\(\\)\n        if re.search\\(r'[\\\\u4e00-\\\\u9fff\\\\u3000-\\\\u303f\\\\uff00-\\\\uffef]', name\\):\n            print\\(name\\)\n\")",
+      "Bash(python -c \"\nimport csv, re, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\nwith open\\('SteamGames.csv', 'r', encoding='utf-8'\\) as f:\n    reader = csv.reader\\(f\\)\n    next\\(reader\\)\n    for row in reader:\n        name = row[0].strip\\(\\)\n        if re.search\\(r'[\\\\u4e00-\\\\u9fff\\\\u3000-\\\\u303f\\\\uff00-\\\\uffef]', name\\):\n            print\\(name\\)\n\")"
     ]
   }
 }
