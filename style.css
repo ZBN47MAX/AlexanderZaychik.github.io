@@ -600,6 +600,71 @@ section {
 }
 
 /* ---- GAMING ---- */
+.gaming-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 2rem;
+    text-align: center;
+    flex: 1;
+    min-width: 140px;
+}
+
+.stat-num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+}
+
+.gaming-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.game-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.6rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.game-search:focus {
+    border-color: var(--accent);
+}
+
+.game-sort {
+    padding: 0.6rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+
 .gaming-tags {
     display: flex;
     gap: 0.6rem;
@@ -619,7 +684,7 @@ section {
 
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 1rem;
 }
 
@@ -627,11 +692,12 @@ section {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 1.2rem;
+    padding: 0.8rem;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 10px;
     transition: all 0.3s;
+    overflow: hidden;
 }
 
 .game-item:hover {
@@ -639,32 +705,77 @@ section {
     background: var(--bg-card-hover);
 }
 
-.game-icon {
-    width: 42px;
-    height: 42px;
-    background: var(--tag-bg);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
+.game-cover {
+    width: 120px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
     flex-shrink: 0;
+    background: var(--tag-bg);
+}
+
+.game-cover-placeholder {
+    width: 120px;
+    height: 56px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: var(--tag-bg);
+}
+
+.game-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .game-info h4 {
     color: var(--text-bright);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.game-info .game-meta {
+.game-time {
     color: var(--text-dim);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
 }
 
-.game-info .game-achievement {
+.game-ach {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+}
+
+.game-ach.ach-complete {
+    color: #4ade80;
+}
+
+.game-ach.ach-half {
     color: var(--accent);
-    font-size: 0.82rem;
+}
+
+.ach-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--tag-bg);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 80px;
+}
+
+.ach-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 0.3s;
+}
+
+.ach-complete .ach-fill {
+    background: #4ade80;
 }
 
 /* ---- INFO GRID ---- */

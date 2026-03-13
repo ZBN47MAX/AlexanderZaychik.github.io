@@ -52,6 +52,13 @@ function applyLang(lang) {
             el.innerHTML = el.getAttribute('data-zh');
         }
     });
+    // Handle placeholder translations
+    document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+        if (!el.hasAttribute('data-zh-placeholder')) {
+            el.setAttribute('data-zh-placeholder', el.placeholder);
+        }
+        el.placeholder = lang === 'en' ? el.getAttribute('data-en-placeholder') : el.getAttribute('data-zh-placeholder');
+    });
     document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
 }
 
