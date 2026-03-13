@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:zbn47max-blog.notion.site)",
+      "Bash(cd \"C:/Github/AlexanderZaychik.github.io\" && python -c \"\nimport sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\nwith open\\('Steam 社区 __ [CN]Alexander-Zaychik __ 游戏.html', 'r', encoding='utf-8'\\) as f:\n    for i, line in enumerate\\(f, 1\\):\n        if i == 448:\n            print\\(f'Line {i} length: {len\\(line\\)}'\\)\n            print\\(line[:3000]\\)\n            break\n\")"
+    ]
+  }
+}

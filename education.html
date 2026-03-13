@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教育背景 | Alexander Zaychik</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a href="index.html" class="logo">Alexander.dev</a>
+        <div class="nav-right">
+            <button class="hamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html" data-en="Home">首页</a></li>
+                <li><a href="index.html#skills" data-en="Skills">技能</a></li>
+                <li><a href="education.html" class="active" data-en="Education">教育</a></li>
+                <li><a href="projects.html" data-en="Projects">项目</a></li>
+                <li><a href="gaming.html" data-en="Gaming">游戏经历</a></li>
+                <li><a href="index.html#contact" data-en="Contact">联系</a></li>
+            </ul>
+            <button class="lang-toggle" onclick="toggleLang()"></button>
+            <button class="theme-toggle" onclick="toggleTheme()"></button>
+        </div>
+    </div>
+</nav>
+
+<div class="page-header">
+    <a href="index.html" class="back-link" data-en=" Back to Home"> 返回首页</a>
+    <h1 data-en="Education">教育背景</h1>
+    <p>Education</p>
+</div>
+
+<section>
+    <div class="timeline">
+
+        <!-- Newcastle -->
+        <div class="timeline-item" id="newcastle">
+            <h3 data-en="Newcastle University, UK | Master's">英国纽卡斯尔大学 | 硕士</h3>
+            <div class="date">2025.09 - 2026.08</div>
+            <div class="major" data-en="<strong>Major:</strong> Games Engineering | MSc Games Engineering"><strong>专业：</strong>游戏工程 | MSc Games Engineering</div>
+            <div class="detail" style="margin-top:0.8rem" data-en="<strong>Core Courses:</strong><ul style='margin-top:0.4rem; padding-left:1.2rem; color:var(--text-dim)'><li>Advanced Game Programming (C++)</li><li>Advanced Graphics (OpenGL &amp; Rendering Pipeline)</li><li>Advanced Game Technologies (Physics &amp; Online Multiplayer)</li><li>Team Game Development &amp; Technical Innovation</li></ul>">
+                <strong>核心课程：</strong>
+                <ul style="margin-top:0.4rem; padding-left:1.2rem; color:var(--text-dim)">
+                    <li>游戏高级编程（C++）</li>
+                    <li>游戏高级画面（OpenGL 实操与渲染管线搭建）</li>
+                    <li>游戏高级技术（物理碰撞与线上多人）</li>
+                    <li>游戏团队合作开发与技术创新</li>
+                </ul>
+            </div>
+            <div class="detail" style="margin-top:0.8rem" data-en="<strong>Projects:</strong> CSC8507-08 Untitled Project, Prisoner's Dilemma Strategy Engine">
+                <strong>项目产出：</strong>CSC8507-08 未定名项目，囚徒困境策略测试引擎
+            </div>
+            <div class="tags" style="margin-top:0.8rem">
+                <span class="tag">C++</span>
+                <span class="tag">OpenGL</span>
+                <span class="tag">Physics</span>
+                <span class="tag">Multiplayer</span>
+                <span class="tag">ECS</span>
+            </div>
+        </div>
+
+        <!-- Essex -->
+        <div class="timeline-item" id="essex">
+            <h3 data-en="University of Essex, UK | Bachelor's">英国埃塞克斯大学 | 本科</h3>
+            <div class="date">2024.10 - 2025.04</div>
+            <div class="major" data-en="<strong>Major:</strong> Computer Games Design"><strong>专业：</strong>电脑游戏设计 | Computer Games Design</div>
+            <div class="detail" style="margin-top:0.8rem" data-en="<strong>Core Courses:</strong><ul style='margin-top:0.4rem; padding-left:1.2rem; color:var(--text-dim)'><li>Advanced Game Development</li><li>Virtual Worlds</li><li>Large-Scale Software Co-Development &amp; Extreme Programming</li></ul>">
+                <strong>核心课程：</strong>
+                <ul style="margin-top:0.4rem; padding-left:1.2rem; color:var(--text-dim)">
+                    <li>高等级游戏开发</li>
+                    <li>虚拟世界</li>
+                    <li>大规模软件系统合作开发与极限编程</li>
+                </ul>
+            </div>
+            <div class="detail" style="margin-top:0.8rem" data-en="<strong>Projects:</strong> Horde">
+                <strong>项目产出：</strong>Horde
+            </div>
+            <div class="tags" style="margin-top:0.8rem">
+                <span class="tag">Game Design</span>
+                <span class="tag">XP</span>
+                <span class="tag">Virtual Worlds</span>
+            </div>
+        </div>
+
+        <!-- UESTC -->
+        <div class="timeline-item" id="uestc">
+            <h3 data-en="UESTC (University of Electronic Science and Technology of China) | Bachelor's">电子科技大学 | 本科</h3>
+            <div class="date">2022.09 - 2024.03</div>
+            <div class="major" data-en="<strong>Major:</strong> Computing: Software Development"><strong>专业：</strong>软件开发 | Computing: Software Development</div>
+            <div class="detail" style="margin-top:0.8rem" data-en="<strong>Core Courses:</strong><ul style='margin-top:0.4rem; padding-left:1.2rem; color:var(--text-dim)'><li>Database Design Fundamentals</li><li>Computer Troubleshooting</li><li>Small Desktop Application Development</li><li>Computer Teamwork</li><li>Interactive Scripting Languages</li><li>Object-Oriented Programming</li><li>Rapid Application Development &amp; Prototyping</li><li>Dynamic Web Content Generation</li><li>Research Techniques</li></ul>">
+                <strong>核心课程：</strong>
+                <ul style="margin-top:0.4rem; padding-left:1.2rem; color:var(--text-dim)">
+                    <li>数据库设计基础</li>
+                    <li>计算机故障诊断</li>
+                    <li>小型单机应用程序开发</li>
+                    <li>计算机团队合作</li>
+                    <li>交互式脚本语言</li>
+                    <li>面向对象编程</li>
+                    <li>应用程序快速开发与原型设计</li>
+                    <li>网络动态内容生成</li>
+                    <li>调研技巧</li>
+                </ul>
+            </div>
+            <div class="detail" style="margin-top:0.8rem" data-en="<strong>Projects:</strong> RAD Mini Game">
+                <strong>项目产出：</strong>RAD Mini Game
+            </div>
+            <div class="tags" style="margin-top:0.8rem">
+                <span class="tag">OOP</span>
+                <span class="tag">Database</span>
+                <span class="tag">RAD</span>
+                <span class="tag">Web</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Alexander Zaychik &mdash; Built with passion for games.</p>
+    <p style="margin-top:0.5rem">
+        <a href="mailto:alexanderzaychik47@gmail.com">alexanderzaychik47@gmail.com</a>
+        &nbsp;|&nbsp;
+        <a href="https://zbn47max-blog.notion.site/" target="_blank">Notion</a>
+    </p>
+</footer>
+
+<script src="common.js"></script>
+</body>
+</html>

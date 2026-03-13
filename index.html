@@ -1,11 +1,324 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Alexander's Blog</s></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexander Zaychik | Game Developer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <h1>Welcome</h1>
-    <p>Under Construction</p>
+<body data-home>
+
+<nav>
+    <div class="nav-inner">
+        <a href="index.html" class="logo">Alexander.dev</a>
+        <div class="nav-right">
+            <button class="hamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="#about" class="active" data-en="About">关于我</a></li>
+                <li><a href="#skills" data-en="Skills">技能</a></li>
+                <li><a href="education.html" data-en="Education">教育</a></li>
+                <li><a href="projects.html" data-en="Projects">项目</a></li>
+                <li><a href="gaming.html" data-en="Gaming">游戏经历</a></li>
+                <li><a href="#contact" data-en="Contact">联系</a></li>
+            </ul>
+            <button class="lang-toggle" onclick="toggleLang()"></button>
+            <button class="theme-toggle" onclick="toggleTheme()"></button>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="about">
+    <div class="hero-content">
+        <div class="hero-avatar">AZ</div>
+        <h1>Alexander Zaychik</h1>
+        <p class="subtitle">Game Developer / MSc Games Engineering</p>
+        <p class="bio" data-en="A passionate game development graduate specializing in computer games engineering. Experienced with Unity (C#) and Unreal 5 (C++, Blueprint), covering 2D platformers, FPS, and top-down shooters. Participated in Global Game Jam with full project pipeline experience.">
+            富有激情的游戏开发硕士，专注于电脑游戏工程。拥有 Unity（C#）和虚幻 5（C++、蓝图）开发经验，并具备 2D 平台跳跃、FPS、俯视角射击等多种类型的游戏制作经验。参与过 Global Game Jam，熟悉项目全流程。
+        </p>
+        <div class="hero-links">
+            <a href="mailto:alexanderzaychik47@gmail.com">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Email
+            </a>
+            <a href="tel:+8618085022135">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                +86 18085022135
+            </a>
+            <a href="https://zbn47max-blog.notion.site/" target="_blank">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Notion
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Skills -->
+<section id="skills">
+    <h2 class="section-title" data-en="Core Skills">核心技能</h2>
+    <p class="section-subtitle">Skills &amp; Technologies</p>
+    <div class="skills-grid">
+        <div class="skill-card">
+            <h3 data-en="Game Engines &amp; Dev">游戏引擎 &amp; 开发</h3>
+            <p data-en="Proficient in Unity (C#), fluent in Unreal 5 (C++, Blueprint)">熟练使用 Unity（C#），流畅使用虚幻 5（C++、蓝图）</p>
+            <div class="tags">
+                <span class="tag">Unity</span>
+                <span class="tag">C#</span>
+                <span class="tag">Unreal 5</span>
+                <span class="tag">C++</span>
+                <span class="tag">Blueprint</span>
+            </div>
+        </div>
+        <div class="skill-card">
+            <h3 data-en="Tech Stack">技术栈</h3>
+            <p data-en="Web and data configuration technologies">Web 与数据配置相关技术</p>
+            <div class="tags">
+                <span class="tag">HTML</span>
+                <span class="tag">PHP</span>
+                <span class="tag">JSON</span>
+                <span class="tag">XML</span>
+            </div>
+        </div>
+        <div class="skill-card">
+            <h3 data-en="Specialized Skills">特定技能</h3>
+            <p data-en="PS5 SDK development experience, proficient in LLM-assisted development">具有 PS5 SDK 开发经验，擅长利用 LLM 辅助开发</p>
+            <div class="tags">
+                <span class="tag">PS5 SDK</span>
+                <span class="tag">Claude</span>
+                <span class="tag">Gemini</span>
+            </div>
+        </div>
+        <div class="skill-card">
+            <h3 data-en="Design &amp; Systems">策划与系统</h3>
+            <p data-en="Game design document writing &amp; revision, system architecture">项目策划案撰写与修订、系统构建</p>
+            <div class="tags">
+                <span class="tag">Game Design</span>
+                <span class="tag">System Design</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Education Brief -->
+<section id="education-brief">
+    <div class="section-header">
+        <h2 class="section-title" data-en="Education">教育背景</h2>
+        <a href="education.html" class="view-all" data-en="View Details ">查看详情 </a>
+    </div>
+    <p class="section-subtitle">Education</p>
+    <div class="brief-list">
+        <a href="education.html#newcastle" class="brief-card">
+            <div class="brief-icon">&#127891;</div>
+            <div class="brief-body">
+                <h3 data-en="Newcastle University, UK | Master's">英国纽卡斯尔大学 | 硕士</h3>
+                <span class="brief-meta">2025.09 - 2026.08</span>
+                <p data-en="MSc Games Engineering &mdash; C++, OpenGL, Physics &amp; Collision, Multiplayer Networking">游戏工程 MSc Games Engineering &mdash; C++、OpenGL、物理碰撞、多人联网</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="education.html#essex" class="brief-card">
+            <div class="brief-icon">&#127891;</div>
+            <div class="brief-body">
+                <h3 data-en="University of Essex, UK | Bachelor's">英国埃塞克斯大学 | 本科</h3>
+                <span class="brief-meta">2024.10 - 2025.04</span>
+                <p data-en="Computer Games Design &mdash; Advanced Game Development, Extreme Programming">电脑游戏设计 Computer Games Design &mdash; 高等级游戏开发、极限编程</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="education.html#uestc" class="brief-card">
+            <div class="brief-icon">&#127891;</div>
+            <div class="brief-body">
+                <h3 data-en="UESTC | Bachelor's">电子科技大学 | 本科</h3>
+                <span class="brief-meta">2022.09 - 2024.03</span>
+                <p data-en="Computing: Software Development &mdash; OOP, Databases, Web Development">软件开发 Computing: Software Development &mdash; OOP、数据库、Web 开发</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+    </div>
+</section>
+
+<!-- Projects Brief -->
+<section id="projects-brief">
+    <div class="section-header">
+        <h2 class="section-title" data-en="Game Projects">游戏项目</h2>
+        <a href="projects.html" class="view-all" data-en="View Details ">查看详情 </a>
+    </div>
+    <p class="section-subtitle">Game Projects</p>
+    <div class="brief-list">
+        <a href="projects.html#redmailbox" class="brief-card">
+            <div class="brief-icon">&#128238;</div>
+            <div class="brief-body">
+                <h3 data-en="Red Mailbox Station">红邮箱车站</h3>
+                <span class="brief-meta" data-en="Unity Dev / Designer &middot; 2026.02 - Present">Unity 开发 / 策划 &middot; 2026.02 - 至今</span>
+                <p data-en="Simulation + RTS hybrid: character growth, resource management, expansion">模拟经营 + 即时战略，养成角色、调配资源、扩大势力</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="projects.html#csc8507" class="brief-card">
+            <div class="brief-icon">&#128373;</div>
+            <div class="brief-body">
+                <h3 data-en="CSC8507-08 Untitled Project">CSC8507-08 未定名项目</h3>
+                <span class="brief-meta" data-en="Designer / AI Dev &middot; 2026.01 - Present">策划 / AI 开发 &middot; 2026.01 - 至今</span>
+                <p data-en="Top-down 3D stealth action, custom C++ ECS engine, Win10+ &amp; PS5">俯视角 3D 动作潜行，自研 C++ ECS 引擎，适配 Win10+ &amp; PS5</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="projects.html#horde" class="brief-card">
+            <div class="brief-icon">&#127918;</div>
+            <div class="brief-body">
+                <h3>Horde</h3>
+                <span class="brief-meta" data-en="Solo Developer &middot; 2024.09 - 2024.12">独立制作人 &middot; 2024.09 - 2024.12</span>
+                <p data-en="Unity top-down twin-stick shooter, solo design, development &amp; debugging">Unity 俯视角双摇杆射击，独立完成设计、开发与调试</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="projects.html#draft" class="brief-card">
+            <div class="brief-icon">&#128299;</div>
+            <div class="brief-body">
+                <h3>Draft</h3>
+                <span class="brief-meta" data-en="Solo Developer &middot; 2024.09 - 2025.04">独立制作人 &middot; 2024.09 - 2025.04</span>
+                <p data-en="Unreal 5 FPS, linear level design, 2D/3D asset integration">虚幻 5 第一人称射击，线性关卡设计，2D/3D 资产搭配</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="projects.html#pop" class="brief-card">
+            <div class="brief-icon">&#127880;</div>
+            <div class="brief-body">
+                <h3>Pop</h3>
+                <span class="brief-meta" data-en="Core Developer &middot; GGJ 2025 (48h)">核心开发者 &middot; GGJ 2025 (48h)</span>
+                <p data-en="Global Game Jam 48-hour 2D platformer">Global Game Jam 48 小时极限开发 2D 平台跳跃游戏</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+    </div>
+</section>
+
+<!-- About Me — highlights -->
+<section id="about-me">
+    <h2 class="section-title" data-en="About Me">关于我</h2>
+    <p class="section-subtitle" data-en="Language, Skills &amp; Achievements">语言、素质与成就</p>
+    <div class="highlight-strip">
+        <div class="highlight-item">
+            <span class="highlight-icon">&#127760;</span>
+            <div>
+                <strong data-en="IELTS Band 6">雅思 6 分</strong>
+                <span data-en="English proficiency">英语能力</span>
+            </div>
+        </div>
+        <div class="highlight-item">
+            <span class="highlight-icon">&#9889;</span>
+            <div>
+                <strong data-en="Self-learner">自主学习</strong>
+                <span data-en="Independent problem solver">独立解决问题</span>
+            </div>
+        </div>
+        <div class="highlight-item">
+            <span class="highlight-icon">&#129309;</span>
+            <div>
+                <strong data-en="Team Player">团队协作</strong>
+                <span data-en="Communication &amp; collaboration">沟通与合作</span>
+            </div>
+        </div>
+        <div class="highlight-item">
+            <span class="highlight-icon">&#127942;</span>
+            <div>
+                <strong data-en="1-Week Demo">一周出 Demo</strong>
+                <span data-en="Unity prototype sprint">Unity 可行性验证</span>
+            </div>
+        </div>
+        <div class="highlight-item">
+            <span class="highlight-icon">&#127918;</span>
+            <div>
+                <strong>PS5 SDK</strong>
+                <span data-en="Console dev experience">主机开发经验</span>
+            </div>
+        </div>
+        <div class="highlight-item">
+            <span class="highlight-icon">&#128187;</span>
+            <div>
+                <strong data-en="Office Suite">办公软件</strong>
+                <span>Word / Excel / PPT</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Gaming Brief -->
+<section id="gaming-brief">
+    <div class="section-header">
+        <h2 class="section-title" data-en="Gaming Experience">游戏经历</h2>
+        <a href="gaming.html" class="view-all" data-en="View All ">查看全部 </a>
+    </div>
+    <p class="section-subtitle">Gaming Experience</p>
+    <div class="gaming-tags">
+        <span class="gaming-tag" data-en="Action">动作</span>
+        <span class="gaming-tag" data-en="RPG">角色扮演</span>
+        <span class="gaming-tag" data-en="Stealth">潜行</span>
+        <span class="gaming-tag" data-en="Soulslike">类魂</span>
+    </div>
+    <div class="brief-list">
+        <a href="gaming.html" class="brief-card">
+            <div class="brief-icon">&#9876;</div>
+            <div class="brief-body">
+                <h3 data-en="Sekiro: Shadows Die Twice">只狼：影逝二度</h3>
+                <span class="brief-meta">PC | 131h</span>
+                <p data-en="NG+3 clear, no-hit Genichiro, Owl, Isshin">三周目通关，无伤弦一郎、义父、一心</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="gaming.html" class="brief-card">
+            <div class="brief-icon">&#128293;</div>
+            <div class="brief-body">
+                <h3 data-en="Dark Souls 3">黑暗之魂 3</h3>
+                <span class="brief-meta">PC | 241h</span>
+                <p data-en="NG+3 clear, 100% collection">三周目通关，全收集</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+        <a href="gaming.html" class="brief-card">
+            <div class="brief-icon">&#127919;</div>
+            <div class="brief-body">
+                <h3 data-en="Rainbow Six: Siege">彩虹六号：围攻</h3>
+                <span class="brief-meta">PC | 1202h</span>
+                <p data-en="All achievements">全成就</p>
+            </div>
+            <span class="brief-arrow">&rsaquo;</span>
+        </a>
+    </div>
+    <p style="text-align:center; margin-top:1.5rem;">
+        <a href="gaming.html" class="view-all" data-en="View all 10+ titles ">查看全部 10+ 款游戏 </a>
+    </p>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+    <h2 class="section-title" data-en="Contact">联系方式</h2>
+    <p class="section-subtitle">Get in Touch</p>
+    <div class="contact-grid">
+        <a href="mailto:alexanderzaychik47@gmail.com" class="contact-card">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <strong>Email</strong>
+            <span>alexanderzaychik47@gmail.com</span>
+        </a>
+        <a href="tel:+8618085022135" class="contact-card">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            <strong data-en="Phone">电话</strong>
+            <span>+86 18085022135</span>
+        </a>
+        <a href="https://zbn47max-blog.notion.site/" target="_blank" class="contact-card">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <strong data-en="Notion Page">Notion 个人页</strong>
+            <span>zbn47max-blog.notion.site</span>
+        </a>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Alexander Zaychik &mdash; Built with passion for games.</p>
+</footer>
+
+<script src="common.js"></script>
 </body>
 </html>

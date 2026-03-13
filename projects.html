@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏项目 | Alexander Zaychik</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a href="index.html" class="logo">Alexander.dev</a>
+        <div class="nav-right">
+            <button class="hamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html" data-en="Home">首页</a></li>
+                <li><a href="index.html#skills" data-en="Skills">技能</a></li>
+                <li><a href="education.html" data-en="Education">教育</a></li>
+                <li><a href="projects.html" class="active" data-en="Projects">项目</a></li>
+                <li><a href="gaming.html" data-en="Gaming">游戏经历</a></li>
+                <li><a href="index.html#contact" data-en="Contact">联系</a></li>
+            </ul>
+            <button class="lang-toggle" onclick="toggleLang()"></button>
+            <button class="theme-toggle" onclick="toggleTheme()"></button>
+        </div>
+    </div>
+</nav>
+
+<div class="page-header">
+    <a href="index.html" class="back-link" data-en=" Back to Home"> 返回首页</a>
+    <h1 data-en="Game Projects">游戏项目</h1>
+    <p>Game Projects</p>
+</div>
+
+<section>
+    <div class="projects-grid">
+
+        <!-- 红邮箱车站 -->
+        <div class="project-card" id="redmailbox">
+            <div class="project-header">
+                <h3 data-en="Red Mailbox Station">红邮箱车站</h3>
+                <span class="role" data-en="Unity Dev / Designer">Unity 开发 / 策划</span>
+            </div>
+            <div class="project-date" data-en="2026.02 - Present (est. 2026.05)">2026.02 - 至今（预计 2026.05）</div>
+            <p class="project-desc" data-en="A simulation-management + real-time strategy hybrid. Players nurture characters, manage resources, build facilities, and expand territory.">模拟经营混合即时战略游戏，玩家需养成角色、调配资源、修建设施、扩大势力。</p>
+            <p class="project-result" data-en="<strong>Responsibilities:</strong> Revised game design documents, built core systems, optimized game mechanics. Preparing for Hypergryph Game Core competition."><strong>职责与成果：</strong>负责项目策划案修订与核心系统构建，优化游戏机制，准备参与鹰角游戏芯比赛。</p>
+            <div class="tags">
+                <span class="tag">Unity</span>
+                <span class="tag">C#</span>
+                <span class="tag" data-en="Simulation">模拟经营</span>
+                <span class="tag">RTS</span>
+            </div>
+        </div>
+
+        <!-- CSC8507-08 -->
+        <div class="project-card" id="csc8507">
+            <div class="project-header">
+                <h3 data-en="CSC8507-08 Untitled Project">CSC8507-08 未定名项目</h3>
+                <span class="role" data-en="Designer / AI Dev">策划 / AI 开发</span>
+            </div>
+            <div class="project-date" data-en="2026.01 - Present (est. 2026.03)">2026.01 - 至今（预计 2026.03）</div>
+            <p class="project-desc" data-en="Newcastle University MSc course project. Top-down 3D stealth action game built on a custom C++ ECS engine.">纽卡斯尔大学硕士课程项目。俯视角 3D 动作潜行游戏，采用自研基于 C++ 的 ECS 架构引擎。</p>
+            <p class="project-result" data-en="<strong>Responsibilities:</strong> Game design document, enemy AI system framework, map file import, PS5 platform adaptation. Supports Windows 10+ and PS5."><strong>职责与成果：</strong>负责策划案撰写、敌人 AI 系统框架与地图文件导入、PS5 平台适配。适配 Windows 10+ 与 PS5 平台。</p>
+            <div class="tags">
+                <span class="tag">C++</span>
+                <span class="tag">ECS</span>
+                <span class="tag">PS5</span>
+                <span class="tag">AI</span>
+                <span class="tag" data-en="Stealth">潜行</span>
+            </div>
+        </div>
+
+        <!-- Horde -->
+        <div class="project-card" id="horde">
+            <div class="project-header">
+                <h3>Horde</h3>
+                <span class="role" data-en="Solo Developer">独立制作人</span>
+            </div>
+            <div class="project-date">2024.09 - 2024.12</div>
+            <p class="project-desc" data-en="A top-down twin-stick shooter built with Unity and C#, arcade-style gameplay.">基于 Unity 和 C# 脚本搭建的俯视角双摇杆射击游戏，类似街机体验。</p>
+            <p class="project-result" data-en="<strong>Responsibilities:</strong> Solo design, development, and debugging."><strong>职责与成果：</strong>独立完成游戏的设计、开发与调试。</p>
+            <div class="tags">
+                <span class="tag">Unity</span>
+                <span class="tag">C#</span>
+                <span class="tag">Twin-Stick Shooter</span>
+            </div>
+        </div>
+
+        <!-- Draft -->
+        <div class="project-card" id="draft">
+            <div class="project-header">
+                <h3>Draft</h3>
+                <span class="role" data-en="Solo Developer">独立制作人</span>
+            </div>
+            <div class="project-date">2024.09 - 2025.04</div>
+            <p class="project-desc" data-en="A first-person shooter built with Unreal 5 and Blueprint scripting.">基于虚幻 5 引擎和蓝图编程搭建的第一人称射击游戏。</p>
+            <p class="project-result" data-en="<strong>Responsibilities:</strong> Linear level design, 2D character asset and 3D scene integration."><strong>职责与成果：</strong>负责线性关卡设计、2D 角色资产与 3D 场景搭配的开发。</p>
+            <div class="tags">
+                <span class="tag">Unreal 5</span>
+                <span class="tag">Blueprint</span>
+                <span class="tag">FPS</span>
+                <span class="tag">Level Design</span>
+            </div>
+        </div>
+
+        <!-- Pop -->
+        <div class="project-card" id="pop">
+            <div class="project-header">
+                <h3>Pop</h3>
+                <span class="role" data-en="Core Developer">核心开发者</span>
+            </div>
+            <div class="project-date">2025.01.24 - 2025.01.26 (48h)</div>
+            <p class="project-desc" data-en="Global Game Jam 2025 entry at University of Essex. A 48-hour 2D platformer built with Unity and C#.">Global Game Jam 2025 英国埃塞克斯大学站点作品，基于 Unity 和 C# 制作的 48 小时极限开发 2D 平台跳跃游戏。</p>
+            <p class="project-result" data-en="<strong>Responsibilities:</strong> Core designer and developer — defined gameplay mechanics, map design, and client architecture."><strong>职责与成果：</strong>作为核心设计与开发人员，决定游戏基础玩法、地图设计与程序客户端搭建。</p>
+            <div class="tags">
+                <span class="tag">Unity</span>
+                <span class="tag">C#</span>
+                <span class="tag">Game Jam</span>
+                <span class="tag">Platformer</span>
+                <span class="tag">48h</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Alexander Zaychik &mdash; Built with passion for games.</p>
+    <p style="margin-top:0.5rem">
+        <a href="mailto:alexanderzaychik47@gmail.com">alexanderzaychik47@gmail.com</a>
+        &nbsp;|&nbsp;
+        <a href="https://zbn47max-blog.notion.site/" target="_blank">Notion</a>
+    </p>
+</footer>
+
+<script src="common.js"></script>
+</body>
+</html>
