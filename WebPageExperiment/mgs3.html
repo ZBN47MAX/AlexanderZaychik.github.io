@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metal Gear Solid 3: Snake Eater | 合金装备3：食蛇者</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --jungle-deep:#1a3a1a;--jungle-mid:#2a4a2a;--olive:#4a5a3a;--mud:#3a2a1a;--bark:#5a4030;
+  --soviet-red:#cc2200;--gold:#c8a050;--brass:#a08030;--leaf:#5a8a3a;
+  --bg:#0a1a0a;--bg2:#1a2a1a;--text:#d4ceb8;--text-dim:#8a8470;--card-bg:rgba(26,42,26,0.85);
+  --border:rgba(200,160,80,0.2);--glow:rgba(90,138,58,0.3);
+}
+[data-theme="light"]{
+  --bg:#c8bf9f;--bg2:#b8a880;--text:#2a2010;--text-dim:#5a5040;
+  --card-bg:rgba(200,190,160,0.9);--border:rgba(90,64,48,0.3);--glow:rgba(90,138,58,0.2);
+  --jungle-deep:#3a6a3a;--jungle-mid:#4a8a4a;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'Noto Sans SC','Cinzel',serif;background:var(--bg);color:var(--text);
+  overflow-x:hidden;line-height:1.7;transition:background .5s,color .5s;
+}
+
+/* ===== CAMO PATTERN BACKGROUNDS ===== */
+.camo-bg{
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(ellipse 80px 60px at 20% 30%,rgba(74,90,58,0.4) 0%,transparent 70%),
+    radial-gradient(ellipse 100px 40px at 70% 60%,rgba(58,42,26,0.4) 0%,transparent 70%),
+    radial-gradient(ellipse 60px 80px at 45% 80%,rgba(42,74,42,0.35) 0%,transparent 70%),
+    radial-gradient(ellipse 90px 50px at 85% 20%,rgba(90,64,48,0.3) 0%,transparent 70%),
+    radial-gradient(ellipse 70px 90px at 10% 70%,rgba(26,58,26,0.45) 0%,transparent 70%),
+    radial-gradient(ellipse 50px 70px at 60% 10%,rgba(74,90,58,0.3) 0%,transparent 70%);
+  background-size:300px 300px,250px 280px,320px 260px,280px 320px,260px 300px,300px 250px;
+}
+.camo-bg-soviet{
+  background-image:
+    radial-gradient(ellipse 60px 50px at 30% 40%,rgba(204,34,0,0.15) 0%,transparent 70%),
+    radial-gradient(ellipse 80px 60px at 70% 20%,rgba(90,64,48,0.3) 0%,transparent 70%),
+    radial-gradient(ellipse 50px 70px at 50% 70%,rgba(26,58,26,0.4) 0%,transparent 70%);
+  background-size:200px 200px,250px 250px,300px 300px;
+}
+
+/* ===== FILM GRAIN OVERLAY ===== */
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.06'/%3E%3C/svg%3E");
+  background-size:128px 128px;opacity:.5;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:8px;background:var(--mud)}
+::-webkit-scrollbar-thumb{background:var(--olive);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--brass)}
+
+/* ===== TYPOGRAPHY ===== */
+h1,h2,h3{font-family:'Cinzel',serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mono{font-family:'Share Tech Mono',monospace}
+.section-label{
+  font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:.3em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:.5rem;display:block;
+}
+.thrill-header{
+  position:relative;padding-left:2rem;margin-bottom:2rem;
+}
+.thrill-header::before{
+  content:'What a thrill...';position:absolute;top:-1.2rem;left:2rem;
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:.25em;
+  color:var(--brass);text-transform:uppercase;opacity:.7;
+}
+.thrill-header h2{
+  font-size:clamp(1.8rem,4vw,3rem);color:var(--text);
+  text-shadow:0 0 30px var(--glow);border-left:3px solid var(--soviet-red);padding-left:1rem;
+}
+
+/* ===== CONTROLS (TOP RIGHT) ===== */
+.controls{
+  position:fixed;top:1rem;right:1rem;z-index:1000;display:flex;gap:.5rem;
+}
+.controls button{
+  background:rgba(26,42,26,0.9);border:1px solid var(--border);color:var(--gold);
+  padding:.4rem .8rem;font-family:'Share Tech Mono',monospace;font-size:.75rem;
+  cursor:pointer;transition:all .3s;backdrop-filter:blur(8px);border-radius:2px;
+}
+.controls button:hover{background:var(--soviet-red);color:#fff;border-color:var(--soviet-red)}
+
+/* ===== CANVAS ===== */
+#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ===== HERO SECTION ===== */
+.hero{
+  position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;overflow:hidden;z-index:1;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(180deg,rgba(10,26,10,0.3) 0%,rgba(26,58,26,0.5) 40%,rgba(10,26,10,0.9) 100%),
+    radial-gradient(ellipse at 50% 30%,rgba(90,138,58,0.2),transparent 60%);
+  z-index:-1;
+}
+.hero-canopy{
+  position:absolute;top:0;left:0;width:100%;height:40%;
+  background:linear-gradient(180deg,var(--jungle-deep) 0%,transparent 100%);
+  clip-path:polygon(0 0,100% 0,100% 60%,80% 80%,60% 55%,40% 85%,20% 60%,0 75%);
+  z-index:1;opacity:.6;
+}
+.hero-title{
+  font-family:'Cinzel',serif;font-size:clamp(2.5rem,7vw,5.5rem);font-weight:900;
+  letter-spacing:.15em;color:var(--text);text-shadow:0 0 60px rgba(90,138,58,0.4);
+  line-height:1.1;z-index:2;
+}
+.hero-title .accent{color:var(--gold);display:block;font-size:.4em;letter-spacing:.4em;margin-top:.5rem}
+.hero-subtitle{
+  font-family:'Share Tech Mono',monospace;font-size:clamp(.8rem,2vw,1.1rem);
+  color:var(--brass);letter-spacing:.3em;margin-top:1.5rem;z-index:2;
+}
+.hero-year{
+  font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--soviet-red);
+  letter-spacing:.5em;margin-top:1rem;z-index:2;
+}
+.hero-bandana{
+  width:120px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:2rem auto;z-index:2;
+}
+.hero-snake{
+  position:absolute;bottom:5%;right:5%;font-size:8rem;opacity:.04;z-index:0;
+  font-family:'Cinzel',serif;color:var(--leaf);transform:rotate(-15deg);
+}
+.scroll-hint{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:2;
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--text-dim);
+  letter-spacing:.3em;animation:pulse-hint 2s infinite;
+}
+@keyframes pulse-hint{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ===== SECTION CONTAINER ===== */
+.section{position:relative;padding:5rem 1.5rem;z-index:1}
+.section-inner{max-width:1100px;margin:0 auto}
+
+/* ===== BRIEFING SECTION ===== */
+.briefing-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem}
+.briefing-card{
+  background:var(--card-bg);border:1px solid var(--border);padding:2rem;
+  backdrop-filter:blur(8px);position:relative;overflow:hidden;border-radius:2px;
+}
+.briefing-card::before{
+  content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--soviet-red);
+}
+.briefing-card h3{font-size:1.1rem;color:var(--gold);margin-bottom:1rem}
+.briefing-card p{font-size:.9rem;color:var(--text-dim);line-height:1.8}
+.mission-tag{
+  display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  letter-spacing:.2em;padding:.2rem .6rem;border:1px solid var(--soviet-red);
+  color:var(--soviet-red);margin-bottom:1rem;
+}
+
+/* ===== COBRA UNIT SECTION ===== */
+.cobra-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:2rem}
+.cobra-card{
+  background:var(--card-bg);border:1px solid var(--border);padding:0;
+  backdrop-filter:blur(8px);position:relative;overflow:hidden;border-radius:2px;
+  transition:transform .3s,border-color .3s;
+}
+.cobra-card:hover{transform:translateY(-4px);border-color:var(--gold)}
+.cobra-card-header{
+  padding:1.5rem;background:linear-gradient(135deg,rgba(204,34,0,0.15),transparent);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;
+}
+.cobra-icon{
+  width:50px;height:50px;border-radius:50%;border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  background:rgba(10,26,10,0.6);flex-shrink:0;
+}
+.cobra-name{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold);letter-spacing:.1em}
+.cobra-emotion{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--soviet-red);letter-spacing:.2em}
+.cobra-card-body{padding:1.5rem}
+.cobra-card-body p{font-size:.85rem;color:var(--text-dim);line-height:1.7}
+.cobra-card.boss-card{grid-column:1/-1;border-color:var(--gold);border-width:2px}
+.cobra-card.boss-card .cobra-card-header{
+  background:linear-gradient(135deg,rgba(200,160,80,0.2),rgba(204,34,0,0.1));
+}
+.snake-divider{
+  display:flex;align-items:center;justify-content:center;gap:1rem;margin:1rem 0;
+  color:var(--text-dim);font-size:.7rem;letter-spacing:.3em;
+  font-family:'Share Tech Mono',monospace;
+}
+.snake-divider::before,.snake-divider::after{
+  content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);
+}
+
+/* ===== SURVIVAL SECTION ===== */
+.survival-tabs{display:flex;gap:.5rem;margin-bottom:2rem;flex-wrap:wrap}
+.survival-tab{
+  font-family:'Share Tech Mono',monospace;font-size:.8rem;padding:.5rem 1.2rem;
+  background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  cursor:pointer;letter-spacing:.15em;transition:all .3s;border-radius:2px;
+}
+.survival-tab.active,.survival-tab:hover{
+  background:var(--soviet-red);color:#fff;border-color:var(--soviet-red);
+}
+.survival-panel{display:none;animation:fadeIn .5s ease}
+.survival-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.stat-bar{margin:1rem 0}
+.stat-bar-label{
+  font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--gold);
+  letter-spacing:.15em;margin-bottom:.3rem;display:flex;justify-content:space-between;
+}
+.stat-bar-track{
+  width:100%;height:12px;background:rgba(10,26,10,0.8);border:1px solid var(--border);
+  border-radius:1px;overflow:hidden;
+}
+.stat-bar-fill{
+  height:100%;border-radius:1px;transition:width 1.5s ease;
+}
+.stat-bar-fill.stamina{background:linear-gradient(90deg,#4a8a2a,#7aba4a)}
+.stat-bar-fill.camo{background:linear-gradient(90deg,var(--olive),var(--leaf))}
+.stat-bar-fill.life{background:linear-gradient(90deg,var(--soviet-red),#ff4422)}
+
+.food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-top:1rem}
+.food-item{
+  background:var(--card-bg);border:1px solid var(--border);padding:1rem;text-align:center;
+  font-size:.8rem;border-radius:2px;transition:all .3s;
+}
+.food-item:hover{border-color:var(--gold);transform:scale(1.03)}
+.food-item .food-icon{font-size:1.5rem;margin-bottom:.5rem;display:block}
+.food-item .food-name{color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.1em}
+.food-item .food-stamina{color:var(--leaf);font-size:.65rem;margin-top:.3rem}
+
+.cure-list{list-style:none;margin-top:1rem}
+.cure-list li{
+  padding:.8rem 1rem;border-bottom:1px solid var(--border);font-size:.85rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.cure-list li::before{
+  content:'[+]';font-family:'Share Tech Mono',monospace;color:var(--soviet-red);font-size:.7rem;
+}
+
+/* ===== WEAPONS & CQC SECTION ===== */
+.weapons-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem}
+.weapon-card{
+  background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;
+  border-radius:2px;position:relative;
+}
+.weapon-card h3{font-size:1rem;color:var(--gold);margin-bottom:.5rem;letter-spacing:.1em}
+.weapon-card p{font-size:.85rem;color:var(--text-dim)}
+.weapon-card .weapon-type{
+  position:absolute;top:1rem;right:1rem;font-family:'Share Tech Mono',monospace;
+  font-size:.6rem;color:var(--soviet-red);letter-spacing:.2em;border:1px solid var(--soviet-red);
+  padding:.1rem .4rem;
+}
+.cqc-display{
+  background:var(--card-bg);border:2px solid var(--gold);padding:2rem;text-align:center;
+  margin-top:2rem;position:relative;border-radius:2px;
+}
+.cqc-display h3{font-size:1.5rem;color:var(--gold);margin-bottom:1rem}
+.cqc-moves{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:1rem}
+.cqc-move{
+  font-family:'Share Tech Mono',monospace;font-size:.75rem;padding:.4rem 1rem;
+  border:1px solid var(--olive);color:var(--leaf);letter-spacing:.1em;border-radius:2px;
+  transition:all .3s;
+}
+.cqc-move:hover{background:var(--soviet-red);color:#fff;border-color:var(--soviet-red)}
+
+/* ===== BOSS LEGACY SECTION ===== */
+.legacy-section{position:relative}
+.legacy-content{
+  max-width:800px;margin:0 auto;text-align:center;
+}
+.legacy-content p{
+  font-size:1rem;line-height:2;color:var(--text-dim);margin-bottom:1.5rem;
+}
+.legacy-quote{
+  font-family:'Cinzel',serif;font-size:clamp(1.2rem,3vw,1.8rem);
+  color:var(--gold);font-style:italic;margin:2rem 0;padding:2rem;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  position:relative;
+}
+.legacy-quote::before{content:'\201C';position:absolute;top:-.5rem;left:1rem;font-size:3rem;color:var(--brass);opacity:.4}
+
+/* ===== LADDER (VERTICAL DECORATIVE ELEMENT) ===== */
+.ladder{
+  position:fixed;right:2rem;top:50%;transform:translateY(-50%);z-index:5;
+  width:20px;height:60vh;display:flex;flex-direction:column;align-items:center;
+}
+.ladder-rail{position:absolute;width:2px;height:100%;background:var(--border)}
+.ladder-rail.left{left:0}.ladder-rail.right{right:0}
+.ladder-rung{
+  width:100%;height:1px;background:var(--border);margin:12px 0;flex-shrink:0;
+}
+.ladder-progress{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:6px;height:0%;background:var(--gold);border-radius:3px;
+  transition:height .1s linear;z-index:1;
+}
+@media(max-width:768px){.ladder{display:none}}
+
+/* ===== QUOTE SECTION ===== */
+.final-quote{
+  text-align:center;padding:6rem 2rem;position:relative;z-index:1;
+}
+.final-quote blockquote{
+  font-family:'Cinzel',serif;font-size:clamp(1.5rem,4vw,2.5rem);
+  color:var(--gold);font-weight:700;letter-spacing:.05em;line-height:1.4;
+}
+.final-quote cite{
+  display:block;margin-top:1.5rem;font-family:'Share Tech Mono',monospace;
+  font-size:.8rem;color:var(--text-dim);letter-spacing:.3em;font-style:normal;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  text-align:center;padding:3rem 1.5rem;border-top:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--text-dim);
+  letter-spacing:.2em;z-index:1;position:relative;
+}
+footer .footer-snake{font-size:1.5rem;margin-bottom:1rem;display:block;opacity:.3}
+footer a{color:var(--gold);text-decoration:none}
+
+/* ===== EYEPATCH MOTIF ===== */
+.eyepatch{
+  display:inline-block;width:1.2em;height:1.2em;background:var(--mud);
+  border:2px solid var(--bark);border-radius:50%;position:relative;vertical-align:middle;
+  margin:0 .3rem;
+}
+.eyepatch::after{
+  content:'';position:absolute;top:50%;left:100%;width:1em;height:2px;
+  background:var(--bark);transform:translateY(-50%);
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .briefing-grid,.weapons-grid{grid-template-columns:1fr}
+  .cobra-grid{grid-template-columns:1fr}
+  .cobra-card.boss-card{grid-column:auto}
+  .section{padding:3rem 1rem}
+  .controls{top:.5rem;right:.5rem}
+  .controls button{padding:.3rem .5rem;font-size:.65rem}
+}
+
+/* ===== CONSTRUCTIVIST ACCENT ===== */
+.soviet-accent{
+  position:relative;padding:2rem;margin:2rem 0;
+  background:linear-gradient(135deg,rgba(204,34,0,0.08),transparent);
+  border-left:4px solid var(--soviet-red);
+}
+.soviet-accent::before{
+  content:'\2605';position:absolute;top:.5rem;right:1rem;font-size:2rem;
+  color:var(--soviet-red);opacity:.15;
+}
+</style>
+</head>
+<body class="camo-bg">
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- LADDER DECORATIVE ELEMENT -->
+<div class="ladder" id="ladder">
+  <div class="ladder-rail left"></div>
+  <div class="ladder-rail right"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-rung"></div><div class="ladder-rung"></div><div class="ladder-rung"></div>
+  <div class="ladder-progress" id="ladder-progress"></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <button id="lang-toggle" onclick="toggleLang()" title="Language">EN / 中文</button>
+  <button id="theme-toggle" onclick="toggleTheme()" title="Theme">&#9790; / &#9788;</button>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-canopy"></div>
+  <div class="hero-title">
+    <span data-en="Snake Eater" data-zh="食蛇者">Snake Eater</span>
+    <span class="accent" data-en="Metal Gear Solid 3" data-zh="合金装备3">Metal Gear Solid 3</span>
+  </div>
+  <div class="hero-bandana"></div>
+  <div class="hero-subtitle" data-en="Tselinoyarsk, USSR &mdash; 1964" data-zh="茨林诺亚尔斯克，苏联 &mdash; 1964年">Tselinoyarsk, USSR &mdash; 1964</div>
+  <div class="hero-year">A D &nbsp; 1 9 6 4</div>
+  <div class="hero-snake">&#128013;</div>
+  <div class="scroll-hint mono" data-en="[ SCROLL TO INFILTRATE ]" data-zh="[ 向下滚动以潜入 ]">[ SCROLL TO INFILTRATE ]</div>
+</section>
+
+<!-- ===== OPERATION BRIEFING ===== -->
+<section class="section camo-bg" id="briefing">
+  <div class="section-inner reveal">
+    <div class="thrill-header">
+      <span class="section-label" data-en="Mission Intel" data-zh="任务情报">Mission Intel</span>
+      <h2 data-en="Operation Briefing" data-zh="行动简报">Operation Briefing</h2>
+    </div>
+    <div class="briefing-grid">
+      <div class="briefing-card">
+        <span class="mission-tag" data-en="VIRTUOUS MISSION" data-zh="贞洁任务">VIRTUOUS MISSION</span>
+        <h3 data-en="The First HALO Jump" data-zh="首次HALO跳伞">The First HALO Jump</h3>
+        <p data-en="August 24, 1964. Naked Snake performs the world's first HALO (High Altitude Low Opening) jump into the Soviet jungle of Tselinoyarsk. His mission: rescue the defecting Soviet scientist Nikolai Sokolov, developer of the Shagohod nuclear-armed tank. This is where the legend begins." data-zh="1964年8月24日。裸蛇执行了世界上首次HALO（高空低开）跳伞，进入苏联茨林诺亚尔斯克的丛林。他的任务是：营救叛逃的苏联科学家尼古拉·索科洛夫——沙戈霍德核武装坦克的开发者。传说从这里开始。">August 24, 1964. Naked Snake performs the world's first HALO (High Altitude Low Opening) jump into the Soviet jungle of Tselinoyarsk. His mission: rescue the defecting Soviet scientist Nikolai Sokolov, developer of the Shagohod nuclear-armed tank. This is where the legend begins.</p>
+      </div>
+      <div class="briefing-card">
+        <span class="mission-tag" data-en="SNAKE EATER" data-zh="食蛇者行动">SNAKE EATER</span>
+        <h3 data-en="Operation Snake Eater" data-zh="食蛇者行动">Operation Snake Eater</h3>
+        <p data-en="One week later. After The Boss's defection to the Soviet Union, Snake must return to Tselinoyarsk to eliminate the Cobra Unit, destroy the Shagohod, kill Colonel Volgin, and ultimately face his former mentor — The Boss herself. America's honor and the fate of the Cold War hang in the balance." data-zh="一周后。在Boss叛逃苏联之后，蛇必须返回茨林诺亚尔斯克，消灭眼镜蛇部队，摧毁沙戈霍德，杀死沃尔金上校，最终面对他的前导师——Boss本人。美国的荣誉和冷战的命运悬而未决。">One week later. After The Boss's defection to the Soviet Union, Snake must return to Tselinoyarsk to eliminate the Cobra Unit, destroy the Shagohod, kill Colonel Volgin, and ultimately face his former mentor — The Boss herself. America's honor and the fate of the Cold War hang in the balance.</p>
+      </div>
+      <div class="briefing-card">
+        <h3 data-en="The Cold War Context" data-zh="冷战背景">The Cold War Context</h3>
+        <p data-en="At the height of nuclear tension between superpowers, a rogue Soviet colonel named Volgin has seized a portable nuclear device — the Davy Crockett. When The Boss defects and delivers two miniature nuclear warheads to Volgin, the world teeters on the brink of nuclear war. Only one man can prevent Armageddon." data-zh="在超级大国核紧张局势的高峰期，一名名叫沃尔金的苏联叛变上校夺取了便携式核装置——大卫·克罗科特。当Boss叛变并向沃尔金交付两枚小型核弹头时，世界处于核战争的边缘。只有一个人能阻止末日。">At the height of nuclear tension between superpowers, a rogue Soviet colonel named Volgin has seized a portable nuclear device — the Davy Crockett. When The Boss defects and delivers two miniature nuclear warheads to Volgin, the world teeters on the brink of nuclear war. Only one man can prevent Armageddon.</p>
+      </div>
+      <div class="briefing-card">
+        <h3 data-en="Support Team" data-zh="支援团队">Support Team</h3>
+        <p data-en="Major Zero (mission command), Para-Medic (medical and save data), Sigint (weapons and technology), and the ever-mysterious EVA — a double agent whose true allegiance remains one of the game's deepest mysteries. Together they guide Snake through the most perilous operation of the Cold War." data-zh="零少校（任务指挥）、医疗兵（医疗与存档）、信号兵（武器与技术），以及始终神秘的EVA——一名双重间谍，她的真正效忠对象是游戏最深层的谜团之一。他们一起引导蛇完成冷战中最危险的行动。">Major Zero (mission command), Para-Medic (medical and save data), Sigint (weapons and technology), and the ever-mysterious EVA — a double agent whose true allegiance remains one of the game's deepest mysteries. Together they guide Snake through the most perilous operation of the Cold War.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COBRA UNIT ===== -->
+<section class="section camo-bg-soviet" id="cobra">
+  <div class="section-inner reveal">
+    <div class="thrill-header">
+      <span class="section-label" data-en="Enemy Combatants" data-zh="敌方战斗人员">Enemy Combatants</span>
+      <h2 data-en="The Cobra Unit" data-zh="眼镜蛇部队">The Cobra Unit</h2>
+    </div>
+    <p style="color:var(--text-dim);margin-bottom:1rem;font-size:.9rem" data-en="A legendary special forces unit from World War II, each member carries an emotion into battle that defines them. They are the greatest warriors of the 20th century." data-zh="来自第二次世界大战的传奇特种部队，每位成员都带着一种定义自己的情感投入战斗。他们是20世纪最伟大的战士。">A legendary special forces unit from World War II, each member carries an emotion into battle that defines them. They are the greatest warriors of the 20th century.</p>
+
+    <div class="cobra-grid">
+      <!-- The Pain -->
+      <div class="cobra-card">
+        <div class="cobra-card-header">
+          <div class="cobra-icon">&#128029;</div>
+          <div>
+            <div class="cobra-name" data-en="The Pain" data-zh="痛苦">The Pain</div>
+            <div class="cobra-emotion" data-en="EMOTION: PAIN" data-zh="情感：痛苦">EMOTION: PAIN</div>
+          </div>
+        </div>
+        <div class="cobra-card-body">
+          <p data-en="Master of hornets and bees. The Pain controls swarms of bullet bees through pheromones, using them as living armor, projectiles, and even a Tommy gun-shaped formation. His body is covered in stingers, and he feels nothing but agony — his emotion in battle." data-zh="黄蜂和蜜蜂的主人。痛苦通过信息素控制成群的子弹蜂，将它们用作活体护甲、弹射物，甚至组成汤普森冲锋枪形状的编队。他浑身布满毒刺，只感受到痛苦——他战斗中的情感。">Master of hornets and bees. The Pain controls swarms of bullet bees through pheromones, using them as living armor, projectiles, and even a Tommy gun-shaped formation. His body is covered in stingers, and he feels nothing but agony — his emotion in battle.</p>
+        </div>
+      </div>
+      <!-- The Fear -->
+      <div class="cobra-card">
+        <div class="cobra-card-header">
+          <div class="cobra-icon">&#128375;</div>
+          <div>
+            <div class="cobra-name" data-en="The Fear" data-zh="恐惧">The Fear</div>
+            <div class="cobra-emotion" data-en="EMOTION: FEAR" data-zh="情感：恐惧">EMOTION: FEAR</div>
+          </div>
+        </div>
+        <div class="cobra-card-body">
+          <p data-en="A spider-like assassin with supernatural agility. The Fear can leap between trees, turn nearly invisible with stealth camouflage, and fires poison-tipped crossbow bolts. His dislocated joints allow inhuman contortions. He instills primal terror in all who face him." data-zh="一个蜘蛛般的刺客，拥有超自然的敏捷性。恐惧能在树木间跳跃，用隐身迷彩几乎隐形，并发射涂毒的弩箭。他脱臼的关节允许超人的扭曲。他在所有面对他的人心中灌输原始恐惧。">A spider-like assassin with supernatural agility. The Fear can leap between trees, turn nearly invisible with stealth camouflage, and fires poison-tipped crossbow bolts. His dislocated joints allow inhuman contortions. He instills primal terror in all who face him.</p>
+        </div>
+      </div>
+      <!-- The End -->
+      <div class="cobra-card">
+        <div class="cobra-card-header">
+          <div class="cobra-icon">&#127795;</div>
+          <div>
+            <div class="cobra-name" data-en="The End" data-zh="终结">The End</div>
+            <div class="cobra-emotion" data-en="EMOTION: THE END" data-zh="情感：终结">EMOTION: THE END</div>
+          </div>
+        </div>
+        <div class="cobra-card-body">
+          <p data-en="The legendary 'Father of Sniping' — over 100 years old. The End photosynthesizes like a plant, able to remain motionless for weeks. His sniper duel across three massive jungle zones is one of gaming's greatest boss battles. He and his parrot share an ancient, symbiotic bond with the forest." data-zh="传奇的"狙击之父"——年过百岁。终结能像植物一样进行光合作用，可以数周保持不动。他在三个巨大丛林区域的狙击对决是游戏史上最伟大的boss战之一。他和他的鹦鹉与森林共享一种古老的共生纽带。">The legendary 'Father of Sniping' — over 100 years old. The End photosynthesizes like a plant, able to remain motionless for weeks. His sniper duel across three massive jungle zones is one of gaming's greatest boss battles. He and his parrot share an ancient, symbiotic bond with the forest.</p>
+        </div>
+      </div>
+      <!-- The Fury -->
+      <div class="cobra-card">
+        <div class="cobra-card-header">
+          <div class="cobra-icon">&#128293;</div>
+          <div>
+            <div class="cobra-name" data-en="The Fury" data-zh="愤怒">The Fury</div>
+            <div class="cobra-emotion" data-en="EMOTION: FURY" data-zh="情感：愤怒">EMOTION: FURY</div>
+          </div>
+        </div>
+        <div class="cobra-card-body">
+          <p data-en="A former cosmonaut driven insane by the void of space. The Fury wields a flamethrower and jet pack, turning underground tunnels into an inferno. Having stared into the infinite darkness above Earth, he returned consumed by unquenchable rage and the desire to burn everything." data-zh="一名被太空虚无逼疯的前宇航员。愤怒挥舞着火焰喷射器和喷气背包，将地下隧道变成炼狱。在凝视了地球上方的无限黑暗后，他回来时被无法平息的狂怒和烧毁一切的欲望所吞噬。">A former cosmonaut driven insane by the void of space. The Fury wields a flamethrower and jet pack, turning underground tunnels into an inferno. Having stared into the infinite darkness above Earth, he returned consumed by unquenchable rage and the desire to burn everything.</p>
+        </div>
+      </div>
+      <!-- The Sorrow -->
+      <div class="cobra-card">
+        <div class="cobra-card-header">
+          <div class="cobra-icon">&#128167;</div>
+          <div>
+            <div class="cobra-name" data-en="The Sorrow" data-zh="悲伤">The Sorrow</div>
+            <div class="cobra-emotion" data-en="EMOTION: SORROW" data-zh="情感：悲伤">EMOTION: SORROW</div>
+          </div>
+        </div>
+        <div class="cobra-card-body">
+          <p data-en="A spirit medium who communes with the dead — killed by The Boss years before the events of Snake Eater. The Sorrow appears as a ghost, forcing Snake to walk a river of every soldier he has killed. His 'battle' is a moral reckoning, not a fight. He was The Boss's lover and Ocelot's father." data-zh="一位与死者交流的灵媒——在食蛇者事件之前数年被Boss杀死。悲伤以幽灵形式出现，迫使蛇走过一条由他杀死的每个士兵组成的河流。他的'战斗'是一场道德清算，而非战斗。他是Boss的爱人，也是山猫的父亲。">A spirit medium who communes with the dead — killed by The Boss years before the events of Snake Eater. The Sorrow appears as a ghost, forcing Snake to walk a river of every soldier he has killed. His 'battle' is a moral reckoning, not a fight. He was The Boss's lover and Ocelot's father.</p>
+        </div>
+      </div>
+      <!-- The Boss -->
+      <div class="cobra-card boss-card">
+        <div class="cobra-card-header">
+          <div class="cobra-icon" style="border-color:var(--gold);font-size:1.8rem">&#9733;</div>
+          <div>
+            <div class="cobra-name" style="font-size:1.3rem" data-en="The Boss" data-zh="Boss">The Boss</div>
+            <div class="cobra-emotion" style="color:var(--gold)" data-en="THE JOY &mdash; LEADER OF THE COBRA UNIT" data-zh="喜悦 &mdash; 眼镜蛇部队指挥官">THE JOY &mdash; LEADER OF THE COBRA UNIT</div>
+          </div>
+        </div>
+        <div class="cobra-card-body">
+          <p data-en="The greatest warrior of the 20th century. The Boss — codenamed 'The Joy' — is the mother of the Special Forces, Snake's mentor, and the true hero of the story. She stormed the beaches of Normandy while pregnant, developed CQC with Snake, and sacrificed everything for her country. Her 'defection' was a mission — she was ordered to die at Snake's hands to prevent nuclear war. Her white horse, her field of white flowers, her scar — she is the soul of Metal Gear Solid 3." data-zh="20世纪最伟大的战士。Boss——代号'喜悦'——是特种部队之母、蛇的导师，也是故事真正的英雄。她怀孕时冲上诺曼底海滩，与蛇一起开发了CQC，为国家牺牲了一切。她的'叛变'是一项任务——她被命令死在蛇的手中以防止核战争。她的白马、她的白花田、她的伤疤——她是合金装备3的灵魂。">The greatest warrior of the 20th century. The Boss — codenamed 'The Joy' — is the mother of the Special Forces, Snake's mentor, and the true hero of the story. She stormed the beaches of Normandy while pregnant, developed CQC with Snake, and sacrificed everything for her country. Her 'defection' was a mission — she was ordered to die at Snake's hands to prevent nuclear war. Her white horse, her field of white flowers, her scar — she is the soul of Metal Gear Solid 3.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SURVIVAL SYSTEMS ===== -->
+<section class="section camo-bg" id="survival">
+  <div class="section-inner reveal">
+    <div class="thrill-header">
+      <span class="section-label" data-en="Survival Viewer" data-zh="生存查看器">Survival Viewer</span>
+      <h2 data-en="Survival Systems" data-zh="生存系统">Survival Systems</h2>
+    </div>
+
+    <div class="survival-tabs">
+      <button class="survival-tab active" onclick="showSurvival('camo')" data-en="Camouflage" data-zh="迷彩">Camouflage</button>
+      <button class="survival-tab" onclick="showSurvival('cure')" data-en="Cure" data-zh="治疗">Cure</button>
+      <button class="survival-tab" onclick="showSurvival('food')" data-en="Food" data-zh="食物">Food</button>
+    </div>
+
+    <!-- CAMO PANEL -->
+    <div class="survival-panel active" id="panel-camo">
+      <div class="soviet-accent">
+        <p style="font-size:.9rem;color:var(--text-dim)" data-en="The Camouflage system lets Snake blend with the environment. Different camo patterns and face paints affect the Camo Index — higher values mean better concealment. Mastering this system is essential for stealth in the jungle." data-zh="迷彩系统让蛇与环境融为一体。不同的迷彩图案和面部涂装影响迷彩指数——数值越高意味着隐蔽性越好。掌握这个系统对于丛林中的潜行至关重要。">The Camouflage system lets Snake blend with the environment. Different camo patterns and face paints affect the Camo Index — higher values mean better concealment. Mastering this system is essential for stealth in the jungle.</p>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-bar-label"><span data-en="Camo Index (Woodland)" data-zh="迷彩指数（林地）">Camo Index (Woodland)</span><span>85%</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill camo" style="width:85%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-bar-label"><span data-en="Camo Index (Urban)" data-zh="迷彩指数（城市）">Camo Index (Urban)</span><span>42%</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill camo" style="width:42%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-bar-label"><span data-en="Camo Index (Snow)" data-zh="迷彩指数（雪地）">Camo Index (Snow)</span><span>15%</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill camo" style="width:15%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-bar-label"><span data-en="Stamina" data-zh="体力">Stamina</span><span>72%</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill stamina" style="width:72%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-bar-label"><span data-en="Life" data-zh="生命">Life</span><span>90%</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill life" style="width:90%"></div></div>
+      </div>
+    </div>
+
+    <!-- CURE PANEL -->
+    <div class="survival-panel" id="panel-cure">
+      <div class="soviet-accent">
+        <p style="font-size:.9rem;color:var(--text-dim)" data-en="The Cure system requires Snake to treat injuries in the field. Burns, broken bones, bullet wounds, and leech bites all require specific treatments. Untreated injuries reduce maximum Life and impair movement." data-zh="治疗系统要求蛇在战场上处理伤势。烧伤、骨折、枪伤和蚂蟥叮咬都需要特定的治疗方法。未治疗的伤势会降低最大生命值并影响移动。">The Cure system requires Snake to treat injuries in the field. Burns, broken bones, bullet wounds, and leech bites all require specific treatments. Untreated injuries reduce maximum Life and impair movement.</p>
+      </div>
+      <ul class="cure-list">
+        <li data-en="Bullet Wound &rarr; Knife (dig out bullet) + Disinfectant + Styptic + Bandage + Suture" data-zh="枪伤 &rarr; 小刀（取出子弹）+ 消毒剂 + 止血剂 + 绷带 + 缝合">Bullet Wound &rarr; Knife (dig out bullet) + Disinfectant + Styptic + Bandage + Suture</li>
+        <li data-en="Broken Bone &rarr; Splint + Bandage" data-zh="骨折 &rarr; 夹板 + 绷带">Broken Bone &rarr; Splint + Bandage</li>
+        <li data-en="Burn &rarr; Ointment + Bandage" data-zh="烧伤 &rarr; 药膏 + 绷带">Burn &rarr; Ointment + Bandage</li>
+        <li data-en="Cut/Slash &rarr; Disinfectant + Styptic + Bandage + Suture" data-zh="切割伤 &rarr; 消毒剂 + 止血剂 + 绷带 + 缝合">Cut/Slash &rarr; Disinfectant + Styptic + Bandage + Suture</li>
+        <li data-en="Leech &rarr; Cigar burn (to remove) + Disinfectant + Styptic" data-zh="蚂蟥 &rarr; 雪茄烫（去除）+ 消毒剂 + 止血剂">Leech &rarr; Cigar burn (to remove) + Disinfectant + Styptic</li>
+        <li data-en="Arrow/Bolt &rarr; Knife (extract) + Disinfectant + Styptic + Bandage" data-zh="箭矢 &rarr; 小刀（拔出）+ 消毒剂 + 止血剂 + 绷带">Arrow/Bolt &rarr; Knife (extract) + Disinfectant + Styptic + Bandage</li>
+        <li data-en="Poison &rarr; Antidote or Serum" data-zh="中毒 &rarr; 解毒剂或血清">Poison &rarr; Antidote or Serum</li>
+      </ul>
+    </div>
+
+    <!-- FOOD PANEL -->
+    <div class="survival-panel" id="panel-food">
+      <div class="soviet-accent">
+        <p style="font-size:.9rem;color:var(--text-dim)" data-en="Snake must hunt, forage, and capture wildlife to maintain his Stamina gauge. Food rots over time. Eating rotten food or poisonous wildlife causes stomach aches. The jungle provides — if you know what to eat." data-zh="蛇必须狩猎、觅食和捕获野生动物来维持体力条。食物会随时间腐烂。吃腐烂的食物或有毒的野生动物会导致胃痛。丛林提供一切——如果你知道该吃什么。">Snake must hunt, forage, and capture wildlife to maintain his Stamina gauge. Food rots over time. Eating rotten food or poisonous wildlife causes stomach aches. The jungle provides — if you know what to eat.</p>
+      </div>
+      <div class="food-grid">
+        <div class="food-item"><span class="food-icon">&#128013;</span><span class="food-name" data-en="Reticulated Python" data-zh="网纹蟒">Reticulated Python</span><span class="food-stamina">+60%</span></div>
+        <div class="food-item"><span class="food-icon">&#127812;</span><span class="food-name" data-en="Russian Ration" data-zh="俄罗斯口粮">Russian Ration</span><span class="food-stamina">+80%</span></div>
+        <div class="food-item"><span class="food-icon">&#128056;</span><span class="food-name" data-en="Tree Frog" data-zh="树蛙">Tree Frog</span><span class="food-stamina">+30%</span></div>
+        <div class="food-item"><span class="food-icon">&#129431;</span><span class="food-name" data-en="Siberian Ink Cap" data-zh="西伯利亚墨汁鬼伞">Siberian Ink Cap</span><span class="food-stamina">+40%</span></div>
+        <div class="food-item"><span class="food-icon">&#128031;</span><span class="food-name" data-en="Arowana" data-zh="龙鱼">Arowana</span><span class="food-stamina">+50%</span></div>
+        <div class="food-item"><span class="food-icon">&#129421;</span><span class="food-name" data-en="Markhor" data-zh="捻角山羊">Markhor</span><span class="food-stamina">+100%</span></div>
+        <div class="food-item"><span class="food-icon">&#128038;</span><span class="food-name" data-en="Parrot" data-zh="鹦鹉">Parrot</span><span class="food-stamina">+20%</span></div>
+        <div class="food-item"><span class="food-icon">&#127821;</span><span class="food-name" data-en="Calorie Mate" data-zh="卡路里伴侣">Calorie Mate</span><span class="food-stamina">+70%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WEAPONS & CQC ===== -->
+<section class="section camo-bg" id="weapons">
+  <div class="section-inner reveal">
+    <div class="thrill-header">
+      <span class="section-label" data-en="Arsenal" data-zh="武器库">Arsenal</span>
+      <h2 data-en="Weapons &amp; CQC" data-zh="武器与CQC">Weapons &amp; CQC</h2>
+    </div>
+
+    <div class="weapons-grid">
+      <div class="weapon-card">
+        <span class="weapon-type" data-en="PISTOL" data-zh="手枪">PISTOL</span>
+        <h3>M1911A1</h3>
+        <p data-en="The iconic .45 caliber pistol. Custom-engraved, it becomes Snake's signature sidearm. Suppressor-compatible. The Boss carries a matching model — the weapon that defines their bond." data-zh="标志性的.45口径手枪。定制雕刻，成为蛇的标志性手枪。可装配消音器。Boss携带一把配套型号——定义他们纽带的武器。">The iconic .45 caliber pistol. Custom-engraved, it becomes Snake's signature sidearm. Suppressor-compatible. The Boss carries a matching model — the weapon that defines their bond.</p>
+      </div>
+      <div class="weapon-card">
+        <span class="weapon-type" data-en="SNIPER" data-zh="狙击枪">SNIPER</span>
+        <h3>SVD Dragunov</h3>
+        <p data-en="Soviet semi-automatic sniper rifle. Essential for the legendary duel with The End. 7.62x54mmR caliber with PSO-1 scope. The weapon of patience and precision in the jungle." data-zh="苏联半自动狙击步枪。在与终结的传奇对决中必不可少。7.62x54mmR口径，配PSO-1瞄准镜。丛林中耐心与精准的武器。">Soviet semi-automatic sniper rifle. Essential for the legendary duel with The End. 7.62x54mmR caliber with PSO-1 scope. The weapon of patience and precision in the jungle.</p>
+      </div>
+      <div class="weapon-card">
+        <span class="weapon-type" data-en="ASSAULT" data-zh="突击步枪">ASSAULT</span>
+        <h3>AK-47</h3>
+        <p data-en="Avtomat Kalashnikova. The most reliable assault rifle ever made. Found throughout Tselinoyarsk as the standard Soviet weapon. Rugged, powerful, and fitting for the jungle environment." data-zh="卡拉什尼科夫自动步枪。有史以来最可靠的突击步枪。作为苏联标准武器遍布茨林诺亚尔斯克。坚固、强大，适合丛林环境。">Avtomat Kalashnikova. The most reliable assault rifle ever made. Found throughout Tselinoyarsk as the standard Soviet weapon. Rugged, powerful, and fitting for the jungle environment.</p>
+      </div>
+      <div class="weapon-card">
+        <span class="weapon-type" data-en="TRANQ" data-zh="麻醉枪">TRANQ</span>
+        <h3>Mk22 (Hush Puppy)</h3>
+        <p data-en="The tranquilizer pistol for non-lethal operations. Suppressed and silent, it embodies the stealth approach. Essential for capturing food animals alive and achieving a no-kill run." data-zh="用于非致命行动的麻醉手枪。装有消音器，安静无声，体现了潜行方式。对于活捕食用动物和实现无杀通关至关重要。">The tranquilizer pistol for non-lethal operations. Suppressed and silent, it embodies the stealth approach. Essential for capturing food animals alive and achieving a no-kill run.</p>
+      </div>
+    </div>
+
+    <div class="cqc-display">
+      <h3 data-en="Close Quarters Combat" data-zh="近身格斗术">Close Quarters Combat</h3>
+      <p style="font-size:.85rem;color:var(--text-dim);max-width:600px;margin:0 auto" data-en="Developed by Naked Snake and The Boss together. A revolutionary martial art combining grappling, firearms use, and knife fighting at close range. The foundation of all modern special forces combat." data-zh="由裸蛇和Boss共同开发。一种革命性的武术，结合了近距离的擒拿、枪械使用和刀战。所有现代特种部队格斗的基础。">Developed by Naked Snake and The Boss together. A revolutionary martial art combining grappling, firearms use, and knife fighting at close range. The foundation of all modern special forces combat.</p>
+      <div class="cqc-moves">
+        <div class="cqc-move" data-en="GRAB" data-zh="抓取">GRAB</div>
+        <div class="cqc-move" data-en="THROW" data-zh="投掷">THROW</div>
+        <div class="cqc-move" data-en="CHOKE HOLD" data-zh="锁喉">CHOKE HOLD</div>
+        <div class="cqc-move" data-en="SLAM" data-zh="摔击">SLAM</div>
+        <div class="cqc-move" data-en="INTERROGATE" data-zh="审讯">INTERROGATE</div>
+        <div class="cqc-move" data-en="THROAT SLIT" data-zh="割喉">THROAT SLIT</div>
+        <div class="cqc-move" data-en="KNIFE + GUN" data-zh="刀+枪">KNIFE + GUN</div>
+        <div class="cqc-move" data-en="COMBO STRIKES" data-zh="连击">COMBO STRIKES</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== THE BOSS'S LEGACY ===== -->
+<section class="section camo-bg" id="legacy">
+  <div class="section-inner reveal">
+    <div class="thrill-header">
+      <span class="section-label" data-en="The Truth" data-zh="真相">The Truth</span>
+      <h2 data-en="The Boss's Legacy" data-zh="Boss的遗产">The Boss's Legacy</h2>
+    </div>
+    <div class="legacy-content">
+      <p data-en="The Boss was never a traitor. Her defection was ordered by the U.S. government — a sacrificial mission to retrieve the Philosophers' Legacy, a vast fortune accumulated by the most powerful minds of the 20th century. She was ordered to die at the hands of her own apprentice to provide America plausible deniability for Volgin's nuclear strike." data-zh="Boss从来不是叛徒。她的叛逃是美国政府下令的——一个牺牲性任务，目的是夺回哲学家们的遗产，一笔由20世纪最强大的头脑积累的巨额财富。她被命令死在自己徒弟手中，以便为美国提供对沃尔金核打击的合理推诿。">The Boss was never a traitor. Her defection was ordered by the U.S. government — a sacrificial mission to retrieve the Philosophers' Legacy, a vast fortune accumulated by the most powerful minds of the 20th century. She was ordered to die at the hands of her own apprentice to provide America plausible deniability for Volgin's nuclear strike.</p>
+
+      <p data-en="In a field of white flowers, Snake fulfilled his mission. He pulled the trigger on the woman who taught him everything — his mother in spirit, his mentor, his greatest enemy and greatest ally. The Boss died a hero, branded a traitor. Only Snake knew the truth." data-zh="在一片白花田中，蛇完成了他的任务。他扣下了扳机，射向那个教会他一切的女人——他精神上的母亲、他的导师、他最大的敌人和最大的盟友。Boss作为英雄而死，却被冠以叛徒之名。只有蛇知道真相。">In a field of white flowers, Snake fulfilled his mission. He pulled the trigger on the woman who taught him everything — his mother in spirit, his mentor, his greatest enemy and greatest ally. The Boss died a hero, branded a traitor. Only Snake knew the truth.</p>
+
+      <p data-en="For this, he was awarded the title of Big Boss — the greatest soldier in the world. But the title meant nothing without her. At her grave in Arlington National Cemetery, he shed his final tears and began his transformation from hero into the legend that would shape the world for decades to come." data-zh="为此，他被授予Big Boss的称号——世界上最伟大的士兵。但没有她，这个称号毫无意义。在阿灵顿国家公墓她的墓前，他流下了最后的眼泪，开始了从英雄到传奇的蜕变，这一传奇将在未来数十年塑造世界。">For this, he was awarded the title of Big Boss — the greatest soldier in the world. But the title meant nothing without her. At her grave in Arlington National Cemetery, he shed his final tears and began his transformation from hero into the legend that would shape the world for decades to come.</p>
+
+      <div class="legacy-quote" data-en="She was a true patriot." data-zh="她是一位真正的爱国者。">She was a true patriot.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL QUOTE ===== -->
+<section class="final-quote camo-bg reveal" id="quote">
+  <blockquote data-en="&ldquo;There's only room for one Snake... and one Boss.&rdquo;" data-zh="&ldquo;这世上只容得下一条蛇……和一个Boss。&rdquo;">&ldquo;There's only room for one Snake... and one Boss.&rdquo;</blockquote>
+  <cite data-en="&mdash; Naked Snake (Big Boss), 1964" data-zh="&mdash; 裸蛇（Big Boss），1964年">&mdash; Naked Snake (Big Boss), 1964</cite>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="camo-bg">
+  <span class="footer-snake">&#128013;</span>
+  <p data-en="METAL GEAR SOLID 3: SNAKE EATER &copy; 2004 KONAMI" data-zh="合金装备3：食蛇者 &copy; 2004 KONAMI">METAL GEAR SOLID 3: SNAKE EATER &copy; 2004 KONAMI</p>
+  <p style="margin-top:.5rem" data-en="A Hideo Kojima Game &mdash; Fan tribute page" data-zh="小岛秀夫作品 &mdash; 粉丝致敬页面">A Hideo Kojima Game &mdash; Fan tribute page</p>
+  <p style="margin-top:1rem;opacity:.4" data-en="&ldquo;What a thrill... with darkness and silence through the night...&rdquo;" data-zh="&ldquo;多么刺激……在黑暗与寂静中穿越夜晚……&rdquo;">&ldquo;What a thrill... with darkness and silence through the night...&rdquo;</p>
+</footer>
+
+<script>
+/* ===== PARTICLE CANVAS (Leaves & Fireflies) ===== */
+(function(){
+  const canvas=document.getElementById('particle-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+
+  class Particle{
+    constructor(type){
+      this.type=type;
+      this.reset();
+    }
+    reset(){
+      this.x=Math.random()*W;
+      this.y=Math.random()*H;
+      if(this.type==='leaf'){
+        this.size=Math.random()*4+2;
+        this.speedX=Math.random()*0.5-0.25;
+        this.speedY=Math.random()*0.3+0.1;
+        this.rotation=Math.random()*Math.PI*2;
+        this.rotSpeed=Math.random()*0.02-0.01;
+        this.opacity=Math.random()*0.3+0.1;
+        this.color=`rgba(${80+Math.random()*40},${120+Math.random()*40},${40+Math.random()*30},`;
+      }else{
+        this.size=Math.random()*2+1;
+        this.speedX=Math.random()*0.3-0.15;
+        this.speedY=Math.random()*0.2-0.1;
+        this.pulseSpeed=Math.random()*0.03+0.01;
+        this.pulsePhase=Math.random()*Math.PI*2;
+        this.opacity=0;
+        this.maxOpacity=Math.random()*0.6+0.2;
+        this.color=Math.random()>0.5?'200,170,60':'140,200,80';
+      }
+    }
+    update(){
+      if(this.type==='leaf'){
+        this.x+=this.speedX+Math.sin(Date.now()*0.001+this.rotation)*0.2;
+        this.y+=this.speedY;
+        this.rotation+=this.rotSpeed;
+        if(this.y>H+10){this.y=-10;this.x=Math.random()*W}
+      }else{
+        this.x+=this.speedX;
+        this.y+=this.speedY;
+        this.pulsePhase+=this.pulseSpeed;
+        this.opacity=this.maxOpacity*Math.abs(Math.sin(this.pulsePhase));
+        if(this.x<-10||this.x>W+10||this.y<-10||this.y>H+10){this.reset()}
+      }
+    }
+    draw(){
+      ctx.save();
+      if(this.type==='leaf'){
+        ctx.translate(this.x,this.y);
+        ctx.rotate(this.rotation);
+        ctx.fillStyle=this.color+this.opacity+')';
+        ctx.beginPath();
+        ctx.ellipse(0,0,this.size,this.size*0.4,0,0,Math.PI*2);
+        ctx.fill();
+      }else{
+        ctx.globalAlpha=this.opacity;
+        ctx.fillStyle=`rgba(${this.color},${this.opacity})`;
+        ctx.shadowColor=`rgba(${this.color},0.5)`;
+        ctx.shadowBlur=this.size*4;
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  const particles=[];
+  for(let i=0;i<35;i++)particles.push(new Particle('leaf'));
+  for(let i=0;i<25;i++)particles.push(new Particle('firefly'));
+
+  function animate(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{p.update();p.draw()});
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* ===== SCROLL REVEAL ===== */
+const revealEls=document.querySelectorAll('.reveal');
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:0.1});
+revealEls.forEach(el=>observer.observe(el));
+
+/* ===== LADDER SCROLL PROGRESS ===== */
+window.addEventListener('scroll',()=>{
+  const scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
+  const scrollHeight=document.documentElement.scrollHeight-document.documentElement.clientHeight;
+  const progress=scrollHeight>0?(scrollTop/scrollHeight)*100:0;
+  const lp=document.getElementById('ladder-progress');
+  if(lp)lp.style.height=progress+'%';
+});
+
+/* ===== THEME TOGGLE ===== */
+function toggleTheme(){
+  const html=document.documentElement;
+  const current=html.getAttribute('data-theme');
+  html.setAttribute('data-theme',current==='dark'?'light':'dark');
+}
+
+/* ===== LANGUAGE TOGGLE ===== */
+function toggleLang(){
+  const html=document.documentElement;
+  const current=html.getAttribute('data-lang');
+  const newLang=current==='en'?'zh':'en';
+  html.setAttribute('data-lang',newLang);
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const text=el.getAttribute('data-'+newLang);
+    if(text)el.innerHTML=text;
+  });
+}
+
+/* ===== SURVIVAL TABS ===== */
+function showSurvival(panel){
+  document.querySelectorAll('.survival-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.survival-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+panel).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Persona 5 | 女神异闻录5 - 心之怪盗团</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --red:#e60012;--red-bright:#ff0000;--black:#000;--white:#fff;
+  --bg:#1a1a1a;--bg2:#111;--text:#fff;--text2:#ccc;
+  --card-bg:rgba(0,0,0,0.85);--card-border:var(--red);
+  --section-bg:#0d0d0d;--accent:#ff1a1a;
+}
+html.light{
+  --bg:#f5f0e8;--bg2:#efe8db;--text:#111;--text2:#333;
+  --card-bg:rgba(255,255,255,0.92);--card-border:var(--red);
+  --section-bg:#e8e0d0;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans SC','Rajdhani',sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;
+  transition:background .4s,color .4s;
+}
+/* Halftone pattern overlay */
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;opacity:.03;
+  background-image:radial-gradient(circle,var(--red) 1px,transparent 1px);
+  background-size:8px 8px;
+}
+canvas#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ===== NAV ===== */
+nav{
+  position:fixed;top:0;left:0;width:100%;z-index:1000;
+  background:var(--black);border-bottom:4px solid var(--red);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;height:64px;
+}
+nav .logo{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.6rem;
+  color:var(--white);transform:skewX(-8deg);letter-spacing:2px;
+  text-shadow:3px 3px 0 var(--red);
+}
+nav .nav-links{display:flex;gap:0;align-items:center;height:100%}
+nav .nav-links a{
+  color:var(--white);text-decoration:none;font-family:'Rajdhani',sans-serif;
+  font-weight:600;font-size:.95rem;text-transform:uppercase;letter-spacing:1px;
+  padding:0 1.2rem;height:100%;display:flex;align-items:center;
+  transform:skewX(-12deg);transition:all .2s;position:relative;
+  background:transparent;
+}
+nav .nav-links a span{transform:skewX(12deg);display:block}
+nav .nav-links a:hover{background:var(--red);color:var(--white)}
+nav .nav-links a::after{
+  content:'';position:absolute;bottom:0;left:0;width:100%;height:3px;
+  background:var(--red);transform:scaleX(0);transition:transform .3s;
+}
+nav .nav-links a:hover::after{transform:scaleX(1)}
+.nav-controls{display:flex;gap:.5rem;align-items:center}
+.nav-controls button{
+  background:transparent;border:2px solid var(--red);color:var(--white);
+  padding:.35rem .8rem;font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:.85rem;cursor:pointer;transform:skewX(-8deg);
+  transition:all .2s;text-transform:uppercase;
+}
+.nav-controls button:hover{background:var(--red);color:var(--white)}
+.hamburger{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:8px}
+.hamburger span{display:block;width:28px;height:3px;background:var(--white);transition:all .3s;transform-origin:center}
+
+/* ===== SECTION COMMON ===== */
+section{position:relative;z-index:1;overflow:hidden}
+.section-inner{max-width:1200px;margin:0 auto;padding:6rem 2rem}
+.section-title{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:3rem;
+  text-transform:uppercase;transform:skewX(-8deg);display:inline-block;
+  background:var(--red);color:var(--white);padding:.2rem 1.5rem;
+  margin-bottom:2rem;letter-spacing:3px;
+  clip-path:polygon(3% 0,100% 0,97% 100%,0 100%);
+}
+html.light .section-title{background:var(--red);color:var(--white)}
+
+/* Diagonal dividers */
+.divider-skew{
+  width:100%;height:80px;position:relative;margin-top:-1px;
+}
+.divider-skew::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:var(--bg);transform:skewY(-2deg);transform-origin:top left;
+}
+.divider-skew.reverse::before{transform:skewY(2deg);transform-origin:top right}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateX(-60px) skewX(-4deg);transition:all .7s cubic-bezier(.25,.46,.45,.94)}
+.reveal.from-right{transform:translateX(60px) skewX(4deg)}
+.reveal.active{opacity:1;transform:translateX(0) skewX(0)}
+
+/* ===== HERO ===== */
+#hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  position:relative;background:var(--black);overflow:hidden;
+}
+#hero::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(
+    45deg,transparent,transparent 20px,rgba(230,0,18,.06) 20px,rgba(230,0,18,.06) 40px
+  );z-index:1;
+}
+#hero::after{
+  content:'';position:absolute;bottom:-40px;left:0;width:120%;height:120px;
+  background:var(--red);transform:skewY(-3deg);z-index:2;
+}
+.hero-content{
+  text-align:center;z-index:3;position:relative;
+  animation:heroSlideIn .8s cubic-bezier(.25,.46,.45,.94) both;
+}
+@keyframes heroSlideIn{
+  from{opacity:0;transform:translateY(60px) skewX(-10deg)}
+  to{opacity:1;transform:translateY(0) skewX(0)}
+}
+.hero-mask{
+  width:160px;height:160px;margin:0 auto 2rem;
+  position:relative;animation:maskFloat 3s ease-in-out infinite;
+}
+@keyframes maskFloat{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-15px) rotate(5deg)}}
+.hero-mask svg{width:100%;height:100%}
+.hero-title{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:5rem;
+  text-transform:uppercase;color:var(--white);letter-spacing:6px;
+  transform:skewX(-6deg);text-shadow:5px 5px 0 var(--red);
+  line-height:1.1;
+}
+.hero-sub{
+  font-size:1.8rem;color:var(--red);font-weight:700;
+  transform:skewX(-4deg);margin-top:1rem;letter-spacing:4px;
+}
+.hero-tagline{
+  font-size:1.1rem;color:var(--text2);margin-top:1.5rem;
+  max-width:600px;margin-left:auto;margin-right:auto;
+  transform:skewX(-2deg);
+}
+.hero-cta{
+  display:inline-block;margin-top:2.5rem;padding:1rem 3rem;
+  background:var(--red);color:var(--white);font-family:'Rajdhani',sans-serif;
+  font-weight:700;font-size:1.2rem;text-transform:uppercase;
+  text-decoration:none;transform:skewX(-10deg);
+  clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);
+  transition:all .3s;letter-spacing:3px;border:none;cursor:pointer;
+}
+.hero-cta:hover{background:var(--white);color:var(--red);transform:skewX(-10deg) scale(1.05)}
+.hero-cta span{display:inline-block;transform:skewX(10deg)}
+/* Splatter decorations */
+.splatter{position:absolute;z-index:2;pointer-events:none}
+.splatter-1{
+  top:15%;left:5%;width:200px;height:200px;
+  background:var(--red);opacity:.15;
+  clip-path:polygon(20% 0,80% 10%,100% 50%,85% 90%,30% 100%,0 60%,10% 20%);
+  animation:splatPulse 4s ease-in-out infinite;
+}
+.splatter-2{
+  bottom:20%;right:8%;width:150px;height:150px;
+  background:var(--red);opacity:.12;
+  clip-path:polygon(50% 0,100% 30%,90% 80%,40% 100%,0 70%,15% 20%);
+  animation:splatPulse 5s ease-in-out infinite 1s;
+}
+@keyframes splatPulse{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.1) rotate(5deg)}}
+
+/* Red stripe accents */
+.red-stripe{
+  position:absolute;background:var(--red);z-index:1;
+}
+.stripe-1{top:30%;left:-5%;width:50%;height:6px;transform:rotate(-15deg);opacity:.3}
+.stripe-2{bottom:35%;right:-5%;width:40%;height:4px;transform:rotate(20deg);opacity:.25}
+
+/* ===== ABOUT ===== */
+#about{background:var(--bg)}
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;
+}
+.about-text p{
+  font-size:1.05rem;line-height:1.8;margin-bottom:1.2rem;color:var(--text2);
+}
+.about-visual{
+  position:relative;padding:2rem;
+}
+.about-card{
+  background:var(--red);color:var(--white);padding:2.5rem;
+  transform:skewX(-6deg) rotate(-2deg);position:relative;
+  font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:2px;text-align:center;
+  box-shadow:8px 8px 0 var(--black);
+}
+.about-card::before{
+  content:'';position:absolute;top:-8px;left:-8px;right:-8px;bottom:-8px;
+  border:3px solid var(--red);transform:skewX(3deg);
+}
+.about-stats{
+  display:flex;gap:2rem;margin-top:2rem;justify-content:center;
+}
+.stat{text-align:center}
+.stat-num{font-family:'Rajdhani',sans-serif;font-size:2.5rem;font-weight:700;color:var(--red)}
+.stat-label{font-size:.85rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+
+/* ===== PROFILES ===== */
+#profiles{background:var(--section-bg)}
+.profiles-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;
+}
+.profile-card{
+  background:var(--card-bg);border-left:5px solid var(--red);
+  padding:0;position:relative;overflow:hidden;
+  transform:skewX(-3deg);transition:all .4s cubic-bezier(.25,.46,.45,.94);
+  cursor:pointer;
+}
+.profile-card:hover{
+  transform:skewX(-3deg) translateY(-8px) scale(1.02);
+  box-shadow:10px 10px 0 var(--red);
+}
+.profile-card-inner{transform:skewX(3deg);padding:2rem}
+.profile-codename{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.8rem;
+  color:var(--red);text-transform:uppercase;letter-spacing:3px;
+}
+.profile-name{font-size:.9rem;color:var(--text2);margin-bottom:.8rem;letter-spacing:1px}
+.profile-persona{
+  display:inline-block;background:var(--red);color:var(--white);
+  padding:.2rem .8rem;font-size:.75rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;
+  clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);
+  margin-bottom:.8rem;
+}
+.profile-desc{font-size:.9rem;line-height:1.6;color:var(--text2)}
+.profile-icon{
+  position:absolute;top:1rem;right:1rem;width:50px;height:50px;
+  opacity:.15;
+}
+.profile-icon svg{width:100%;height:100%;fill:var(--red)}
+/* Stripe pattern on card */
+.profile-card::before{
+  content:'';position:absolute;top:0;right:0;width:40%;height:100%;
+  background:repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(230,0,18,.04) 5px,rgba(230,0,18,.04) 10px);
+  pointer-events:none;
+}
+
+/* ===== PALACES ===== */
+#palaces{background:var(--bg)}
+.timeline{position:relative;padding:2rem 0}
+.timeline::before{
+  content:'';position:absolute;left:50%;top:0;bottom:0;width:4px;
+  background:var(--red);transform:translateX(-50%) skewX(-5deg);
+}
+.timeline-item{
+  position:relative;width:45%;margin-bottom:3rem;
+  padding:1.5rem 2rem;background:var(--card-bg);
+  border:2px solid var(--red);
+  transform:skewX(-4deg);transition:all .4s;
+}
+.timeline-item:hover{transform:skewX(-4deg) scale(1.02);box-shadow:6px 6px 0 var(--red)}
+.timeline-item:nth-child(odd){margin-left:5%}
+.timeline-item:nth-child(even){margin-left:50%}
+.timeline-item::before{
+  content:'';position:absolute;top:50%;width:20px;height:20px;
+  background:var(--red);border-radius:50%;
+  box-shadow:0 0 0 4px var(--black),0 0 0 6px var(--red);
+}
+.timeline-item:nth-child(odd)::before{right:-32px;transform:translateY(-50%)}
+.timeline-item:nth-child(even)::before{left:-32px;transform:translateY(-50%)}
+.timeline-inner{transform:skewX(4deg)}
+.palace-name{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.4rem;
+  color:var(--red);text-transform:uppercase;letter-spacing:2px;
+}
+.palace-ruler{font-size:.85rem;color:var(--text2);margin:.3rem 0}
+.palace-sin{
+  display:inline-block;background:var(--red);color:var(--white);
+  padding:.15rem .6rem;font-size:.7rem;font-weight:700;
+  text-transform:uppercase;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);
+}
+.palace-desc{font-size:.9rem;color:var(--text2);margin-top:.6rem;line-height:1.5}
+
+/* ===== CONFIDANT ===== */
+#confidant{background:var(--section-bg)}
+.confidant-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;
+}
+.confidant-card{
+  background:var(--card-bg);padding:1.8rem;
+  border-bottom:4px solid var(--red);
+  transform:skewX(-2deg);transition:all .3s;position:relative;overflow:hidden;
+}
+.confidant-card:hover{transform:skewX(-2deg) translateY(-5px)}
+.confidant-card .rank{
+  position:absolute;top:.5rem;right:1rem;
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:3rem;
+  color:var(--red);opacity:.2;
+}
+.confidant-arcana{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;
+  color:var(--red);text-transform:uppercase;letter-spacing:2px;
+}
+.confidant-name{font-size:.85rem;color:var(--text2);margin:.3rem 0 .6rem}
+.confidant-desc{font-size:.85rem;line-height:1.6;color:var(--text2)}
+.confidant-bar{
+  margin-top:1rem;height:4px;background:rgba(230,0,18,.2);position:relative;
+}
+.confidant-bar-fill{height:100%;background:var(--red);transition:width 1.5s ease}
+
+/* ===== QUOTE ===== */
+#quote{
+  background:var(--red);color:var(--white);position:relative;overflow:hidden;
+  min-height:50vh;display:flex;align-items:center;justify-content:center;
+}
+#quote::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(
+    -45deg,transparent,transparent 30px,rgba(0,0,0,.08) 30px,rgba(0,0,0,.08) 60px
+  );
+}
+#quote::after{
+  content:'';position:absolute;top:-30px;left:0;width:120%;height:80px;
+  background:var(--bg);transform:skewY(-2deg);
+}
+.quote-content{
+  text-align:center;z-index:2;position:relative;padding:4rem 2rem;
+}
+.quote-text{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:4rem;
+  text-transform:uppercase;transform:skewX(-6deg);
+  text-shadow:4px 4px 0 rgba(0,0,0,.3);letter-spacing:4px;line-height:1.2;
+}
+.quote-author{
+  font-size:1.1rem;margin-top:1.5rem;opacity:.8;
+  transform:skewX(-3deg);letter-spacing:2px;
+}
+
+/* ===== CTA ===== */
+#cta{background:var(--bg);text-align:center}
+.cta-box{
+  background:var(--card-bg);border:3px solid var(--red);
+  padding:4rem 3rem;transform:skewX(-3deg);
+  max-width:700px;margin:0 auto;position:relative;
+}
+.cta-box::before{
+  content:'';position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;
+  border:2px solid var(--red);opacity:.3;
+}
+.cta-inner{transform:skewX(3deg)}
+.cta-inner h2{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:2.5rem;
+  color:var(--red);text-transform:uppercase;letter-spacing:3px;margin-bottom:1rem;
+}
+.cta-inner p{color:var(--text2);margin-bottom:2rem;font-size:1.05rem}
+.btn-phantom{
+  display:inline-block;padding:1rem 3rem;background:var(--red);
+  color:var(--white);font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:1.2rem;text-transform:uppercase;letter-spacing:3px;
+  text-decoration:none;transform:skewX(-8deg);
+  clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);
+  transition:all .3s;border:none;cursor:pointer;
+}
+.btn-phantom:hover{background:var(--white);color:var(--red);transform:skewX(-8deg) scale(1.05)}
+.btn-phantom span{display:inline-block;transform:skewX(8deg)}
+
+/* ===== FOOTER ===== */
+footer{
+  background:var(--black);color:var(--white);padding:3rem 2rem;
+  text-align:center;position:relative;z-index:1;
+  border-top:4px solid var(--red);
+}
+footer .footer-logo{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.5rem;
+  transform:skewX(-8deg);display:inline-block;
+  text-shadow:2px 2px 0 var(--red);letter-spacing:3px;
+  margin-bottom:1rem;
+}
+footer p{font-size:.85rem;color:#888;margin-top:.5rem}
+footer .footer-links{display:flex;gap:1.5rem;justify-content:center;margin:1rem 0}
+footer .footer-links a{
+  color:var(--red);text-decoration:none;font-family:'Rajdhani',sans-serif;
+  font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:.9rem;
+  transition:color .3s;
+}
+footer .footer-links a:hover{color:var(--white)}
+
+/* Polka dot section bg */
+.dots-bg{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background-image:radial-gradient(circle,var(--red) 1.5px,transparent 1.5px);
+  background-size:20px 20px;opacity:.04;pointer-events:none;
+}
+
+/* ===== MOBILE NAV ===== */
+.mobile-menu{
+  display:none;position:fixed;top:64px;left:0;width:100%;height:calc(100vh - 64px);
+  background:rgba(0,0,0,.97);z-index:999;flex-direction:column;
+  align-items:center;justify-content:center;gap:1.5rem;
+}
+.mobile-menu.open{display:flex}
+.mobile-menu a{
+  color:var(--white);text-decoration:none;font-family:'Rajdhani',sans-serif;
+  font-weight:700;font-size:1.8rem;text-transform:uppercase;letter-spacing:3px;
+  transform:skewX(-8deg);transition:color .3s;
+}
+.mobile-menu a:hover{color:var(--red)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .profiles-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-title{font-size:3.5rem}
+  .quote-text{font-size:2.8rem}
+}
+@media(max-width:768px){
+  nav .nav-links{display:none}
+  .hamburger{display:flex}
+  .profiles-grid{grid-template-columns:1fr}
+  .about-grid{grid-template-columns:1fr}
+  .hero-title{font-size:2.5rem}
+  .hero-sub{font-size:1.3rem}
+  .section-title{font-size:2rem}
+  .quote-text{font-size:2rem}
+  .timeline::before{left:20px}
+  .timeline-item{width:calc(100% - 50px);margin-left:50px!important}
+  .timeline-item::before{left:-32px!important;right:auto!important}
+  .section-inner{padding:4rem 1.2rem}
+  .cta-box{padding:2.5rem 1.5rem}
+}
+@media(max-width:480px){
+  .hero-title{font-size:2rem}
+  .hero-mask{width:100px;height:100px}
+  nav{padding:0 1rem}
+  .nav-controls button{padding:.25rem .5rem;font-size:.75rem}
+}
+
+/* ALL OUT ATTACK animation on load */
+.aoa-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;
+  background:var(--red);display:flex;align-items:center;justify-content:center;
+  transition:opacity .6s,transform .6s;
+}
+.aoa-overlay.hide{opacity:0;transform:scale(1.2);pointer-events:none}
+.aoa-text{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:5rem;
+  color:var(--white);text-transform:uppercase;letter-spacing:8px;
+  transform:skewX(-12deg);text-shadow:4px 4px 0 rgba(0,0,0,.3);
+  animation:aoaPulse .5s ease-in-out 3;
+}
+@keyframes aoaPulse{0%,100%{transform:skewX(-12deg) scale(1)}50%{transform:skewX(-12deg) scale(1.05)}}
+</style>
+</head>
+<body>
+
+<!-- All Out Attack Splash -->
+<div class="aoa-overlay" id="aoaOverlay">
+  <div class="aoa-text" id="aoaText">TAKE YOUR HEART</div>
+</div>
+
+<!-- Background Canvas -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">P<span style="color:var(--red)">5</span></div>
+  <div class="nav-links" id="navLinks">
+    <a href="#about"><span data-zh="关于" data-en="About">关于</span></a>
+    <a href="#profiles"><span data-zh="怪盗团" data-en="Thieves">怪盗团</span></a>
+    <a href="#palaces"><span data-zh="殿堂" data-en="Palaces">殿堂</span></a>
+    <a href="#confidant"><span data-zh="协作" data-en="Confidant">协作</span></a>
+    <a href="#quote"><span data-zh="名言" data-en="Quote">名言</span></a>
+  </div>
+  <div class="nav-controls">
+    <button id="langToggle" onclick="toggleLang()">EN</button>
+    <button id="themeToggle" onclick="toggleTheme()">LIGHT</button>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMobile()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about" onclick="closeMobile()"><span data-zh="关于" data-en="About">关于</span></a>
+  <a href="#profiles" onclick="closeMobile()"><span data-zh="怪盗团" data-en="Thieves">怪盗团</span></a>
+  <a href="#palaces" onclick="closeMobile()"><span data-zh="殿堂" data-en="Palaces">殿堂</span></a>
+  <a href="#confidant" onclick="closeMobile()"><span data-zh="协作" data-en="Confidant">协作</span></a>
+  <a href="#quote" onclick="closeMobile()"><span data-zh="名言" data-en="Quote">名言</span></a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="splatter splatter-1"></div>
+  <div class="splatter splatter-2"></div>
+  <div class="red-stripe stripe-1"></div>
+  <div class="red-stripe stripe-2"></div>
+  <div class="hero-content">
+    <div class="hero-mask">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Joker's mask simplified -->
+        <path d="M100 20 C50 20 15 60 15 100 C15 145 50 175 100 180 C150 175 185 145 185 100 C185 60 150 20 100 20Z" fill="none" stroke="#e60012" stroke-width="4"/>
+        <path d="M40 90 C55 70 80 65 100 70 C120 65 145 70 160 90 L150 100 C140 85 120 80 100 82 C80 80 60 85 50 100Z" fill="#e60012"/>
+        <path d="M60 95 L80 88 L100 92 L120 88 L140 95" fill="none" stroke="#fff" stroke-width="2"/>
+        <circle cx="75" cy="105" r="4" fill="#fff"/>
+        <circle cx="125" cy="105" r="4" fill="#fff"/>
+        <path d="M80 130 Q100 145 120 130" fill="none" stroke="#e60012" stroke-width="3"/>
+      </svg>
+    </div>
+    <h1 class="hero-title" data-zh="心之怪盗团" data-en="PHANTOM THIEVES">心之怪盗团</h1>
+    <p class="hero-sub" data-zh="女神异闻录 5" data-en="PERSONA 5">女神异闻录 5</p>
+    <p class="hero-tagline" data-zh="我们是改变世界的叛逆者。腐败的成年人，准备好了吗？我们将夺走你们扭曲的欲望！" data-en="We are the rebels who will change the world. Corrupt adults, are you ready? We will steal your distorted desires!">我们是改变世界的叛逆者。腐败的成年人，准备好了吗？我们将夺走你们扭曲的欲望！</p>
+    <a href="#about" class="hero-cta"><span data-zh="开始探索" data-en="BEGIN">开始探索</span></a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<div class="divider-skew"><div class="dots-bg"></div></div>
+<section id="about">
+  <div class="section-inner">
+    <div class="section-title reveal" data-zh="关于怪盗团" data-en="ABOUT THE THIEVES">关于怪盗团</div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p data-zh="心之怪盗团——一群被社会遗弃的年轻人，在异世界中觉醒了反叛之力。他们戴上面具，召唤人格面具（Persona），潜入腐败成年人内心深处扭曲的欲望宫殿。" data-en="The Phantom Thieves of Hearts — a group of outcasts who awakened to their power of rebellion in the Metaverse. They don masks, summon Personas, and infiltrate the twisted Palaces within the hearts of corrupt adults.">心之怪盗团——一群被社会遗弃的年轻人，在异世界中觉醒了反叛之力。他们戴上面具，召唤人格面具（Persona），潜入腐败成年人内心深处扭曲的欲望宫殿。</p>
+        <p data-zh="通过窃取「扭曲的欲望」——殿堂深处的宝藏——怪盗团迫使目标经历内心的转变，对自己的罪行忏悔。他们是正义的化身，还是危险的私刑者？答案取决于你。" data-en="By stealing 'distorted desires' — treasures deep within Palaces — the Thieves force targets to undergo a change of heart and confess their crimes. Are they agents of justice or dangerous vigilantes? The answer is yours to decide.">通过窃取「扭曲的欲望」——殿堂深处的宝藏——怪盗团迫使目标经历内心的转变，对自己的罪行忏悔。他们是正义的化身，还是危险的私刑者？答案取决于你。</p>
+      </div>
+      <div class="about-visual reveal from-right">
+        <div class="about-card">
+          <div data-zh="夺取你的心" data-en="TAKE YOUR HEART">夺取你的心</div>
+          <div class="about-stats">
+            <div class="stat">
+              <div class="stat-num">8</div>
+              <div class="stat-label" data-zh="成员" data-en="Members">成员</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num">7</div>
+              <div class="stat-label" data-zh="殿堂" data-en="Palaces">殿堂</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num">21</div>
+              <div class="stat-label" data-zh="协作" data-en="Confidants">协作</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROFILES -->
+<div class="divider-skew reverse"></div>
+<section id="profiles">
+  <div class="dots-bg"></div>
+  <div class="section-inner">
+    <div class="section-title reveal" data-zh="怪盗团成员" data-en="PHANTOM THIEVES">怪盗团成员</div>
+    <div class="profiles-grid">
+      <!-- Joker -->
+      <div class="profile-card reveal">
+        <div class="profile-card-inner">
+          <div class="profile-codename">JOKER</div>
+          <div class="profile-name" data-zh="雨宫莲 / Ren Amamiya" data-en="Ren Amamiya">雨宫莲 / Ren Amamiya</div>
+          <div class="profile-persona" data-zh="人格面具: 阿尔塞纳" data-en="PERSONA: ARSÈNE">人格面具: 阿尔塞纳</div>
+          <p class="profile-desc" data-zh="心之怪盗团的领袖。被冤枉的转校生，在异世界觉醒了反叛之力。拥有「野卡」能力，可使用多个人格面具。冷静、果断，以优雅的姿态对抗不公。" data-en="Leader of the Phantom Thieves. A wrongfully accused transfer student who awakened to rebellion in the Metaverse. Possesses the Wild Card ability to wield multiple Personas. Cool, decisive, fighting injustice with elegance.">心之怪盗团的领袖。被冤枉的转校生，在异世界觉醒了反叛之力。拥有「野卡」能力，可使用多个人格面具。冷静、果断，以优雅的姿态对抗不公。</p>
+        </div>
+        <div class="profile-icon"><svg viewBox="0 0 50 50"><polygon points="25,5 45,45 5,45" /></svg></div>
+      </div>
+      <!-- Ryuji -->
+      <div class="profile-card reveal from-right">
+        <div class="profile-card-inner">
+          <div class="profile-codename">SKULL</div>
+          <div class="profile-name" data-zh="坂本龙司 / Ryuji Sakamoto" data-en="Ryuji Sakamoto">坂本龙司 / Ryuji Sakamoto</div>
+          <div class="profile-persona" data-zh="人格面具: 基德船长" data-en="PERSONA: CAPTAIN KIDD">人格面具: 基德船长</div>
+          <p class="profile-desc" data-zh="热血冲动的前田径队成员。因教师虐待而断送了运动生涯，对不公充满愤怒。虽然鲁莽但内心善良，是Joker最可靠的搭档和第一个伙伴。" data-en="A hot-blooded former track star whose athletic career was ruined by an abusive teacher. Full of rage against injustice. Reckless but kind-hearted, he's Joker's most reliable partner and first ally.">热血冲动的前田径队成员。因教师虐待而断送了运动生涯，对不公充满愤怒。虽然鲁莽但内心善良，是Joker最可靠的搭档和第一个伙伴。</p>
+        </div>
+        <div class="profile-icon"><svg viewBox="0 0 50 50"><rect x="10" y="10" width="30" height="30" transform="rotate(45 25 25)"/></svg></div>
+      </div>
+      <!-- Ann -->
+      <div class="profile-card reveal">
+        <div class="profile-card-inner">
+          <div class="profile-codename">PANTHER</div>
+          <div class="profile-name" data-zh="高卷杏 / Ann Takamaki" data-en="Ann Takamaki">高卷杏 / Ann Takamaki</div>
+          <div class="profile-persona" data-zh="人格面具: 卡门" data-en="PERSONA: CARMEN">人格面具: 卡门</div>
+          <p class="profile-desc" data-zh="混血模特，外表美丽内心坚强。亲眼目睹好友被教师侵害后觉醒。以火焰之力燃烧不义，用温柔保护珍视之人。她的反叛源于对朋友的爱。" data-en="A half-American model, beautiful yet strong. Awakened after witnessing her best friend's abuse by a teacher. Burns injustice with flames and protects loved ones with tenderness. Her rebellion springs from love.">混血模特，外表美丽内心坚强。亲眼目睹好友被教师侵害后觉醒。以火焰之力燃烧不义，用温柔保护珍视之人。她的反叛源于对朋友的爱。</p>
+        </div>
+        <div class="profile-icon"><svg viewBox="0 0 50 50"><polygon points="25,5 45,45 5,45" /></svg></div>
+      </div>
+      <!-- Yusuke -->
+      <div class="profile-card reveal from-right">
+        <div class="profile-card-inner">
+          <div class="profile-codename">FOX</div>
+          <div class="profile-name" data-zh="喜多川祐介 / Yusuke Kitagawa" data-en="Yusuke Kitagawa">喜多川祐介 / Yusuke Kitagawa</div>
+          <div class="profile-persona" data-zh="人格面具: 五右卫门" data-en="PERSONA: GOEMON">人格面具: 五右卫门</div>
+          <p class="profile-desc" data-zh="天才画家，追求「真正的美」。发现恩师剽窃了自己母亲的画作后觉醒。以冰之力和武士刀在异世界战斗，将每一场战斗都视为艺术的表达。" data-en="A genius artist pursuing 'true beauty.' Awakened upon discovering his mentor plagiarized his mother's work. Fights with ice and a katana in the Metaverse, treating every battle as artistic expression.">天才画家，追求「真正的美」。发现恩师剽窃了自己母亲的画作后觉醒。以冰之力和武士刀在异世界战斗，将每一场战斗都视为艺术的表达。</p>
+        </div>
+        <div class="profile-icon"><svg viewBox="0 0 50 50"><rect x="10" y="10" width="30" height="30" transform="rotate(45 25 25)"/></svg></div>
+      </div>
+      <!-- Makoto -->
+      <div class="profile-card reveal">
+        <div class="profile-card-inner">
+          <div class="profile-codename">QUEEN</div>
+          <div class="profile-name" data-zh="新岛真 / Makoto Niijima" data-en="Makoto Niijima">新岛真 / Makoto Niijima</div>
+          <div class="profile-persona" data-zh="人格面具: 约翰娜" data-en="PERSONA: JOHANNA">人格面具: 约翰娜</div>
+          <p class="profile-desc" data-zh="学生会长，成绩优异却活在姐姐的阴影下。在面对黑道威胁时觉醒了反叛之心。冷静的战术家，骑着人格面具化身的摩托车冲锋陷阵，是团队的智囊。" data-en="Student council president, top of her class yet living in her sister's shadow. Awakened when confronting the yakuza. A cool tactician who charges into battle on her motorcycle Persona, she's the team's strategist.">学生会长，成绩优异却活在姐姐的阴影下。在面对黑道威胁时觉醒了反叛之心。冷静的战术家，骑着人格面具化身的摩托车冲锋陷阵，是团队的智囊。</p>
+        </div>
+        <div class="profile-icon"><svg viewBox="0 0 50 50"><polygon points="25,5 45,45 5,45" /></svg></div>
+      </div>
+      <!-- Futaba -->
+      <div class="profile-card reveal from-right">
+        <div class="profile-card-inner">
+          <div class="profile-codename">ORACLE</div>
+          <div class="profile-name" data-zh="佐仓双叶 / Futaba Sakura" data-en="Futaba Sakura">佐仓双叶 / Futaba Sakura</div>
+          <div class="profile-persona" data-zh="人格面具: 奈克罗诺米康" data-en="PERSONA: NECRONOMICON">人格面具: 奈克罗诺米康</div>
+          <p class="profile-desc" data-zh="天才黑客，因母亲之死而自我封闭。主动请求怪盗团偷走自己扭曲的内心。觉醒后成为团队的导航员，用超凡的情报能力支援伙伴们的战斗。" data-en="A genius hacker who shut herself in after her mother's death. She asked the Thieves to steal her own distorted heart. After awakening, she became the team's navigator, supporting battles with extraordinary intel.">天才黑客，因母亲之死而自我封闭。主动请求怪盗团偷走自己扭曲的内心。觉醒后成为团队的导航员，用超凡的情报能力支援伙伴们的战斗。</p>
+        </div>
+        <div class="profile-icon"><svg viewBox="0 0 50 50"><rect x="10" y="10" width="30" height="30" transform="rotate(45 25 25)"/></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PALACES -->
+<div class="divider-skew"></div>
+<section id="palaces">
+  <div class="dots-bg"></div>
+  <div class="section-inner">
+    <div class="section-title reveal" data-zh="殿堂攻略" data-en="PALACE TIMELINE">殿堂攻略</div>
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-inner">
+          <div class="palace-name" data-zh="色欲之城" data-en="CASTLE OF LUST">色欲之城</div>
+          <div class="palace-ruler" data-zh="鸭志田卓 — 体育教师" data-en="Suguru Kamoshida — Gym Teacher">鸭志田卓 — 体育教师</div>
+          <span class="palace-sin" data-zh="罪名: 色欲" data-en="SIN: LUST">罪名: 色欲</span>
+          <p class="palace-desc" data-zh="怪盗团的第一个目标。自视为城堡之王的暴力体育教师，在内心世界将学校变为中世纪城堡。" data-en="The Thieves' first target. A violent gym teacher who sees himself as king, transforming the school into a medieval castle in his cognition.">怪盗团的第一个目标。自视为城堡之王的暴力体育教师，在内心世界将学校变为中世纪城堡。</p>
+        </div>
+      </div>
+      <div class="timeline-item reveal from-right">
+        <div class="timeline-inner">
+          <div class="palace-name" data-zh="虚荣之美术馆" data-en="MUSEUM OF VANITY">虚荣之美术馆</div>
+          <div class="palace-ruler" data-zh="班目一流斋 — 画家" data-en="Ichiryusai Madarame — Artist">班目一流斋 — 画家</div>
+          <span class="palace-sin" data-zh="罪名: 虚荣" data-en="SIN: VANITY">罪名: 虚荣</span>
+          <p class="palace-desc" data-zh="剽窃学生作品的伪艺术大师，将一切据为己有。他的殿堂是一座金碧辉煌的美术馆。" data-en="A fraudulent art master who plagiarizes students' work and claims everything as his own. His Palace is a magnificent art museum.">剽窃学生作品的伪艺术大师，将一切据为己有。他的殿堂是一座金碧辉煌的美术馆。</p>
+        </div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-inner">
+          <div class="palace-name" data-zh="暴食之银行" data-en="BANK OF GLUTTONY">暴食之银行</div>
+          <div class="palace-ruler" data-zh="金城潤矢 — IT社长" data-en="Junya Kaneshiro — Crime Boss">金城潤矢 — IT社长</div>
+          <span class="palace-sin" data-zh="罪名: 暴食" data-en="SIN: GLUTTONY">罪名: 暴食</span>
+          <p class="palace-desc" data-zh="操控涩谷地下世界的黑道头目，将整个街区视为自己的ATM。他的殿堂是漂浮在涩谷上空的巨型银行。" data-en="A crime boss controlling Shibuya's underworld who sees the entire district as his ATM. His Palace is a massive bank floating above Shibuya.">操控涩谷地下世界的黑道头目，将整个街区视为自己的ATM。他的殿堂是漂浮在涩谷上空的巨型银行。</p>
+        </div>
+      </div>
+      <div class="timeline-item reveal from-right">
+        <div class="timeline-inner">
+          <div class="palace-name" data-zh="愤怒之金字塔" data-en="PYRAMID OF WRATH">愤怒之金字塔</div>
+          <div class="palace-ruler" data-zh="佐仓若叶 — 认知科学家" data-en="Wakaba Isshiki — Cognitive Scientist">佐仓若叶 — 认知科学家</div>
+          <span class="palace-sin" data-zh="罪名: 愤怒" data-en="SIN: WRATH">罪名: 愤怒</span>
+          <p class="palace-desc" data-zh="双叶内心的殿堂。被虚假记忆折磨的少女，将母亲之死归咎于自己，殿堂化为埋葬自我的金字塔。" data-en="Futaba's own Palace. Tormented by false memories, she blamed herself for her mother's death, creating a pyramid to bury herself.">双叶内心的殿堂。被虚假记忆折磨的少女，将母亲之死归咎于自己，殿堂化为埋葬自我的金字塔。</p>
+        </div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-inner">
+          <div class="palace-name" data-zh="嫉妒之太空站" data-en="SPACEPORT OF ENVY">嫉妒之太空站</div>
+          <div class="palace-ruler" data-zh="奥村邦和 — 企业总裁" data-en="Kunikazu Okumura — CEO">奥村邦和 — 企业总裁</div>
+          <span class="palace-sin" data-zh="罪名: 嫉妒" data-en="SIN: ENVY">罪名: 嫉妒</span>
+          <p class="palace-desc" data-zh="将员工视为机器零件的冷酷企业家。他的殿堂是一座太空工厂，员工化为流水线上的机器人。" data-en="A ruthless CEO who sees employees as disposable parts. His Palace is a space factory where workers become robots on an assembly line.">将员工视为机器零件的冷酷企业家。他的殿堂是一座太空工厂，员工化为流水线上的机器人。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIDANT -->
+<div class="divider-skew reverse"></div>
+<section id="confidant">
+  <div class="section-inner">
+    <div class="section-title reveal" data-zh="协作系统" data-en="CONFIDANT SYSTEM">协作系统</div>
+    <p class="reveal" style="margin-bottom:2rem;color:var(--text2);max-width:700px;line-height:1.7" data-zh="与各色人物建立羁绊，解锁强大的战斗能力和社交技能。每一段关系都是一张塔罗牌——从「愚者」到「审判」，21位协作者等待着你的邂逅。" data-en="Build bonds with various characters to unlock powerful combat abilities and social skills. Each relationship is a Tarot card — from The Fool to Judgement, 21 Confidants await your encounter.">与各色人物建立羁绊，解锁强大的战斗能力和社交技能。每一段关系都是一张塔罗牌——从「愚者」到「审判」，21位协作者等待着你的邂逅。</p>
+    <div class="confidant-grid">
+      <div class="confidant-card reveal">
+        <div class="rank">I</div>
+        <div class="confidant-arcana" data-zh="0 - 愚者" data-en="0 - THE FOOL">0 - 愚者</div>
+        <div class="confidant-name" data-zh="伊格尔 / Igor" data-en="Igor">伊格尔 / Igor</div>
+        <p class="confidant-desc" data-zh="天鹅绒房间的主人，指引野卡持有者的神秘存在。随剧情自动提升。" data-en="Master of the Velvet Room, a mysterious guide for the Wild Card holder. Ranks up automatically with the story.">天鹅绒房间的主人，指引野卡持有者的神秘存在。随剧情自动提升。</p>
+        <div class="confidant-bar"><div class="confidant-bar-fill" data-width="100"></div></div>
+      </div>
+      <div class="confidant-card reveal from-right">
+        <div class="rank">II</div>
+        <div class="confidant-arcana" data-zh="I - 魔术师" data-en="I - THE MAGICIAN">I - 魔术师</div>
+        <div class="confidant-name" data-zh="摩尔加纳 / Morgana" data-en="Morgana">摩尔加纳 / Morgana</div>
+        <p class="confidant-desc" data-zh="自称人类的神秘猫型生物。怪盗团的吉祥物和交通工具，教导Joker如何在异世界生存。" data-en="A mysterious cat-like creature who insists he's human. The team's mascot and transport, teaching Joker survival in the Metaverse.">自称人类的神秘猫型生物。怪盗团的吉祥物和交通工具，教导Joker如何在异世界生存。</p>
+        <div class="confidant-bar"><div class="confidant-bar-fill" data-width="85"></div></div>
+      </div>
+      <div class="confidant-card reveal">
+        <div class="rank">III</div>
+        <div class="confidant-arcana" data-zh="II - 女教皇" data-en="II - THE PRIESTESS">II - 女教皇</div>
+        <div class="confidant-name" data-zh="新岛真 / Makoto" data-en="Makoto Niijima">新岛真 / Makoto</div>
+        <p class="confidant-desc" data-zh="学生会长，在挣脱束缚后成为可靠的战略家。提升关系可解锁战术技能。" data-en="Student council president who becomes a reliable strategist after breaking free. Deepening the bond unlocks tactical skills.">学生会长，在挣脱束缚后成为可靠的战略家。提升关系可解锁战术技能。</p>
+        <div class="confidant-bar"><div class="confidant-bar-fill" data-width="90"></div></div>
+      </div>
+      <div class="confidant-card reveal from-right">
+        <div class="rank">IV</div>
+        <div class="confidant-arcana" data-zh="VI - 恋爱" data-en="VI - THE LOVERS">VI - 恋爱</div>
+        <div class="confidant-name" data-zh="高卷杏 / Ann" data-en="Ann Takamaki">高卷杏 / Ann</div>
+        <p class="confidant-desc" data-zh="模特与战士的双重身份。通过建立羁绊，她的内心变得更加坚强，解锁强力火焰技能。" data-en="Model and warrior in one. Building the bond strengthens her resolve and unlocks powerful fire abilities.">模特与战士的双重身份。通过建立羁绊，她的内心变得更加坚强，解锁强力火焰技能。</p>
+        <div class="confidant-bar"><div class="confidant-bar-fill" data-width="75"></div></div>
+      </div>
+      <div class="confidant-card reveal">
+        <div class="rank">V</div>
+        <div class="confidant-arcana" data-zh="IX - 隐者" data-en="IX - THE HERMIT">IX - 隐者</div>
+        <div class="confidant-name" data-zh="佐仓双叶 / Futaba" data-en="Futaba Sakura">佐仓双叶 / Futaba</div>
+        <p class="confidant-desc" data-zh="走出封闭世界的天才黑客。帮助她重新融入社会，解锁战斗辅助和情报技能。" data-en="A genius hacker emerging from isolation. Help her reintegrate into society to unlock battle support and intel skills.">走出封闭世界的天才黑客。帮助她重新融入社会，解锁战斗辅助和情报技能。</p>
+        <div class="confidant-bar"><div class="confidant-bar-fill" data-width="95"></div></div>
+      </div>
+      <div class="confidant-card reveal from-right">
+        <div class="rank">VI</div>
+        <div class="confidant-arcana" data-zh="XX - 审判" data-en="XX - JUDGEMENT">XX - 审判</div>
+        <div class="confidant-name" data-zh="新岛冴 / Sae Niijima" data-en="Sae Niijima">新岛冴 / Sae Niijima</div>
+        <p class="confidant-desc" data-zh="真的姐姐，检察官。整个游戏的叙事框架围绕她的审讯展开。正义与真相的最终裁决者。" data-en="Makoto's sister, a prosecutor. The game's narrative framing revolves around her interrogation. The ultimate arbiter of justice and truth.">真的姐姐，检察官。整个游戏的叙事框架围绕她的审讯展开。正义与真相的最终裁决者。</p>
+        <div class="confidant-bar"><div class="confidant-bar-fill" data-width="80"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section id="quote">
+  <div class="quote-content reveal">
+    <div class="quote-text" data-zh="你永远料想不到" data-en="YOU'LL NEVER SEE IT COMING">你永远料想不到</div>
+    <div class="quote-author" data-zh="—— 《Last Surprise》 · 目黒将司" data-en="— 'Last Surprise' · Shoji Meguro">—— 《Last Surprise》 · 目黒将司</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-inner">
+    <div class="cta-box reveal">
+      <div class="cta-inner">
+        <h2 data-zh="加入怪盗团" data-en="JOIN THE THIEVES">加入怪盗团</h2>
+        <p data-zh="戴上面具，唤醒你内心的反叛之力。腐败的世界正等待着被改变——而你，就是那个改变者。" data-en="Don your mask and awaken the power of rebellion within. A corrupt world awaits change — and you are the one to change it.">戴上面具，唤醒你内心的反叛之力。腐败的世界正等待着被改变——而你，就是那个改变者。</p>
+        <button class="btn-phantom" onclick="alert(document.documentElement.lang==='zh-CN'?'欢迎加入心之怪盗团！':'Welcome to the Phantom Thieves!')"><span data-zh="觉醒吧" data-en="AWAKEN">觉醒吧</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">PERSONA 5</div>
+  <div class="footer-links">
+    <a href="#hero"><span data-zh="首页" data-en="HOME">首页</span></a>
+    <a href="#profiles"><span data-zh="怪盗团" data-en="THIEVES">怪盗团</span></a>
+    <a href="#palaces"><span data-zh="殿堂" data-en="PALACES">殿堂</span></a>
+    <a href="#confidant"><span data-zh="协作" data-en="CONFIDANT">协作</span></a>
+  </div>
+  <p data-zh="© 2024 心之怪盗团 | 致敬 ATLUS · 女神异闻录5" data-en="© 2024 Phantom Thieves | Tribute to ATLUS · Persona 5">© 2024 心之怪盗团 | 致敬 ATLUS · 女神异闻录5</p>
+  <p style="margin-top:.5rem;font-size:.75rem;color:#555" data-zh="本页面为粉丝致敬作品，与 ATLUS 无关" data-en="This page is a fan tribute and is not affiliated with ATLUS">本页面为粉丝致敬作品，与 ATLUS 无关</p>
+</footer>
+
+<script>
+// ===== ALL OUT ATTACK SPLASH =====
+setTimeout(()=>{
+  document.getElementById('aoaOverlay').classList.add('hide');
+  setTimeout(()=>document.getElementById('aoaOverlay').style.display='none',700);
+},1800);
+
+// ===== CANVAS - Floating Geometric Shapes =====
+const canvas=document.getElementById('bgCanvas');
+const ctx=canvas.getContext('2d');
+let shapes=[];
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+
+class Shape{
+  constructor(){
+    this.x=Math.random()*canvas.width;
+    this.y=Math.random()*canvas.height;
+    this.size=Math.random()*25+8;
+    this.type=Math.random()>.5?'triangle':'diamond';
+    this.color=Math.random()>.4?'rgba(230,0,18,':'rgba(0,0,0,';
+    this.alpha=Math.random()*.12+.03;
+    this.vx=(Math.random()-.5)*.5;
+    this.vy=(Math.random()-.5)*.4;
+    this.rotation=Math.random()*Math.PI*2;
+    this.vr=(Math.random()-.5)*.02;
+  }
+  update(){
+    this.x+=this.vx;this.y+=this.vy;this.rotation+=this.vr;
+    if(this.x<-50)this.x=canvas.width+50;
+    if(this.x>canvas.width+50)this.x=-50;
+    if(this.y<-50)this.y=canvas.height+50;
+    if(this.y>canvas.height+50)this.y=-50;
+  }
+  draw(){
+    ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rotation);
+    ctx.fillStyle=this.color+this.alpha+')';
+    ctx.beginPath();
+    if(this.type==='triangle'){
+      ctx.moveTo(0,-this.size);
+      ctx.lineTo(this.size*.87,this.size*.5);
+      ctx.lineTo(-this.size*.87,this.size*.5);
+    }else{
+      ctx.moveTo(0,-this.size);ctx.lineTo(this.size*.7,0);
+      ctx.lineTo(0,this.size);ctx.lineTo(-this.size*.7,0);
+    }
+    ctx.closePath();ctx.fill();ctx.restore();
+  }
+}
+for(let i=0;i<35;i++)shapes.push(new Shape());
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  shapes.forEach(s=>{s.update();s.draw()});
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ===== SCROLL REVEAL =====
+const reveals=document.querySelectorAll('.reveal');
+const revealObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('active');revealObserver.unobserve(e.target)}});
+},{threshold:0.15});
+reveals.forEach(r=>revealObserver.observe(r));
+
+// Confidant bar animation
+const bars=document.querySelectorAll('.confidant-bar-fill');
+const barObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.width=e.target.dataset.width+'%';
+      barObserver.unobserve(e.target);
+    }
+  });
+},{threshold:0.3});
+bars.forEach(b=>{b.style.width='0';barObserver.observe(b)});
+
+// ===== LANGUAGE TOGGLE =====
+let isEN=false;
+function toggleLang(){
+  isEN=!isEN;
+  document.getElementById('langToggle').textContent=isEN?'中文':'EN';
+  document.documentElement.lang=isEN?'en':'zh-CN';
+  document.querySelectorAll('[data-zh]').forEach(el=>{
+    el.textContent=isEN?el.dataset.en:el.dataset.zh;
+  });
+}
+
+// ===== THEME TOGGLE =====
+let isLight=false;
+function toggleTheme(){
+  isLight=!isLight;
+  document.documentElement.classList.toggle('light',isLight);
+  document.getElementById('themeToggle').textContent=isLight?'DARK':'LIGHT';
+}
+
+// ===== MOBILE NAV =====
+function toggleMobile(){
+  const menu=document.getElementById('mobileMenu');
+  const btn=document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  const spans=btn.querySelectorAll('span');
+  if(menu.classList.contains('open')){
+    spans[0].style.transform='rotate(45deg) translate(6px,6px)';
+    spans[1].style.opacity='0';
+    spans[2].style.transform='rotate(-45deg) translate(6px,-6px)';
+  }else{
+    spans[0].style.transform='none';spans[1].style.opacity='1';spans[2].style.transform='none';
+  }
+}
+function closeMobile(){
+  document.getElementById('mobileMenu').classList.remove('open');
+  const spans=document.getElementById('hamburger').querySelectorAll('span');
+  spans[0].style.transform='none';spans[1].style.opacity='1';spans[2].style.transform='none';
+}
+
+// Nav hide/show on scroll
+let lastScroll=0;
+window.addEventListener('scroll',()=>{
+  const nav=document.querySelector('nav');
+  const st=window.scrollY;
+  if(st>lastScroll&&st>200)nav.style.transform='translateY(-100%)';
+  else nav.style.transform='translateY(0)';
+  nav.style.transition='transform .3s';
+  lastScroll=st;
+});
+</script>
+</body>
+</html>

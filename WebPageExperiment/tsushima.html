@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost of Tsushima — 対馬島之鬼</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Noto+Sans+SC:wght@300;400;700&family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --ink:#1a1a1a;--paper:#f5f0e8;--brush:#4a4a4a;
+  --maple:#c0392b;--sakura:#e8a0b0;--bamboo:#5a7a5a;--gold:#c8963e;
+  --bg:var(--paper);--fg:var(--ink);--fg2:var(--brush);
+  --divider:rgba(26,26,26,.15);
+  --card-bg:rgba(26,26,26,.03);
+  --card-border:rgba(26,26,26,.1);
+  --shadow:rgba(26,26,26,.08);
+}
+
+[data-theme="dark"]{
+  --bg:#0d0d0d;--fg:#d4cfc5;--fg2:#8a8478;
+  --divider:rgba(212,207,197,.1);
+  --card-bg:rgba(212,207,197,.04);
+  --card-border:rgba(212,207,197,.08);
+  --shadow:rgba(0,0,0,.3);
+}
+
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Cormorant Garamond','Noto Serif JP',serif;
+  line-height:1.8;overflow-x:hidden;
+  transition:background .6s,color .6s;
+}
+
+canvas#particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:.5}
+
+/* Vertical side decorations */
+.vert-deco{
+  position:fixed;writing-mode:vertical-rl;
+  font-family:'Noto Serif JP',serif;font-size:.75rem;
+  color:var(--fg2);opacity:.2;letter-spacing:.5em;z-index:2;
+  pointer-events:none;user-select:none;
+}
+.vert-deco.left{left:1.5rem;top:50%;transform:translateY(-50%)}
+.vert-deco.right{right:1.5rem;top:50%;transform:translateY(-50%)}
+
+/* Mon crest */
+.mon{
+  width:60px;height:60px;border:2px solid var(--fg);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;margin:0 auto;
+}
+.mon::before{
+  content:'';width:30px;height:30px;
+  border:1.5px solid var(--fg);border-radius:50%;
+}
+.mon::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border:1.5px solid var(--fg);border-radius:50%;
+}
+
+/* Navigation */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:1.2rem 3rem;
+  display:flex;justify-content:space-between;align-items:center;
+  background:transparent;
+  transition:background .4s,backdrop-filter .4s;
+}
+nav.scrolled{background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(20px)}
+nav .brand{
+  font-family:'Noto Serif JP',serif;font-size:1.1rem;
+  letter-spacing:.15em;font-weight:300;
+}
+nav .controls{display:flex;gap:1rem;align-items:center}
+nav button{
+  background:none;border:1px solid var(--divider);color:var(--fg);
+  padding:.4rem .8rem;font-family:'Cormorant Garamond',serif;
+  font-size:.8rem;cursor:pointer;letter-spacing:.1em;
+  transition:all .3s;border-radius:0;
+}
+nav button:hover{border-color:var(--fg);background:var(--fg);color:var(--bg)}
+
+/* Sections */
+section{
+  position:relative;z-index:5;
+  padding:8rem 2rem;
+  max-width:1000px;margin:0 auto;
+}
+
+/* Divider */
+.ink-divider{
+  width:120px;height:1px;background:var(--divider);
+  margin:3rem auto;position:relative;
+}
+.ink-divider::after{
+  content:'';position:absolute;left:50%;top:-2px;
+  width:5px;height:5px;background:var(--maple);border-radius:50%;
+  transform:translateX(-50%);
+}
+
+/* Hero */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:0 2rem;
+}
+#hero .kanji{
+  font-family:'Noto Sans SC','Noto Serif JP',serif;
+  font-size:clamp(3rem,8vw,6rem);font-weight:300;
+  letter-spacing:.3em;margin-bottom:1rem;
+  opacity:0;transform:translateY(30px);
+}
+#hero .subtitle{
+  font-size:clamp(1rem,2.5vw,1.4rem);font-weight:300;
+  letter-spacing:.4em;color:var(--fg2);text-transform:uppercase;
+  margin-bottom:3rem;
+  opacity:0;transform:translateY(20px);
+}
+#hero .brush-line{
+  width:80px;height:2px;background:var(--maple);
+  margin:0 auto 2rem;opacity:.6;
+  clip-path:polygon(0 0,100% 20%,98% 100%,2% 80%);
+}
+#hero .scroll-hint{
+  position:absolute;bottom:3rem;
+  font-size:.7rem;letter-spacing:.3em;color:var(--fg2);
+  opacity:0;animation:fadeInUp 1s 2s forwards;
+}
+#hero .scroll-hint span{
+  display:block;width:1px;height:30px;background:var(--fg2);
+  margin:1rem auto 0;opacity:.4;
+  animation:scrollPulse 2s infinite;
+}
+
+/* Section titles */
+.section-title{
+  text-align:center;margin-bottom:4rem;
+}
+.section-title .jp{
+  font-family:'Noto Serif JP',serif;font-size:.8rem;
+  color:var(--maple);letter-spacing:.3em;
+  margin-bottom:.5rem;display:block;opacity:.7;
+}
+.section-title h2{
+  font-size:clamp(1.8rem,4vw,2.8rem);font-weight:300;
+  letter-spacing:.15em;
+}
+
+/* Ghost's Path */
+.path-content{
+  display:grid;gap:4rem;
+}
+.path-block{
+  display:grid;grid-template-columns:auto 1fr;gap:2rem;
+  align-items:start;
+}
+.path-block .marker{
+  width:40px;display:flex;flex-direction:column;align-items:center;
+  padding-top:.3rem;
+}
+.path-block .marker .dot{
+  width:8px;height:8px;border:1.5px solid var(--maple);
+  border-radius:50%;background:transparent;
+}
+.path-block .marker .line{
+  width:1px;height:60px;background:var(--divider);margin-top:.5rem;
+}
+.path-block p{
+  font-size:1.05rem;line-height:2;color:var(--fg2);font-weight:300;
+}
+.path-block h3{
+  font-size:1.3rem;font-weight:400;letter-spacing:.1em;
+  margin-bottom:.8rem;
+}
+
+/* Stance Cards */
+.stances-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:2rem;margin-top:3rem;
+}
+.stance-card{
+  background:var(--card-bg);border:1px solid var(--card-border);
+  padding:2.5rem 1.5rem;text-align:center;
+  position:relative;overflow:hidden;
+  transition:all .5s;cursor:default;
+}
+.stance-card:hover{
+  border-color:var(--fg2);
+  transform:translateY(-4px);
+  box-shadow:0 20px 40px var(--shadow);
+}
+.stance-card .stance-symbol{
+  font-family:'Noto Serif JP',serif;
+  font-size:2.5rem;margin-bottom:1rem;
+  opacity:.3;transition:opacity .5s;
+}
+.stance-card:hover .stance-symbol{opacity:.7}
+.stance-card h3{
+  font-size:1.1rem;font-weight:400;letter-spacing:.15em;
+  margin-bottom:.5rem;
+}
+.stance-card .stance-desc{
+  font-size:.85rem;color:var(--fg2);line-height:1.8;font-weight:300;
+}
+.stance-card .accent-line{
+  position:absolute;bottom:0;left:50%;
+  width:0;height:2px;
+  transform:translateX(-50%);
+  transition:width .5s;
+}
+.stance-card:hover .accent-line{width:60%}
+.stance-card:nth-child(1) .accent-line{background:var(--brush)}
+.stance-card:nth-child(2) .accent-line{background:#4a6a8a}
+.stance-card:nth-child(3) .accent-line{background:var(--fg2)}
+.stance-card:nth-child(4) .accent-line{background:var(--gold)}
+
+/* Mythic Tales */
+.tales-list{display:grid;gap:2.5rem;margin-top:2rem}
+.tale-item{
+  padding:2rem 0;border-bottom:1px solid var(--divider);
+  display:grid;grid-template-columns:auto 1fr;gap:1.5rem;
+  align-items:center;
+}
+.tale-num{
+  font-family:'Noto Serif JP',serif;font-size:2rem;
+  color:var(--fg2);opacity:.2;font-weight:300;min-width:3rem;
+  text-align:center;
+}
+.tale-item h3{font-size:1.1rem;font-weight:400;letter-spacing:.1em;margin-bottom:.4rem}
+.tale-item p{font-size:.9rem;color:var(--fg2);font-weight:300;line-height:1.8}
+
+/* Haiku */
+#haiku{text-align:center}
+.haiku-collection{display:grid;gap:5rem;margin-top:3rem}
+.haiku-piece{position:relative;padding:2rem}
+.haiku-piece .haiku-text{
+  font-size:clamp(1.1rem,2vw,1.4rem);
+  line-height:2.5;font-weight:300;font-style:italic;
+}
+.haiku-piece .haiku-location{
+  font-size:.75rem;color:var(--fg2);letter-spacing:.3em;
+  margin-top:1.5rem;text-transform:uppercase;
+}
+.haiku-piece::before{
+  content:'';position:absolute;left:50%;top:0;
+  width:30px;height:1px;background:var(--sakura);
+  transform:translateX(-50%);opacity:.5;
+}
+
+/* Quote */
+#quote{
+  text-align:center;padding:10rem 2rem;
+}
+#quote blockquote{
+  font-size:clamp(1.4rem,3.5vw,2.2rem);font-weight:300;
+  line-height:2;font-style:italic;
+  max-width:700px;margin:0 auto;
+  position:relative;
+}
+#quote blockquote::before{
+  content:'';display:block;width:40px;height:2px;
+  background:var(--maple);margin:0 auto 2rem;opacity:.5;
+  clip-path:polygon(0 0,100% 30%,95% 100%,5% 70%);
+}
+#quote .attribution{
+  margin-top:2rem;font-size:.8rem;letter-spacing:.3em;
+  color:var(--fg2);text-transform:uppercase;font-style:normal;
+}
+
+/* CTA */
+#cta{text-align:center}
+#cta p{
+  font-size:1.1rem;color:var(--fg2);font-weight:300;
+  margin-bottom:2.5rem;max-width:500px;margin-left:auto;margin-right:auto;
+}
+.cta-btn{
+  display:inline-block;padding:.8rem 2.5rem;
+  border:1px solid var(--fg);color:var(--fg);
+  text-decoration:none;font-family:'Cormorant Garamond',serif;
+  font-size:1rem;letter-spacing:.2em;
+  transition:all .4s;cursor:pointer;background:none;
+}
+.cta-btn:hover{background:var(--fg);color:var(--bg)}
+
+/* Footer */
+footer{
+  text-align:center;padding:4rem 2rem;
+  border-top:1px solid var(--divider);
+  font-size:.75rem;color:var(--fg2);letter-spacing:.15em;
+  position:relative;z-index:5;
+}
+footer .mon{margin-bottom:1.5rem;opacity:.3;width:40px;height:40px}
+footer .mon::before{width:20px;height:20px}
+footer .mon::after{width:10px;height:10px}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(40px);transition:all 1s cubic-bezier(.25,.46,.45,.94)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Animations */
+@keyframes fadeInUp{
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes scrollPulse{
+  0%,100%{opacity:.2;transform:scaleY(1)}
+  50%{opacity:.6;transform:scaleY(1.3)}
+}
+
+/* Responsive */
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  section{padding:5rem 1.5rem}
+  .vert-deco{display:none}
+  .stances-grid{grid-template-columns:1fr 1fr;gap:1rem}
+  .stance-card{padding:1.5rem 1rem}
+  .path-block{grid-template-columns:1fr}
+  .path-block .marker{display:none}
+  .tale-item{grid-template-columns:1fr}
+  .tale-num{display:none}
+  #quote{padding:6rem 1.5rem}
+  nav .brand{font-size:.9rem}
+}
+@media(max-width:480px){
+  .stances-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div class="vert-deco left">対馬島之鬼 — 誉れは浜で死にました</div>
+<div class="vert-deco right">武士の道 — 仁の物語</div>
+
+<nav id="nav">
+  <div class="brand" data-en="TSUSHIMA" data-zh="对马岛">TSUSHIMA</div>
+  <div class="controls">
+    <button id="langToggle" onclick="toggleLang()">中文</button>
+    <button id="themeToggle" onclick="toggleTheme()">暗</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="brush-line"></div>
+  <div class="kanji" data-en="Ghost of Tsushima" data-zh="对马岛之鬼">Ghost of Tsushima</div>
+  <div class="subtitle" data-en="A Storm Is Coming" data-zh="暴风雨即将来临">A Storm Is Coming</div>
+  <div class="mon"></div>
+  <div class="scroll-hint">
+    <span data-en="SCROLL" data-zh="向下" style="display:contents">SCROLL</span>
+    <span></span>
+  </div>
+</section>
+
+<!-- THE GHOST'S PATH -->
+<section id="path">
+  <div class="section-title reveal">
+    <span class="jp">亡霊の道</span>
+    <h2 data-en="The Ghost's Path" data-zh="亡灵之路">The Ghost's Path</h2>
+  </div>
+  <div class="ink-divider"></div>
+  <div class="path-content">
+    <div class="path-block reveal">
+      <div class="marker"><div class="dot"></div><div class="line"></div></div>
+      <div>
+        <h3 data-en="The Invasion" data-zh="蒙古入侵">The Invasion</h3>
+        <p data-en="In 1274, the Mongol Empire launched a devastating assault on Tsushima Island. Eighty samurai rode to Komoda Beach to face an army of thousands. They fell. The island burned. Honor demanded a frontal charge; reality demanded something else entirely."
+           data-zh="1274年，蒙古帝国对对马岛发动了毁灭性的进攻。八十名武士骑马前往小茂田海滩，迎战数千大军。他们倒下了。岛屿燃烧。荣誉要求正面冲锋，但现实要求的是完全不同的东西。">In 1274, the Mongol Empire launched a devastating assault on Tsushima Island. Eighty samurai rode to Komoda Beach to face an army of thousands. They fell. The island burned. Honor demanded a frontal charge; reality demanded something else entirely.</p>
+      </div>
+    </div>
+    <div class="path-block reveal">
+      <div class="marker"><div class="dot"></div><div class="line"></div></div>
+      <div>
+        <h3 data-en="Jin Sakai" data-zh="境井仁">Jin Sakai</h3>
+        <p data-en="The last surviving samurai of Clan Sakai. Raised by Lord Shimura to uphold the samurai code — to fight with honor, to face enemies head-on, to die before dishonor. But the Mongols do not fight with honor. And the dead cannot protect anyone."
+           data-zh="境井一族最后幸存的武士。在志村大人的教导下坚守武士之道——以荣誉而战，正面迎敌，宁死不屈。但蒙古人不讲荣誉。而死者无法保护任何人。">The last surviving samurai of Clan Sakai. Raised by Lord Shimura to uphold the samurai code — to fight with honor, to face enemies head-on, to die before dishonor. But the Mongols do not fight with honor. And the dead cannot protect anyone.</p>
+      </div>
+    </div>
+    <div class="path-block reveal">
+      <div class="marker"><div class="dot"></div><div class="line"></div></div>
+      <div>
+        <h3 data-en="Becoming the Ghost" data-zh="化身亡灵">Becoming the Ghost</h3>
+        <p data-en="To save his people, Jin must abandon everything he was taught. Poison. Stealth. Fear as a weapon. The Ghost is born — not from darkness, but from the desperate love of a man who would sacrifice his soul for his home."
+           data-zh="为了拯救他的人民，仁必须放弃他所学的一切。毒药、潜行、以恐惧为武器。亡灵由此诞生——不是源于黑暗，而是源于一个愿意为家园献出灵魂的男人的绝望之爱。">To save his people, Jin must abandon everything he was taught. Poison. Stealth. Fear as a weapon. The Ghost is born — not from darkness, but from the desperate love of a man who would sacrifice his soul for his home.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMBAT STANCES -->
+<section id="stances">
+  <div class="section-title reveal">
+    <span class="jp">戦闘の型</span>
+    <h2 data-en="Combat Stances" data-zh="战斗架势">Combat Stances</h2>
+  </div>
+  <div class="ink-divider"></div>
+  <div class="stances-grid">
+    <div class="stance-card reveal">
+      <div class="stance-symbol">石</div>
+      <h3 data-en="Stone" data-zh="磐石">Stone</h3>
+      <p class="stance-desc" data-en="Strong against swordsmen. Heavy overhead strikes break through defenses like water splitting stone."
+         data-zh="克制剑士。沉重的劈砍如水裂石般突破防御。">Strong against swordsmen. Heavy overhead strikes break through defenses like water splitting stone.</p>
+      <div class="accent-line"></div>
+    </div>
+    <div class="stance-card reveal">
+      <div class="stance-symbol">水</div>
+      <h3 data-en="Water" data-zh="流水">Water</h3>
+      <p class="stance-desc" data-en="Effective against shieldmen. Fluid, surging strikes flow around barriers like a river finding its path."
+         data-zh="克制盾兵。如流水般涌动的攻击绕过屏障，犹如河流寻找它的道路。">Effective against shieldmen. Fluid, surging strikes flow around barriers like a river finding its path.</p>
+      <div class="accent-line"></div>
+    </div>
+    <div class="stance-card reveal">
+      <div class="stance-symbol">風</div>
+      <h3 data-en="Wind" data-zh="疾风">Wind</h3>
+      <p class="stance-desc" data-en="Devastates spearmen. Swift kicks and typhoon strikes scatter polearm users like leaves in a gale."
+         data-zh="克制枪兵。迅捷的踢击和台风般的攻击将长兵器使用者如落叶般击散。">Devastates spearmen. Swift kicks and typhoon strikes scatter polearm users like leaves in a gale.</p>
+      <div class="accent-line"></div>
+    </div>
+    <div class="stance-card reveal">
+      <div class="stance-symbol">月</div>
+      <h3 data-en="Moon" data-zh="明月">Moon</h3>
+      <p class="stance-desc" data-en="Overcomes brutes. Spinning, powerful strikes stagger even the largest foes beneath the cold moonlight."
+         data-zh="克制蛮兵。旋转而有力的攻击，在冷月之下令最强壮的敌人也步履蹒跚。">Overcomes brutes. Spinning, powerful strikes stagger even the largest foes beneath the cold moonlight.</p>
+      <div class="accent-line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MYTHIC TALES -->
+<section id="tales">
+  <div class="section-title reveal">
+    <span class="jp">伝説の物語</span>
+    <h2 data-en="Mythic Tales" data-zh="神话传说">Mythic Tales</h2>
+  </div>
+  <div class="ink-divider"></div>
+  <div class="tales-list">
+    <div class="tale-item reveal">
+      <div class="tale-num">壱</div>
+      <div>
+        <h3 data-en="The Legend of Tadayori" data-zh="忠赖的传说">The Legend of Tadayori</h3>
+        <p data-en="An unmatched archer whose legendary skill with the half bow became the stuff of whispered tales. His armor awaits one worthy enough to claim it."
+           data-zh="一位无与伦比的弓箭手，其半弓的传奇技艺成为了人们低声传颂的故事。他的盔甲等待着一位配得上的人来领取。">An unmatched archer whose legendary skill with the half bow became the stuff of whispered tales. His armor awaits one worthy enough to claim it.</p>
+      </div>
+    </div>
+    <div class="tale-item reveal">
+      <div class="tale-num">弐</div>
+      <div>
+        <h3 data-en="The Curse of Uchitsune" data-zh="内经的诅咒">The Curse of Uchitsune</h3>
+        <p data-en="A bow of terrible power, sealed away for the madness it inflicts upon its wielder. Some weapons demand more than skill — they demand your sanity."
+           data-zh="一把拥有可怕力量的弓，因其给使用者带来的疯狂而被封印。有些武器需要的不仅是技术——它们要求你的理智。">A bow of terrible power, sealed away for the madness it inflicts upon its wielder. Some weapons demand more than skill — they demand your sanity.</p>
+      </div>
+    </div>
+    <div class="tale-item reveal">
+      <div class="tale-num">参</div>
+      <div>
+        <h3 data-en="The Six Blades of Kojiro" data-zh="小次郎的六刃">The Six Blades of Kojiro</h3>
+        <p data-en="Five legendary straw-hat ronin guard the path to Kojiro, the greatest swordsman who ever lived. Defeat them all, and face the master himself."
+           data-zh="五位传奇的斗笠浪人守卫着通往小次郎——有史以来最伟大的剑客——的道路。击败他们所有人，然后面对大师本人。">Five legendary straw-hat ronin guard the path to Kojiro, the greatest swordsman who ever lived. Defeat them all, and face the master himself.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HAIKU -->
+<section id="haiku">
+  <div class="section-title reveal">
+    <span class="jp">俳句</span>
+    <h2 data-en="Haiku" data-zh="俳句">Haiku</h2>
+  </div>
+  <div class="ink-divider"></div>
+  <div class="haiku-collection">
+    <div class="haiku-piece reveal">
+      <div class="haiku-text" data-en="Golden leaves descend<br>The wind remembers their names<br>Even stones forget"
+           data-zh="金叶纷纷落<br>清风铭记其名姓<br>顽石亦遗忘">
+        Golden leaves descend<br>The wind remembers their names<br>Even stones forget
+      </div>
+      <div class="haiku-location" data-en="— Ariake Cape" data-zh="— 有明海角">— Ariake Cape</div>
+    </div>
+    <div class="haiku-piece reveal">
+      <div class="haiku-text" data-en="Blood stains the white snow<br>A ghost walks where samurai<br>Once swore to stand firm"
+           data-zh="鲜血染白雪<br>亡灵行走于武士<br>曾誓守之地">
+        Blood stains the white snow<br>A ghost walks where samurai<br>Once swore to stand firm
+      </div>
+      <div class="haiku-location" data-en="— Komoda Beach" data-zh="— 小茂田海滩">— Komoda Beach</div>
+    </div>
+    <div class="haiku-piece reveal">
+      <div class="haiku-text" data-en="Pampas grass bows low<br>No master commands the field<br>Only the free wind"
+           data-zh="芒草低头拜<br>无主宰号令旷野<br>唯有自由风">
+        Pampas grass bows low<br>No master commands the field<br>Only the free wind
+      </div>
+      <div class="haiku-location" data-en="— Omi Village" data-zh="— 麻村">— Omi Village</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section id="quote" class="reveal">
+  <blockquote>
+    <span data-en="Honor died on the beach. I know — because I was there. But the Ghost was born from those ashes, and the Ghost will save this island."
+          data-zh="荣誉死在了海滩上。我知道——因为我就在那里。但亡灵从灰烬中诞生，亡灵将拯救这座岛屿。">Honor died on the beach. I know — because I was there. But the Ghost was born from those ashes, and the Ghost will save this island.</span>
+  </blockquote>
+  <div class="attribution" data-en="— Jin Sakai" data-zh="— 境井仁">— Jin Sakai</div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-title reveal">
+    <span class="jp">始まり</span>
+    <h2 data-en="Begin Your Journey" data-zh="开始你的旅程">Begin Your Journey</h2>
+  </div>
+  <div class="ink-divider"></div>
+  <div class="reveal">
+    <p data-en="Walk the path between honor and sacrifice. Become the weapon your people need — even if it costs you everything you are."
+       data-zh="在荣誉与牺牲之间行走。成为你的人民需要的武器——即使这将让你失去你的一切。">Walk the path between honor and sacrifice. Become the weapon your people need — even if it costs you everything you are.</p>
+    <button class="cta-btn" data-en="WALK THE PATH" data-zh="踏上征途">WALK THE PATH</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="mon"></div>
+  <p data-en="Ghost of Tsushima — A tribute to the samurai spirit" data-zh="对马岛之鬼 — 致敬武士之魂">Ghost of Tsushima — A tribute to the samurai spirit</p>
+  <p style="margin-top:.5rem;opacity:.5" data-en="The wind still carries their story" data-zh="风依然传颂着他们的故事">The wind still carries their story</p>
+</footer>
+
+<script>
+// ─── Particle Canvas ───
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let w, h;
+
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Particle {
+  constructor() { this.reset(true) }
+  reset(init) {
+    this.x = Math.random() * w;
+    this.y = init ? Math.random() * h : -10;
+    this.size = Math.random() * 3 + 1;
+    this.speedY = Math.random() * 0.3 + 0.1;
+    this.speedX = (Math.random() - 0.5) * 0.4;
+    this.wobble = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = Math.random() * 0.01 + 0.005;
+    this.opacity = Math.random() * 0.3 + 0.05;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.02;
+    // Mostly muted, occasionally sakura or maple
+    const r = Math.random();
+    if (r < 0.1) this.color = `rgba(232,160,176,${this.opacity})`; // sakura
+    else if (r < 0.18) this.color = `rgba(192,57,43,${this.opacity})`; // maple
+    else if (r < 0.25) this.color = `rgba(200,150,62,${this.opacity})`; // gold
+    else {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      const g = dark ? 180 + Math.random()*40 : 60 + Math.random()*40;
+      this.color = `rgba(${g},${g-10},${g-20},${this.opacity})`;
+    }
+  }
+  update() {
+    this.wobble += this.wobbleSpeed;
+    this.x += this.speedX + Math.sin(this.wobble) * 0.2;
+    this.y += this.speedY;
+    this.rotation += this.rotSpeed;
+    if (this.y > h + 10 || this.x < -20 || this.x > w + 20) this.reset(false);
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.fillStyle = this.color;
+    // Leaf shape
+    ctx.beginPath();
+    ctx.ellipse(0, 0, this.size, this.size * 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+for (let i = 0; i < 35; i++) particles.push(new Particle());
+
+function animateParticles() {
+  ctx.clearRect(0, 0, w, h);
+  particles.forEach(p => { p.update(); p.draw() });
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ─── Hero animation ───
+setTimeout(() => {
+  document.querySelector('#hero .kanji').style.cssText = 'opacity:1;transform:translateY(0);transition:all 1.2s cubic-bezier(.25,.46,.45,.94)';
+}, 300);
+setTimeout(() => {
+  document.querySelector('#hero .subtitle').style.cssText = 'opacity:1;transform:translateY(0);transition:all 1.2s cubic-bezier(.25,.46,.45,.94)';
+}, 800);
+
+// ─── Scroll reveal ───
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// ─── Nav scroll ───
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ─── Language Toggle ───
+function toggleLang() {
+  const html = document.documentElement;
+  const current = html.dataset.lang;
+  const next = current === 'en' ? 'zh' : 'en';
+  html.dataset.lang = next;
+  document.getElementById('langToggle').textContent = next === 'en' ? '中文' : 'EN';
+
+  document.querySelectorAll('[data-en][data-zh]').forEach(el => {
+    const val = el.getAttribute(`data-${next}`);
+    if (el.tagName === 'INPUT' || el.tagName === 'BUTTON') {
+      el.textContent = val;
+    } else {
+      el.innerHTML = val;
+    }
+  });
+}
+
+// ─── Theme Toggle ───
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.dataset.theme === 'light' ? 'dark' : 'light';
+  html.dataset.theme = next;
+  document.getElementById('themeToggle').textContent = next === 'light' ? '暗' : '明';
+  // Re-init particles colors
+  particles.forEach(p => {
+    const dark = next === 'dark';
+    const r = Math.random();
+    if (r < 0.1) p.color = `rgba(232,160,176,${p.opacity})`;
+    else if (r < 0.18) p.color = `rgba(192,57,43,${p.opacity})`;
+    else if (r < 0.25) p.color = `rgba(200,150,62,${p.opacity})`;
+    else {
+      const g = dark ? 180 + Math.random()*40 : 60 + Math.random()*40;
+      p.color = `rgba(${g},${g-10},${g-20},${p.opacity})`;
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Computing Lab | 复古计算实验室</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   CSS RESET & ROOT VARIABLES
+   ══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --fg: #00ff41;
+  --fg-dim: #00aa2a;
+  --fg-bright: #66ff88;
+  --bg: #0a0a0a;
+  --bg-light: #0f0f0f;
+  --border: #00ff41;
+  --glow: 0 0 5px currentColor, 0 0 10px rgba(0,255,65,0.3);
+  --glow-strong: 0 0 8px currentColor, 0 0 20px rgba(0,255,65,0.5);
+  --scanline-opacity: 0.08;
+  --flicker-intensity: 0.03;
+  --crt-bg: radial-gradient(ellipse at center, #0f1a0f 0%, #0a0a0a 80%);
+  --highlight: #00ff41;
+  --selection-bg: #00ff41;
+  --selection-fg: #0a0a0a;
+}
+
+[data-theme="light"] {
+  --fg: #ffb000;
+  --fg-dim: #aa7500;
+  --fg-bright: #ffd060;
+  --bg: #1a1200;
+  --bg-light: #1f1700;
+  --border: #ffb000;
+  --glow: 0 0 5px currentColor, 0 0 10px rgba(255,176,0,0.3);
+  --glow-strong: 0 0 8px currentColor, 0 0 20px rgba(255,176,0,0.5);
+  --crt-bg: radial-gradient(ellipse at center, #1f1a0a 0%, #1a1200 80%);
+  --highlight: #ffb000;
+  --selection-bg: #ffb000;
+  --selection-fg: #1a1200;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-fg);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BASE TYPOGRAPHY & BODY
+   ══════════════════════════════════════════════════════════════ */
+html {
+  font-size: 14px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CRT SCREEN WRAPPER - barrel distortion & vignette
+   ══════════════════════════════════════════════════════════════ */
+#crt-screen {
+  position: relative;
+  min-height: 100vh;
+  background: var(--crt-bg);
+  overflow: hidden;
+  /* Subtle barrel distortion via border-radius on a large scale */
+  border-radius: 18px;
+  box-shadow:
+    inset 0 0 80px rgba(0,0,0,0.6),
+    inset 0 0 200px rgba(0,0,0,0.3),
+    0 0 40px rgba(0,0,0,0.8);
+}
+
+/* Scanline overlay */
+#crt-screen::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,var(--scanline-opacity)) 2px,
+    rgba(0,0,0,var(--scanline-opacity)) 4px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Vignette effect */
+#crt-screen::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0,0,0,0.4) 80%,
+    rgba(0,0,0,0.8) 100%
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Screen flicker animation */
+@keyframes flicker {
+  0%   { opacity: 1; }
+  5%   { opacity: 0.97; }
+  10%  { opacity: 1; }
+  15%  { opacity: 0.98; }
+  20%  { opacity: 1; }
+  50%  { opacity: 1; }
+  55%  { opacity: 0.96; }
+  60%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+#crt-screen {
+  animation: flicker 4s infinite;
+}
+
+/* CRT static noise canvas */
+#crt-noise {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 998;
+  opacity: 0.04;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PHOSPHOR GLOW ON TEXT
+   ══════════════════════════════════════════════════════════════ */
+h1, h2, h3, .glow {
+  text-shadow: var(--glow-strong);
+}
+
+p, li, td, th, span, a, label, .box-content {
+  text-shadow: var(--glow);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BLINKING CURSOR
+   ══════════════════════════════════════════════════════════════ */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  background: var(--fg);
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+  box-shadow: 0 0 6px var(--fg);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LAYOUT
+   ══════════════════════════════════════════════════════════════ */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  margin-bottom: 30px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOX-DRAWING BORDERS
+   ══════════════════════════════════════════════════════════════ */
+.dos-box {
+  margin: 20px 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.box-top, .box-bottom, .box-mid {
+  color: var(--fg);
+  user-select: none;
+}
+
+.box-line {
+  display: block;
+}
+
+.box-content {
+  padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOP BAR (controls)
+   ══════════════════════════════════════════════════════════════ */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--fg-dim);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.top-bar-title {
+  font-size: 0.85rem;
+  color: var(--fg-dim);
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ctrl-btn {
+  background: transparent;
+  border: 1px solid var(--fg);
+  color: var(--fg);
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  cursor: pointer;
+  text-shadow: var(--glow);
+  transition: all 0.2s;
+}
+
+.ctrl-btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+.ctrl-btn:focus {
+  outline: 1px dashed var(--fg);
+  outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOOT SEQUENCE (Hero)
+   ══════════════════════════════════════════════════════════════ */
+#boot-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+#boot-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+#boot-text .line {
+  opacity: 0;
+  display: block;
+}
+
+#boot-text .line.typed {
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MENU ITEMS
+   ══════════════════════════════════════════════════════════════ */
+.menu-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  display: block;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: var(--fg);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+.menu-key {
+  color: var(--fg-bright);
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TABLES (File listing)
+   ══════════════════════════════════════════════════════════════ */
+.dos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.dos-table th {
+  text-align: left;
+  color: var(--fg-bright);
+  border-bottom: 1px solid var(--fg-dim);
+  padding: 4px 10px;
+}
+
+.dos-table td {
+  padding: 3px 10px;
+  color: var(--fg);
+}
+
+.dos-table tr:hover td {
+  background: rgba(0,255,65,0.05);
+}
+
+[data-theme="light"] .dos-table tr:hover td {
+  background: rgba(255,176,0,0.05);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COMMAND PROMPT
+   ══════════════════════════════════════════════════════════════ */
+.prompt-line {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 6px;
+}
+
+.prompt-prefix {
+  color: var(--fg-bright);
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+#cmd-input {
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.9rem;
+  flex: 1;
+  outline: none;
+  caret-color: var(--fg);
+  text-shadow: var(--glow);
+  padding-left: 4px;
+}
+
+#cmd-output {
+  margin-top: 8px;
+  min-height: 40px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MEMORY MAP BAR
+   ══════════════════════════════════════════════════════════════ */
+.mem-bar {
+  display: flex;
+  height: 18px;
+  border: 1px solid var(--fg);
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.mem-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: var(--bg);
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.mem-segment.conventional { background: var(--fg); flex: 6.4; }
+.mem-segment.umb { background: var(--fg-dim); flex: 1.6; }
+.mem-segment.hma { background: var(--fg-bright); flex: 0.64; }
+.mem-segment.ext { background: var(--fg); flex: 3; opacity: 0.5; }
+
+.mem-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+
+.mem-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mem-legend-color {
+  width: 12px; height: 12px;
+  display: inline-block;
+  border: 1px solid var(--fg);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ASCII ART
+   ══════════════════════════════════════════════════════════════ */
+.ascii-art {
+  font-size: 0.7rem;
+  line-height: 1.15;
+  color: var(--fg);
+  text-shadow: var(--glow);
+  text-align: center;
+  margin: 20px 0;
+  overflow-x: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SEPARATOR
+   ══════════════════════════════════════════════════════════════ */
+.separator {
+  color: var(--fg-dim);
+  text-align: center;
+  margin: 16px 0;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROGRESS BAR (used in boot)
+   ══════════════════════════════════════════════════════════════ */
+.progress-bar {
+  display: inline-block;
+}
+
+@keyframes progress-fill {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STATUS LINE (footer)
+   ══════════════════════════════════════════════════════════════ */
+.status-bar {
+  border-top: 1px double var(--fg-dim);
+  padding: 8px 0;
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CGA COLOR PALETTE DEMO
+   ══════════════════════════════════════════════════════════════ */
+.cga-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.cga-swatch {
+  width: 28px; height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  color: #fff;
+  text-shadow: 0 0 2px #000;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLL REVEAL: typewriter-like
+   ══════════════════════════════════════════════════════════════ */
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--fg);
+  animation: typing 2s steps(40,end), blink-caret 0.75s step-end infinite;
+  display: inline-block;
+  max-width: 100%;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--fg); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  html { font-size: 12px; }
+  .container { padding: 12px; }
+  .ascii-art { font-size: 0.5rem; }
+  #boot-screen { padding: 20px 12px; }
+  .top-bar { flex-direction: column; align-items: flex-start; }
+  .dos-table { font-size: 0.75rem; }
+  .dos-table td, .dos-table th { padding: 2px 6px; }
+}
+
+@media (max-width: 400px) {
+  .ascii-art { font-size: 0.38rem; }
+  .controls { gap: 6px; }
+  .ctrl-btn { padding: 3px 8px; font-size: 0.7rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE VISIBILITY
+   ══════════════════════════════════════════════════════════════ */
+[data-lang="en"] [data-zh] { display: none; }
+[data-lang="zh"] [data-en] { display: none; }
+[data-lang="en"] [data-zh][data-en] > [data-zh-only] { display: none; }
+[data-lang="zh"] [data-zh][data-en] > [data-en-only] { display: none; }
+
+/* Inline bilingual spans */
+[data-lang="en"] .zh-text { display: none !important; }
+[data-lang="zh"] .en-text { display: none !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   SKIP BOOT BUTTON
+   ══════════════════════════════════════════════════════════════ */
+#skip-boot {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1001;
+}
+
+#skip-boot.hidden { display: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN CONTENT - hidden during boot
+   ══════════════════════════════════════════════════════════════ */
+#main-content {
+  display: none;
+}
+
+#main-content.active {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<!-- CRT Static Noise Canvas -->
+<canvas id="crt-noise"></canvas>
+
+<!-- CRT Screen Wrapper -->
+<div id="crt-screen">
+
+  <!-- ════════════════════════════════════════════════════════════
+       BOOT SEQUENCE
+       ════════════════════════════════════════════════════════════ -->
+  <div id="boot-screen" class="container">
+    <div id="boot-text"></div>
+  </div>
+
+  <button id="skip-boot" class="ctrl-btn" onclick="skipBoot()">
+    <span class="en-text">[ Skip ]</span><span class="zh-text">[ 跳过 ]</span>
+  </button>
+
+  <!-- ════════════════════════════════════════════════════════════
+       MAIN CONTENT
+       ════════════════════════════════════════════════════════════ -->
+  <div id="main-content" class="container">
+
+    <!-- TOP BAR -->
+    <div class="top-bar section">
+      <div class="top-bar-title">
+        <span class="en-text">RETRO COMPUTING LAB v1.0</span>
+        <span class="zh-text">复古计算实验室 v1.0</span>
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn" onclick="toggleLang()" id="lang-btn">中文</button>
+        <button class="ctrl-btn" onclick="toggleTheme()" id="theme-btn">
+          <span class="en-text">Amber CRT</span>
+          <span class="zh-text">琥珀色 CRT</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ASCII ART LOGO -->
+    <div class="section">
+      <pre class="ascii-art">
+ ██████╗ ███████╗████████╗██████╗  ██████╗
+ ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗
+ ██████╔╝█████╗     ██║   ██████╔╝██║   ██║
+ ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║
+ ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝
+ ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝
+  ┌─────────────────────────────────────────┐
+  │  C O M P U T I N G   L A B  ░░░  1983  │
+  └─────────────────────────────────────────┘
+      </pre>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div class="section" id="main-menu">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>MAIN MENU</strong> ─ Select an option</span><span class="zh-text"><strong>主菜单</strong> ─ 请选择一个选项</span>                          │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+<span class="box-line">│  <a class="menu-item" href="#system-info"><span class="menu-key">[1]</span> <span class="en-text">System Information</span><span class="zh-text">系统信息</span></a>│</span>
+<span class="box-line">│  <a class="menu-item" href="#file-listing"><span class="menu-key">[2]</span> <span class="en-text">File Directory</span><span class="zh-text">文件目录</span></a>│</span>
+<span class="box-line">│  <a class="menu-item" href="#memory-map"><span class="menu-key">[3]</span> <span class="en-text">Memory Map</span><span class="zh-text">内存映射</span></a>│</span>
+<span class="box-line">│  <a class="menu-item" href="#history"><span class="menu-key">[4]</span> <span class="en-text">About / History</span><span class="zh-text">关于 / 历史</span></a>│</span>
+<span class="box-line">│  <a class="menu-item" href="#cga-colors"><span class="menu-key">[5]</span> <span class="en-text">CGA Color Palette</span><span class="zh-text">CGA 调色板</span></a>│</span>
+<span class="box-line">│  <a class="menu-item" href="#command-prompt"><span class="menu-key">[6]</span> <span class="en-text">Command Prompt</span><span class="zh-text">命令提示符</span></a>│</span>
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <div class="separator">═══════════════════════════════════════════</div>
+
+    <!-- SYSTEM INFO -->
+    <div class="section" id="system-info">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>SYSTEM INFORMATION</strong></span><span class="zh-text"><strong>系统信息</strong></span>                                       │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+<span class="box-line">│  <span class="en-text">Computer</span><span class="zh-text">计算机</span>......... IBM Personal Computer 5150     │</span>
+<span class="box-line">│  <span class="en-text">Processor</span><span class="zh-text">处理器</span>........ Intel 8088 @ 4.77 MHz        │</span>
+<span class="box-line">│  <span class="en-text">Memory</span><span class="zh-text">内存</span>............ 640 KB Conventional             │</span>
+<span class="box-line">│  <span class="en-text">Display</span><span class="zh-text">显示器</span>........... IBM 5151 Monochrome            │</span>
+<span class="box-line">│  <span class="en-text">Graphics</span><span class="zh-text">显卡</span>.......... MDA / CGA Adapter              │</span>
+<span class="box-line">│  <span class="en-text">Storage</span><span class="zh-text">存储</span>........... 2x 5.25" Floppy (360 KB)      │</span>
+<span class="box-line">│  <span class="en-text">Keyboard</span><span class="zh-text">键盘</span>.......... IBM Model F (83-key)           │</span>
+<span class="box-line">│  <span class="en-text">OS</span><span class="zh-text">操作系统</span>............ PC-DOS 2.10                    │</span>
+<span class="box-line">│  <span class="en-text">BIOS</span><span class="zh-text">BIOS</span>............ 10/27/82                       │</span>
+<span class="box-line">│  Serial No. ....... 0182-RCL-5150                    │</span>
+<span class="box-line">│                                                      │</span>
+<span class="box-line">│  <span class="en-text">Status: All systems nominal ■</span><span class="zh-text">状态：所有系统正常 ■</span>                     │</span>
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <div class="separator">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+
+    <!-- FILE LISTING -->
+    <div class="section" id="file-listing">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>DIRECTORY OF C:\RETRO</strong></span><span class="zh-text"><strong>C:\RETRO 目录</strong></span>                                  │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+      </div>
+      <table class="dos-table">
+        <thead>
+          <tr>
+            <th><span class="en-text">Filename</span><span class="zh-text">文件名</span></th>
+            <th><span class="en-text">Ext</span><span class="zh-text">扩展名</span></th>
+            <th><span class="en-text">Size</span><span class="zh-text">大小</span></th>
+            <th><span class="en-text">Date</span><span class="zh-text">日期</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>COMMAND </td><td>COM</td><td>25,308</td><td>03-08-83</td></tr>
+          <tr><td>AUTOEXEC</td><td>BAT</td><td>   256</td><td>03-08-83</td></tr>
+          <tr><td>CONFIG  </td><td>SYS</td><td>   128</td><td>03-08-83</td></tr>
+          <tr><td>IBMBIO  </td><td>COM</td><td> 4,736</td><td>03-08-83</td></tr>
+          <tr><td>IBMDOS  </td><td>COM</td><td>17,024</td><td>03-08-83</td></tr>
+          <tr><td>BASICA  </td><td>COM</td><td>36,396</td><td>03-08-83</td></tr>
+          <tr><td>EDLIN   </td><td>COM</td><td> 4,608</td><td>03-08-83</td></tr>
+          <tr><td>DEBUG   </td><td>COM</td><td>11,904</td><td>03-08-83</td></tr>
+          <tr><td>FORMAT  </td><td>COM</td><td> 6,016</td><td>03-08-83</td></tr>
+          <tr><td>DISKCOPY</td><td>COM</td><td> 2,576</td><td>03-08-83</td></tr>
+          <tr><td>CHKDSK  </td><td>COM</td><td> 6,400</td><td>03-08-83</td></tr>
+          <tr><td>RETRO   </td><td>TXT</td><td> 1,983</td><td>08-12-83</td></tr>
+        </tbody>
+      </table>
+      <div class="dos-box" style="margin-top: 4px;">
+<span class="box-line">│                                                      │</span>
+<span class="box-line">│  12 <span class="en-text">File(s)</span><span class="zh-text">个文件</span>    117,335 <span class="en-text">bytes free</span><span class="zh-text">字节可用</span>               │</span>
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <div class="separator">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+
+    <!-- MEMORY MAP -->
+    <div class="section" id="memory-map">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>MEMORY MAP</strong> ─ IBM PC Memory Layout</span><span class="zh-text"><strong>内存映射</strong> ─ IBM PC 内存布局</span>                │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+      </div>
+
+      <div style="padding: 0 10px;">
+        <div class="mem-bar">
+          <div class="mem-segment conventional">640K</div>
+          <div class="mem-segment umb">UMB</div>
+          <div class="mem-segment hma">HMA</div>
+          <div class="mem-segment ext">EXT</div>
+        </div>
+        <div class="mem-legend">
+          <span class="mem-legend-item">
+            <span class="mem-legend-color" style="background:var(--fg)"></span>
+            <span class="en-text">Conventional (0-640K)</span><span class="zh-text">常规内存 (0-640K)</span>
+          </span>
+          <span class="mem-legend-item">
+            <span class="mem-legend-color" style="background:var(--fg-dim)"></span>
+            <span class="en-text">Upper (640K-1M)</span><span class="zh-text">上位内存 (640K-1M)</span>
+          </span>
+          <span class="mem-legend-item">
+            <span class="mem-legend-color" style="background:var(--fg-bright)"></span>
+            <span class="en-text">HMA (1M-1M+64K)</span><span class="zh-text">高端内存 (1M-1M+64K)</span>
+          </span>
+          <span class="mem-legend-item">
+            <span class="mem-legend-color" style="background:var(--fg); opacity:0.5"></span>
+            <span class="en-text">Extended</span><span class="zh-text">扩展内存</span>
+          </span>
+        </div>
+
+        <div style="margin-top: 14px; font-size: 0.8rem;">
+<pre>
+  <span class="en-text">Address Range     Size    Description</span><span class="zh-text">地址范围          大小    描述</span>
+  ─────────────────────────────────────────
+  00000─003FF      1 KB    <span class="en-text">Interrupt Vector Table</span><span class="zh-text">中断向量表</span>
+  00400─004FF    256 B     <span class="en-text">BIOS Data Area</span><span class="zh-text">BIOS 数据区</span>
+  00500─9FFFF    ~638 KB   <span class="en-text">User Programs (DOS)</span><span class="zh-text">用户程序 (DOS)</span>
+  A0000─BFFFF    128 KB    <span class="en-text">Video Memory</span><span class="zh-text">视频内存</span>
+  C0000─EFFFF    192 KB    <span class="en-text">ROM / Adapter Memory</span><span class="zh-text">ROM / 适配器内存</span>
+  F0000─FFFFF     64 KB    <span class="en-text">System BIOS ROM</span><span class="zh-text">系统 BIOS ROM</span>
+</pre>
+        </div>
+      </div>
+
+      <div class="dos-box" style="margin-top: 8px;">
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <div class="separator">═══════════════════════════════════════════</div>
+
+    <!-- ABOUT / HISTORY -->
+    <div class="section" id="history">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>ABOUT ─ RETRO COMPUTING LAB</strong></span><span class="zh-text"><strong>关于 ─ 复古计算实验室</strong></span>                          │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+      </div>
+
+      <div style="padding: 4px 12px; font-size: 0.85rem; line-height: 1.8;">
+        <p class="en-text" style="margin-bottom:12px;">
+          The IBM Personal Computer, model 5150, was introduced
+          on August 12, 1981. It featured an Intel 8088 processor
+          running at 4.77 MHz, 16 KB of RAM (expandable to 256 KB
+          on the motherboard), and one or two 5.25-inch floppy
+          disk drives.
+        </p>
+        <p class="zh-text" style="margin-bottom:12px;">
+          IBM 个人计算机 5150 型于 1981 年 8 月 12 日推出。它配备了
+          运行在 4.77 MHz 的 Intel 8088 处理器、16 KB RAM（可在主板
+          上扩展到 256 KB）以及一个或两个 5.25 英寸软盘驱动器。
+        </p>
+
+        <p class="en-text" style="margin-bottom:12px;">
+          The machine ran PC-DOS (later MS-DOS), a command-line
+          operating system that would dominate the personal
+          computer landscape for over a decade. Its open
+          architecture allowed third-party expansion, giving rise
+          to the "IBM Compatible" ecosystem.
+        </p>
+        <p class="zh-text" style="margin-bottom:12px;">
+          该机器运行 PC-DOS（后来的 MS-DOS），一个命令行操作系统，
+          它在接下来的十多年中主导了个人计算机领域。其开放式架构允许
+          第三方扩展，催生了"IBM 兼容机"生态系统。
+        </p>
+
+        <p class="en-text" style="margin-bottom:12px;">
+          Common DOS commands included DIR, COPY, DEL, TYPE,
+          FORMAT, CHKDSK, and EDLIN (the line editor). Power users
+          memorized CONFIG.SYS and AUTOEXEC.BAT optimizations to
+          squeeze every byte from the 640 KB conventional memory
+          limit.
+        </p>
+        <p class="zh-text" style="margin-bottom:12px;">
+          常用的 DOS 命令包括 DIR、COPY、DEL、TYPE、FORMAT、CHKDSK
+          和 EDLIN（行编辑器）。高级用户会记住 CONFIG.SYS 和
+          AUTOEXEC.BAT 的优化方法，以从 640 KB 常规内存限制中
+          挤出每一个字节。
+        </p>
+
+        <div style="margin: 14px 0; padding: 8px; border: 1px dashed var(--fg-dim);">
+          <span class="en-text"><em>"640K ought to be enough for anybody."</em></span>
+          <span class="zh-text"><em>"640K 对任何人来说都应该够用了。"</em></span>
+          <br>
+          <span style="color: var(--fg-dim);">
+            <span class="en-text">─ Attributed to Bill Gates (likely apocryphal)</span>
+            <span class="zh-text">─ 据传比尔·盖茨所说（可能为杜撰）</span>
+          </span>
+        </div>
+
+        <p class="en-text">
+          Vintage hardware such as the Model F keyboard, MDA and
+          CGA display adapters, and the iconic beige case design
+          defined an era. The green (P1) and amber (P3) phosphor
+          monitors gave terminals their characteristic glow ─
+          recreated on this very page.
+        </p>
+        <p class="zh-text">
+          Model F 键盘、MDA 和 CGA 显示适配器以及标志性的米色机箱
+          设计等复古硬件定义了一个时代。绿色 (P1) 和琥珀色 (P3) 荧光
+          显示器赋予了终端独特的光晕效果 ─ 正如本页面所重现的那样。
+        </p>
+      </div>
+
+      <div class="dos-box" style="margin-top: 8px;">
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <div class="separator">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+
+    <!-- CGA COLOR PALETTE -->
+    <div class="section" id="cga-colors">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>CGA COLOR PALETTE</strong> ─ 16 Colors</span><span class="zh-text"><strong>CGA 调色板</strong> ─ 16 色</span>                        │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+      </div>
+
+      <div style="padding: 4px 12px;">
+        <div class="cga-palette">
+          <div class="cga-swatch" style="background:#000000;" title="0: Black">0</div>
+          <div class="cga-swatch" style="background:#0000AA;" title="1: Blue">1</div>
+          <div class="cga-swatch" style="background:#00AA00;" title="2: Green">2</div>
+          <div class="cga-swatch" style="background:#00AAAA;" title="3: Cyan">3</div>
+          <div class="cga-swatch" style="background:#AA0000;" title="4: Red">4</div>
+          <div class="cga-swatch" style="background:#AA00AA;" title="5: Magenta">5</div>
+          <div class="cga-swatch" style="background:#AA5500;" title="6: Brown">6</div>
+          <div class="cga-swatch" style="background:#AAAAAA;" title="7: Light Gray">7</div>
+          <div class="cga-swatch" style="background:#555555;" title="8: Dark Gray">8</div>
+          <div class="cga-swatch" style="background:#5555FF;" title="9: Light Blue">9</div>
+          <div class="cga-swatch" style="background:#55FF55;" title="A: Light Green">A</div>
+          <div class="cga-swatch" style="background:#55FFFF;" title="B: Light Cyan">B</div>
+          <div class="cga-swatch" style="background:#FF5555;" title="C: Light Red">C</div>
+          <div class="cga-swatch" style="background:#FF55FF;" title="D: Light Magenta">D</div>
+          <div class="cga-swatch" style="background:#FFFF55;" title="E: Yellow">E</div>
+          <div class="cga-swatch" style="background:#FFFFFF; color:#000;" title="F: White">F</div>
+        </div>
+        <div style="font-size:0.75rem; margin-top:6px; color:var(--fg-dim);">
+          <span class="en-text">IBM Color/Graphics Adapter ─ 16 colors, 320x200 or 640x200 resolution</span>
+          <span class="zh-text">IBM 彩色/图形适配器 ─ 16 色, 320x200 或 640x200 分辨率</span>
+        </div>
+      </div>
+
+      <div class="dos-box" style="margin-top: 8px;">
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <div class="separator">═══════════════════════════════════════════</div>
+
+    <!-- COMMAND PROMPT -->
+    <div class="section" id="command-prompt">
+      <div class="dos-box">
+<span class="box-line">┌──────────────────────────────────────────────────────┐</span>
+<span class="box-line">│  <span class="en-text"><strong>COMMAND PROMPT</strong> ─ Try: help, dir, ver, cls, date</span><span class="zh-text"><strong>命令提示符</strong> ─ 尝试: help, dir, ver, cls, date</span>   │</span>
+<span class="box-line">├──────────────────────────────────────────────────────┤</span>
+<span class="box-line">│                                                      │</span>
+      </div>
+
+      <div style="padding: 4px 12px; font-size: 0.85rem;">
+        <div>Microsoft(R) PC-DOS Version 2.10</div>
+        <div>(C) Copyright IBM Corp 1981, 1983</div>
+        <div style="margin-top: 6px;" id="cmd-output"></div>
+        <div class="prompt-line">
+          <span class="prompt-prefix">C:\&gt;&nbsp;</span>
+          <input type="text" id="cmd-input" autocomplete="off" spellcheck="false" autofocus>
+          <span class="cursor" id="prompt-cursor"></span>
+        </div>
+      </div>
+
+      <div class="dos-box" style="margin-top: 8px;">
+<span class="box-line">│                                                      │</span>
+<span class="box-line">└──────────────────────────────────────────────────────┘</span>
+      </div>
+    </div>
+
+    <!-- IBM PC ASCII ART -->
+    <div class="section">
+      <pre class="ascii-art">
+       ┌──────────────────────────┐
+       │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+       │ ▓  C:\>_              ▓ │
+       │ ▓                     ▓ │
+       │ ▓                     ▓ │
+       │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+       └──────────┬───┬──────────┘
+                  │IBM│
+        ┌─────────┴───┴─────────┐
+        │ ░░░░░░  [A:]  [B:]   │
+        │ ░░░░░░   __    __    │
+        │ ░░░░░░  |  |  |  |  │
+        │ ░░░░░░  |__|  |__|  │
+        └───────────────────────┘
+      </pre>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar section">
+      <span>
+        <span class="en-text">F1=Help  F2=Save  F3=Load  F10=Menu  ESC=Exit</span>
+        <span class="zh-text">F1=帮助  F2=保存  F3=加载  F10=菜单  ESC=退出</span>
+      </span>
+      <span id="clock"></span>
+    </div>
+
+  </div><!-- /main-content -->
+
+</div><!-- /crt-screen -->
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CRT NOISE CANVAS
+   ══════════════════════════════════════════════════════════════ */
+(function initNoise() {
+  const canvas = document.getElementById('crt-noise');
+  const ctx = canvas.getContext('2d');
+  let w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function drawNoise() {
+    const imageData = ctx.createImageData(w, h);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const v = Math.random() * 255;
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
+      data[i + 3] = 20;
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // Lower frame rate for performance
+  let frame = 0;
+  function loop() {
+    frame++;
+    if (frame % 4 === 0) drawNoise();
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   BOOT SEQUENCE
+   ══════════════════════════════════════════════════════════════ */
+const bootLines = [
+  { en: 'IBM Personal Computer', zh: 'IBM 个人计算机', delay: 300 },
+  { en: 'BIOS Version 1.0  (C) Copyright IBM Corp 1981', zh: 'BIOS 版本 1.0  (C) Copyright IBM Corp 1981', delay: 200 },
+  { en: '', zh: '', delay: 150 },
+  { en: '062948 KB OK', zh: '062948 KB 正常', delay: 600 },
+  { en: '', zh: '', delay: 200 },
+  { en: 'Floppy Disk(s): 2', zh: '软盘驱动器: 2', delay: 150 },
+  { en: 'Hard Disk(s): 1 ─ Type 17', zh: '硬盘: 1 ─ 类型 17', delay: 150 },
+  { en: 'Display Adapter: MDA/Hercules', zh: '显示适配器: MDA/Hercules', delay: 150 },
+  { en: 'Serial Port(s): COM1', zh: '串行端口: COM1', delay: 150 },
+  { en: 'Parallel Port(s): LPT1', zh: '并行端口: LPT1', delay: 150 },
+  { en: '', zh: '', delay: 300 },
+  { en: 'Memory Test:  ████████████████████████████  640K OK', zh: '内存测试:  ████████████████████████████  640K 正常', delay: 800 },
+  { en: '', zh: '', delay: 200 },
+  { en: 'Starting PC-DOS...', zh: '正在启动 PC-DOS...', delay: 500 },
+  { en: '', zh: '', delay: 200 },
+  { en: 'HIMEM.SYS loaded.', zh: 'HIMEM.SYS 已加载。', delay: 200 },
+  { en: 'EMM386.EXE loaded.', zh: 'EMM386.EXE 已加载。', delay: 200 },
+  { en: 'MSCDEX Version 2.23', zh: 'MSCDEX 版本 2.23', delay: 200 },
+  { en: 'MOUSE.COM loaded ─ Microsoft Mouse v8.20', zh: 'MOUSE.COM 已加载 ─ Microsoft 鼠标 v8.20', delay: 200 },
+  { en: '', zh: '', delay: 300 },
+  { en: 'C:\\>RETRO.EXE', zh: 'C:\\>RETRO.EXE', delay: 400 },
+  { en: '', zh: '', delay: 200 },
+  { en: '╔══════════════════════════════════════╗', zh: '╔══════════════════════════════════════╗', delay: 100 },
+  { en: '║  Welcome to Retro Computing Lab     ║', zh: '║  欢迎来到复古计算实验室               ║', delay: 100 },
+  { en: '║  Initializing terminal...            ║', zh: '║  正在初始化终端...                    ║', delay: 100 },
+  { en: '╚══════════════════════════════════════╝', zh: '╚══════════════════════════════════════╝', delay: 100 },
+  { en: '', zh: '', delay: 600 },
+  { en: 'Loading interface █', zh: '正在加载界面 █', delay: 800 },
+];
+
+let bootIndex = 0;
+let bootDone = false;
+const bootTextEl = document.getElementById('boot-text');
+
+function getCurrentLang() {
+  return document.documentElement.getAttribute('data-lang') || 'en';
+}
+
+function typeBootLine() {
+  if (bootDone) return;
+  if (bootIndex >= bootLines.length) {
+    finishBoot();
+    return;
+  }
+
+  const lineData = bootLines[bootIndex];
+  const lang = getCurrentLang();
+  const text = lang === 'zh' ? lineData.zh : lineData.en;
+  const lineEl = document.createElement('span');
+  lineEl.className = 'line typed';
+  lineEl.textContent = text || '\u00A0';
+  lineEl.style.display = 'block';
+  bootTextEl.appendChild(lineEl);
+
+  // Auto-scroll
+  lineEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+  bootIndex++;
+  setTimeout(typeBootLine, lineData.delay);
+}
+
+function finishBoot() {
+  bootDone = true;
+  document.getElementById('boot-screen').style.display = 'none';
+  document.getElementById('skip-boot').classList.add('hidden');
+  document.getElementById('main-content').classList.add('active');
+  initScrollReveal();
+  startClock();
+}
+
+function skipBoot() {
+  bootDone = true;
+  finishBoot();
+}
+
+// Start boot on load
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(typeBootLine, 500);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+   ══════════════════════════════════════════════════════════════ */
+function toggleLang() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-lang');
+  const next = current === 'en' ? 'zh' : 'en';
+  html.setAttribute('data-lang', next);
+  document.getElementById('lang-btn').textContent = next === 'en' ? '中文' : 'English';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEME TOGGLE  (green CRT <-> amber CRT)
+   ══════════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+
+  const btn = document.getElementById('theme-btn');
+  if (next === 'dark') {
+    btn.innerHTML = '<span class="en-text">Amber CRT</span><span class="zh-text">琥珀色 CRT</span>';
+  } else {
+    btn.innerHTML = '<span class="en-text">Green CRT</span><span class="zh-text">绿色 CRT</span>';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLL REVEAL (typewriter-like fade in)
+   ══════════════════════════════════════════════════════════════ */
+function initScrollReveal() {
+  const sections = document.querySelectorAll('.section');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  sections.forEach(function(sec) {
+    observer.observe(sec);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CLOCK (status bar)
+   ══════════════════════════════════════════════════════════════ */
+function startClock() {
+  const clockEl = document.getElementById('clock');
+  function update() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = h + ':' + m + ':' + s;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INTERACTIVE COMMAND PROMPT
+   ══════════════════════════════════════════════════════════════ */
+const cmdInput = document.getElementById('cmd-input');
+const cmdOutput = document.getElementById('cmd-output');
+
+// Hide blinking cursor when input is focused
+cmdInput.addEventListener('focus', function() {
+  document.getElementById('prompt-cursor').style.display = 'none';
+});
+cmdInput.addEventListener('blur', function() {
+  document.getElementById('prompt-cursor').style.display = 'inline-block';
+});
+
+cmdInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    const cmd = cmdInput.value.trim().toLowerCase();
+    cmdInput.value = '';
+    processCommand(cmd);
+  }
+});
+
+function appendOutput(text) {
+  const line = document.createElement('div');
+  line.textContent = text;
+  cmdOutput.appendChild(line);
+  line.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function appendPromptEcho(cmd) {
+  appendOutput('C:\\>' + cmd.toUpperCase());
+}
+
+function processCommand(cmd) {
+  if (!cmd) return;
+  appendPromptEcho(cmd);
+
+  const lang = getCurrentLang();
+
+  switch (cmd) {
+    case 'help':
+      appendOutput(lang === 'zh' ? '可用命令:' : 'Available commands:');
+      appendOutput('  HELP    - ' + (lang === 'zh' ? '显示帮助信息' : 'Display this help'));
+      appendOutput('  DIR     - ' + (lang === 'zh' ? '列出文件' : 'List files'));
+      appendOutput('  VER     - ' + (lang === 'zh' ? '显示版本' : 'Show DOS version'));
+      appendOutput('  CLS     - ' + (lang === 'zh' ? '清屏' : 'Clear screen'));
+      appendOutput('  DATE    - ' + (lang === 'zh' ? '显示日期' : 'Show date'));
+      appendOutput('  TIME    - ' + (lang === 'zh' ? '显示时间' : 'Show time'));
+      appendOutput('  MEM     - ' + (lang === 'zh' ? '显示内存信息' : 'Show memory info'));
+      appendOutput('  TYPE    - ' + (lang === 'zh' ? '显示文件内容' : 'Display file contents'));
+      appendOutput('  ECHO    - ' + (lang === 'zh' ? '回显文本' : 'Echo text'));
+      break;
+
+    case 'dir':
+      appendOutput('');
+      appendOutput(' Volume in drive C is RETRO');
+      appendOutput(' Directory of C:\\');
+      appendOutput('');
+      appendOutput('COMMAND  COM    25,308  03-08-83  12:00p');
+      appendOutput('AUTOEXEC BAT       256  03-08-83  12:00p');
+      appendOutput('CONFIG   SYS       128  03-08-83  12:00p');
+      appendOutput('BASICA   COM    36,396  03-08-83  12:00p');
+      appendOutput('RETRO    TXT     1,983  08-12-83   3:25p');
+      appendOutput('       5 File(s)    302,144 bytes free');
+      break;
+
+    case 'ver':
+      appendOutput('');
+      appendOutput('IBM Personal Computer DOS');
+      appendOutput('Version 2.10  (C) Copyright IBM Corp 1981, 1983');
+      break;
+
+    case 'cls':
+      cmdOutput.innerHTML = '';
+      break;
+
+    case 'date':
+      const now = new Date();
+      const dateStr = 'Current date is ' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0') + '-' +
+        now.getFullYear();
+      appendOutput(dateStr);
+      break;
+
+    case 'time':
+      const t = new Date();
+      const timeStr = 'Current time is ' +
+        String(t.getHours()).padStart(2, '0') + ':' +
+        String(t.getMinutes()).padStart(2, '0') + ':' +
+        String(t.getSeconds()).padStart(2, '0') + '.00';
+      appendOutput(timeStr);
+      break;
+
+    case 'mem':
+      appendOutput('');
+      appendOutput('Memory Type        Total    Used     Free');
+      appendOutput('──────────────────────────────────────────');
+      appendOutput('Conventional       640K     147K     493K');
+      appendOutput('Upper              155K      91K      64K');
+      appendOutput('Extended (XMS)    3072K     512K    2560K');
+      appendOutput('');
+      appendOutput('Total memory      3867K     750K    3117K');
+      break;
+
+    case 'type':
+    case 'type retro.txt':
+      appendOutput('');
+      appendOutput('═══════════════════════════════════════');
+      if (lang === 'zh') {
+        appendOutput('  复古计算实验室');
+        appendOutput('  探索个人计算的黎明时代');
+        appendOutput('  IBM PC 5150 ─ 改变世界的机器');
+      } else {
+        appendOutput('  Retro Computing Lab');
+        appendOutput('  Exploring the dawn of personal computing');
+        appendOutput('  IBM PC 5150 ─ The machine that changed');
+        appendOutput('  the world.');
+      }
+      appendOutput('═══════════════════════════════════════');
+      break;
+
+    default:
+      if (cmd.startsWith('echo ')) {
+        appendOutput(cmd.substring(5));
+      } else {
+        appendOutput('Bad command or file name');
+      }
+  }
+  appendOutput('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MENU ITEM LINK STYLING (prevent default color)
+   ══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.menu-item').forEach(function(item) {
+  item.style.color = 'inherit';
+  item.style.textDecoration = 'none';
+});
+</script>
+</body>
+</html>

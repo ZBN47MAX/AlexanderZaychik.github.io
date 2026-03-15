@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GHOSTRUNNER | 幽灵行者</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--red:#ff1744;--red-dark:#e00030;--red-glow:#ff174466;
+--cyan:#00e5ff;--cyan-glow:#00e5ff44;
+--purple:#7c4dff;--purple-glow:#7c4dff44;
+--bg-black:#0a0a0f;--bg-navy:#0c1020;--bg-charcoal:#1a1a24;
+--text-primary:#e8e8f0;--text-secondary:#8888aa;
+--speed:0.15s;
+}
+[data-theme="light"]{
+--bg-black:#e8e8f0;--bg-navy:#d8dae8;--bg-charcoal:#c8c8d8;
+--text-primary:#0a0a0f;--text-secondary:#444466;
+--red-glow:#ff174433;--cyan-glow:#00e5ff33;--purple-glow:#7c4dff33;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+font-family:'Rajdhani',sans-serif;
+background:var(--bg-black);color:var(--text-primary);
+overflow-x:hidden;line-height:1.6;
+}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg-black)}
+::-webkit-scrollbar-thumb{background:var(--red);border-radius:0}
+/* GLOBAL GLITCH */
+@keyframes glitch{
+0%,100%{transform:translate(0);text-shadow:2px 0 var(--red),-2px 0 var(--cyan)}
+20%{transform:translate(-2px,1px);text-shadow:3px 0 var(--red),-3px 0 var(--cyan)}
+40%{transform:translate(2px,-1px);text-shadow:-2px 0 var(--red),2px 0 var(--cyan)}
+60%{transform:translate(-1px,2px)}
+80%{transform:translate(1px,-2px);text-shadow:2px 0 var(--cyan),-2px 0 var(--red)}
+}
+@keyframes glitchFast{
+0%,95%,100%{opacity:1;transform:none}
+96%{opacity:0.8;transform:translateX(-3px) skewX(-2deg)}
+97%{opacity:1;transform:translateX(3px)}
+98%{opacity:0.6;transform:translateX(-1px) skewX(1deg)}
+99%{opacity:1;transform:translateX(1px)}
+}
+@keyframes slashTrail{
+0%{transform:scaleX(0);opacity:1}
+50%{transform:scaleX(1);opacity:0.8}
+100%{transform:scaleX(1);opacity:0}
+}
+@keyframes dashBlink{
+0%{opacity:1;transform:translateX(0)}
+30%{opacity:0.3;transform:translateX(30px)}
+60%{opacity:0;transform:translateX(80px)}
+100%{opacity:0;transform:translateX(120px)}
+}
+@keyframes afterimage{
+0%{opacity:0.6;transform:translateX(0) scaleX(1)}
+100%{opacity:0;transform:translateX(-40px) scaleX(0.8)}
+}
+@keyframes pulseEdge{
+0%,100%{box-shadow:inset 0 0 0 1px var(--red-glow),0 0 8px var(--red-glow)}
+50%{box-shadow:inset 0 0 0 1px var(--red),0 0 20px var(--red-glow)}
+}
+@keyframes scanline{
+0%{transform:translateY(-100%)}
+100%{transform:translateY(100vh)}
+}
+@keyframes dataStream{
+0%{background-position:0 0}
+100%{background-position:0 200px}
+}
+@keyframes speedIn{
+0%{opacity:0;transform:translateX(80px);filter:blur(8px)}
+100%{opacity:1;transform:translateX(0);filter:blur(0)}
+}
+@keyframes speedInLeft{
+0%{opacity:0;transform:translateX(-80px);filter:blur(8px)}
+100%{opacity:1;transform:translateX(0);filter:blur(0)}
+}
+@keyframes fadeUp{
+0%{opacity:0;transform:translateY(40px)}
+100%{opacity:1;transform:translateY(0)}
+}
+@keyframes katanaStrike{
+0%{transform:rotate(-45deg) scaleX(0);opacity:0}
+40%{opacity:1}
+100%{transform:rotate(-45deg) scaleX(1);opacity:0}
+}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 0.5s,transform 0.5s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal.visible.speed-right{animation:speedIn 0.5s ease-out both}
+.reveal.visible.speed-left{animation:speedInLeft 0.5s ease-out both}
+
+/* CANVAS */
+#speedCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.5}
+
+/* NAV */
+nav{
+position:fixed;top:0;left:0;right:0;z-index:100;
+padding:12px 30px;
+background:linear-gradient(180deg,rgba(10,10,15,0.95),rgba(10,10,15,0.4));
+backdrop-filter:blur(10px);
+display:flex;justify-content:space-between;align-items:center;
+border-bottom:1px solid rgba(255,23,68,0.15);
+}
+.nav-logo{
+font-family:'Share Tech Mono',monospace;font-size:1.1rem;
+color:var(--red);letter-spacing:4px;text-transform:uppercase;
+animation:glitchFast 4s infinite;
+}
+.nav-logo span{color:var(--cyan);font-size:0.7rem;display:block;letter-spacing:2px;margin-top:-4px}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{
+color:var(--text-secondary);text-decoration:none;
+font-family:'Share Tech Mono',monospace;font-size:0.75rem;
+letter-spacing:2px;text-transform:uppercase;
+transition:color var(--speed),text-shadow var(--speed);
+position:relative;
+}
+.nav-links a::after{
+content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;
+background:var(--red);transition:width 0.3s;
+}
+.nav-links a:hover{color:var(--red);text-shadow:0 0 10px var(--red-glow)}
+.nav-links a:hover::after{width:100%}
+.toggle-btn{
+background:none;border:1px solid rgba(255,23,68,0.3);
+color:var(--text-secondary);padding:4px 10px;cursor:pointer;
+font-family:'Share Tech Mono',monospace;font-size:0.65rem;
+letter-spacing:1px;transition:all var(--speed);
+clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+}
+.toggle-btn:hover{border-color:var(--red);color:var(--red);background:rgba(255,23,68,0.1)}
+
+/* SLASH DIVIDER */
+.slash-divider{
+position:relative;height:80px;overflow:hidden;
+background:var(--bg-black);
+}
+.slash-divider::before{
+content:'';position:absolute;top:50%;left:-10%;
+width:120%;height:2px;
+background:linear-gradient(90deg,transparent,var(--red),var(--cyan),transparent);
+transform:rotate(-2deg);
+}
+.slash-divider::after{
+content:'';position:absolute;top:40%;left:-10%;
+width:120%;height:1px;
+background:linear-gradient(90deg,transparent,var(--red-glow),transparent);
+transform:rotate(1.5deg);
+}
+.slash-divider .cut{
+position:absolute;top:0;left:0;width:100%;height:100%;
+background:linear-gradient(to bottom right,var(--bg-charcoal) 49%,transparent 49%,transparent 51%,var(--bg-navy) 51%);
+}
+
+/* HERO */
+.hero{
+position:relative;height:100vh;min-height:700px;
+display:flex;align-items:center;justify-content:center;
+background:linear-gradient(135deg,var(--bg-black),var(--bg-navy));
+overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+background:repeating-linear-gradient(
+90deg,
+transparent,transparent 2px,
+rgba(255,23,68,0.02) 2px,rgba(255,23,68,0.02) 4px
+);
+pointer-events:none;
+}
+.hero-scanline{
+position:absolute;top:0;left:0;width:100%;height:4px;
+background:linear-gradient(180deg,rgba(0,229,255,0.15),transparent);
+animation:scanline 4s linear infinite;
+pointer-events:none;
+}
+.hero-slash{
+position:absolute;top:15%;left:-20%;width:140%;height:3px;
+background:linear-gradient(90deg,transparent,var(--red),transparent);
+transform:rotate(-15deg);
+animation:katanaStrike 3s ease-out infinite;
+}
+.hero-slash:nth-child(2){
+top:60%;transform:rotate(20deg);
+animation-delay:1.5s;
+background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+height:2px;
+}
+.hero-vertical{
+position:absolute;right:15%;top:0;height:100%;width:1px;
+background:linear-gradient(180deg,transparent,var(--red-glow),var(--cyan-glow),transparent);
+opacity:0.3;
+}
+.hero-vertical:nth-child(4){right:16%;opacity:0.15}
+.hero-vertical:nth-child(5){right:14%;opacity:0.1;width:2px}
+.hero-content{
+position:relative;z-index:10;text-align:center;
+}
+.hero-pre{
+font-family:'Share Tech Mono',monospace;
+color:var(--cyan);font-size:0.75rem;
+letter-spacing:6px;text-transform:uppercase;
+margin-bottom:16px;
+}
+.hero-title{
+font-family:'Rajdhani',sans-serif;font-weight:900;
+font-size:clamp(3.5rem,10vw,8rem);
+line-height:0.9;letter-spacing:-2px;
+text-transform:uppercase;
+color:var(--text-primary);
+position:relative;
+}
+.hero-title .red{color:var(--red);text-shadow:0 0 40px var(--red-glow)}
+.hero-title-glitch{
+animation:glitch 5s infinite;
+display:inline-block;
+}
+.hero-sub{
+font-family:'Share Tech Mono',monospace;
+font-size:0.85rem;color:var(--text-secondary);
+letter-spacing:4px;margin-top:20px;
+}
+.hero-sub .dash{
+display:inline-block;width:30px;height:1px;
+background:var(--red);vertical-align:middle;
+margin:0 10px;
+}
+.hero-cta{
+display:inline-block;margin-top:40px;
+padding:12px 40px;
+background:transparent;
+border:1px solid var(--red);
+color:var(--red);
+font-family:'Share Tech Mono',monospace;
+font-size:0.8rem;letter-spacing:3px;
+text-transform:uppercase;text-decoration:none;
+clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+transition:all 0.3s;
+cursor:pointer;
+position:relative;overflow:hidden;
+}
+.hero-cta::before{
+content:'';position:absolute;top:0;left:-100%;
+width:100%;height:100%;
+background:linear-gradient(90deg,transparent,rgba(255,23,68,0.2),transparent);
+transition:left 0.4s;
+}
+.hero-cta:hover{
+background:rgba(255,23,68,0.1);
+box-shadow:0 0 30px var(--red-glow);
+}
+.hero-cta:hover::before{left:100%}
+.hero-tower{
+position:absolute;left:8%;top:10%;bottom:10%;width:40px;
+opacity:0.06;
+background:
+repeating-linear-gradient(180deg,var(--text-primary) 0,var(--text-primary) 2px,transparent 2px,transparent 20px),
+repeating-linear-gradient(90deg,var(--text-primary) 0,var(--text-primary) 1px,transparent 1px,transparent 10px);
+clip-path:polygon(20% 0,80% 0,90% 30%,95% 60%,85% 100%,15% 100%,5% 60%,10% 30%);
+}
+.hero-afterimage{
+position:absolute;z-index:5;
+font-family:'Rajdhani',sans-serif;font-weight:900;
+font-size:clamp(3.5rem,10vw,8rem);
+line-height:0.9;letter-spacing:-2px;
+text-transform:uppercase;
+color:var(--red);opacity:0;
+animation:afterimage 2s ease-out infinite;
+}
+.hero-afterimage:nth-of-type(2){animation-delay:0.1s;color:var(--cyan);opacity:0}
+
+/* SECTIONS */
+section{position:relative;padding:100px 5%;overflow:hidden}
+.section-bg-dark{background:var(--bg-black)}
+.section-bg-navy{background:var(--bg-navy)}
+.section-bg-charcoal{background:var(--bg-charcoal)}
+.section-header{margin-bottom:60px;position:relative}
+.section-tag{
+font-family:'Share Tech Mono',monospace;
+color:var(--cyan);font-size:0.7rem;
+letter-spacing:4px;text-transform:uppercase;
+margin-bottom:8px;
+}
+.section-title{
+font-family:'Rajdhani',sans-serif;font-weight:700;
+font-size:clamp(2rem,5vw,3.5rem);
+text-transform:uppercase;letter-spacing:2px;
+line-height:1;
+}
+.section-title .accent{color:var(--red)}
+.section-line{
+width:60px;height:2px;margin-top:16px;
+background:linear-gradient(90deg,var(--red),var(--cyan));
+}
+/* circuit pattern overlay */
+.circuit-overlay{
+position:absolute;top:0;right:0;width:300px;height:300px;
+opacity:0.03;pointer-events:none;
+background:
+linear-gradient(90deg,var(--text-primary) 1px,transparent 1px) 0 0/20px 20px,
+linear-gradient(0deg,var(--text-primary) 1px,transparent 1px) 0 0/20px 20px;
+}
+
+/* DHARMA TOWER SECTION */
+.tower-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.tower-visual{
+position:relative;height:500px;
+display:flex;justify-content:center;
+}
+.tower-structure{
+width:120px;height:100%;position:relative;
+background:linear-gradient(180deg,var(--bg-charcoal),var(--bg-black));
+border:1px solid rgba(255,23,68,0.15);
+clip-path:polygon(30% 0,70% 0,85% 20%,90% 50%,80% 80%,95% 100%,5% 100%,20% 80%,10% 50%,15% 20%);
+}
+.tower-structure::before{
+content:'';position:absolute;inset:0;
+background:repeating-linear-gradient(
+180deg,
+transparent 0,transparent 18px,
+rgba(255,23,68,0.1) 18px,rgba(255,23,68,0.1) 20px
+);
+}
+.tower-level{
+position:absolute;left:-40px;right:-40px;height:2px;
+background:linear-gradient(90deg,transparent,var(--cyan-glow),transparent);
+}
+.tower-level:nth-child(1){top:20%}
+.tower-level:nth-child(2){top:40%}
+.tower-level:nth-child(3){top:60%}
+.tower-level:nth-child(4){top:80%}
+.tower-glow{
+position:absolute;top:0;left:50%;transform:translateX(-50%);
+width:4px;height:100%;
+background:linear-gradient(180deg,var(--red),var(--purple),var(--cyan));
+opacity:0.4;filter:blur(4px);
+}
+.tower-text h3{
+font-family:'Rajdhani',sans-serif;font-weight:700;
+font-size:1.5rem;color:var(--red);margin-bottom:16px;
+}
+.tower-text p{
+color:var(--text-secondary);font-size:0.95rem;
+margin-bottom:16px;line-height:1.8;
+}
+.tower-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+.stat-box{
+padding:16px;
+background:rgba(255,23,68,0.03);
+border:1px solid rgba(255,23,68,0.1);
+clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+}
+.stat-box .val{
+font-family:'Share Tech Mono',monospace;
+font-size:1.4rem;color:var(--red);
+}
+.stat-box .label{
+font-size:0.7rem;color:var(--text-secondary);
+letter-spacing:2px;text-transform:uppercase;
+}
+
+/* ABILITIES */
+.abilities-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ability-card{
+position:relative;padding:30px 24px;
+background:rgba(10,10,15,0.6);
+border:1px solid rgba(255,23,68,0.08);
+clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
+transition:all 0.3s;
+animation:pulseEdge 4s infinite;
+animation-delay:var(--delay,0s);
+cursor:default;
+}
+.ability-card::before{
+content:'';position:absolute;top:0;right:0;
+width:16px;height:16px;
+border-right:1px solid var(--red);
+border-top:1px solid var(--red);
+opacity:0.4;
+}
+.ability-card:hover{
+background:rgba(255,23,68,0.05);
+border-color:rgba(255,23,68,0.3);
+transform:translateY(-4px);
+box-shadow:0 10px 40px rgba(255,23,68,0.1);
+}
+.ability-icon{
+font-size:2rem;margin-bottom:12px;display:block;
+width:48px;height:48px;line-height:48px;text-align:center;
+border:1px solid rgba(255,23,68,0.2);
+color:var(--red);
+}
+.ability-card:nth-child(even) .ability-icon{color:var(--cyan);border-color:rgba(0,229,255,0.2)}
+.ability-card:nth-child(3n) .ability-icon{color:var(--purple);border-color:rgba(124,77,255,0.2)}
+.ability-name{
+font-family:'Rajdhani',sans-serif;font-weight:700;
+font-size:1.2rem;text-transform:uppercase;
+letter-spacing:2px;margin-bottom:8px;
+}
+.ability-desc{
+font-size:0.85rem;color:var(--text-secondary);line-height:1.6;
+}
+.ability-tag{
+display:inline-block;margin-top:12px;
+padding:2px 10px;
+font-family:'Share Tech Mono',monospace;
+font-size:0.6rem;letter-spacing:2px;
+color:var(--red);
+border:1px solid rgba(255,23,68,0.2);
+text-transform:uppercase;
+}
+
+/* ENEMIES */
+.enemies-list{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.enemy-row{
+display:flex;align-items:center;gap:20px;
+padding:20px;
+background:rgba(10,10,15,0.4);
+border-left:2px solid var(--red);
+transition:all 0.3s;
+}
+.enemy-row:hover{
+background:rgba(255,23,68,0.05);
+border-left-color:var(--cyan);
+transform:translateX(6px);
+}
+.enemy-rank{
+font-family:'Share Tech Mono',monospace;
+font-size:2rem;color:rgba(255,23,68,0.15);
+min-width:50px;
+}
+.enemy-info h4{
+font-family:'Rajdhani',sans-serif;font-weight:600;
+font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;
+}
+.enemy-info p{font-size:0.8rem;color:var(--text-secondary)}
+.enemy-threat{
+margin-left:auto;
+padding:2px 8px;
+font-family:'Share Tech Mono',monospace;
+font-size:0.6rem;
+}
+.enemy-threat.high{color:var(--red);border:1px solid rgba(255,23,68,0.3)}
+.enemy-threat.mid{color:var(--purple);border:1px solid rgba(124,77,255,0.3)}
+.enemy-threat.low{color:var(--cyan);border:1px solid rgba(0,229,255,0.3)}
+
+/* CYBERVOID */
+.cybervoid-section{
+background:linear-gradient(135deg,#06060a,#0a0820,#0c0618);
+position:relative;
+}
+.cybervoid-section::before{
+content:'';position:absolute;inset:0;
+background:
+repeating-linear-gradient(0deg,transparent 0,transparent 2px,rgba(124,77,255,0.015) 2px,rgba(124,77,255,0.015) 4px),
+repeating-linear-gradient(90deg,transparent 0,transparent 40px,rgba(124,77,255,0.02) 40px,rgba(124,77,255,0.02) 41px);
+animation:dataStream 8s linear infinite;
+pointer-events:none;
+}
+.void-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.void-card{
+padding:30px;position:relative;
+background:rgba(124,77,255,0.03);
+border:1px solid rgba(124,77,255,0.1);
+transition:all 0.3s;
+}
+.void-card::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--purple),var(--cyan));
+transform:scaleX(0);transform-origin:left;
+transition:transform 0.4s;
+}
+.void-card:hover::before{transform:scaleX(1)}
+.void-card:hover{
+border-color:rgba(124,77,255,0.3);
+box-shadow:0 0 30px rgba(124,77,255,0.1);
+}
+.void-num{
+font-family:'Share Tech Mono',monospace;
+font-size:2.5rem;color:rgba(124,77,255,0.15);
+line-height:1;margin-bottom:10px;
+}
+.void-card h4{
+font-family:'Rajdhani',sans-serif;font-weight:600;
+font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;
+margin-bottom:8px;
+}
+.void-card p{font-size:0.85rem;color:var(--text-secondary);line-height:1.6}
+
+/* QUOTE */
+.quote-section{
+text-align:center;
+padding:120px 10%;
+background:var(--bg-black);
+position:relative;
+}
+.quote-section::before,.quote-section::after{
+content:'';position:absolute;width:200px;height:1px;
+background:linear-gradient(90deg,transparent,var(--red),transparent);
+}
+.quote-section::before{top:60px;left:50%;transform:translateX(-50%) rotate(-3deg)}
+.quote-section::after{bottom:60px;left:50%;transform:translateX(-50%) rotate(3deg)}
+.quote-text{
+font-family:'Rajdhani',sans-serif;font-weight:300;
+font-size:clamp(1.5rem,4vw,2.5rem);
+font-style:italic;color:var(--text-primary);
+line-height:1.4;margin-bottom:24px;
+}
+.quote-text .highlight{color:var(--red);font-weight:700}
+.quote-attr{
+font-family:'Share Tech Mono',monospace;
+font-size:0.75rem;color:var(--text-secondary);
+letter-spacing:3px;text-transform:uppercase;
+}
+
+/* CTA */
+.cta-section{
+text-align:center;padding:100px 5%;
+background:linear-gradient(135deg,var(--bg-navy),var(--bg-black));
+position:relative;
+}
+.cta-title{
+font-family:'Rajdhani',sans-serif;font-weight:900;
+font-size:clamp(2rem,6vw,4rem);
+text-transform:uppercase;letter-spacing:2px;
+margin-bottom:16px;
+}
+.cta-title .red{color:var(--red)}
+.cta-sub{
+font-family:'Share Tech Mono',monospace;
+font-size:0.85rem;color:var(--text-secondary);
+letter-spacing:3px;margin-bottom:40px;
+}
+.cta-btn{
+display:inline-block;
+padding:16px 60px;
+background:var(--red);
+color:#fff;font-family:'Rajdhani',sans-serif;
+font-weight:700;font-size:1rem;
+letter-spacing:4px;text-transform:uppercase;
+text-decoration:none;border:none;cursor:pointer;
+clip-path:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);
+transition:all 0.3s;
+position:relative;overflow:hidden;
+}
+.cta-btn::after{
+content:'';position:absolute;top:0;left:-100%;
+width:100%;height:100%;
+background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+transition:left 0.5s;
+}
+.cta-btn:hover{
+box-shadow:0 0 40px var(--red-glow),0 0 80px rgba(255,23,68,0.15);
+transform:scale(1.02);
+}
+.cta-btn:hover::after{left:100%}
+
+/* FOOTER */
+footer{
+padding:40px 5%;
+background:var(--bg-black);
+border-top:1px solid rgba(255,23,68,0.1);
+display:flex;justify-content:space-between;align-items:center;
+flex-wrap:wrap;gap:20px;
+}
+.footer-brand{
+font-family:'Share Tech Mono',monospace;
+font-size:0.7rem;color:var(--text-secondary);
+letter-spacing:2px;
+}
+.footer-brand span{color:var(--red)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{
+color:var(--text-secondary);text-decoration:none;
+font-family:'Share Tech Mono',monospace;
+font-size:0.65rem;letter-spacing:1px;
+transition:color 0.2s;
+}
+.footer-links a:hover{color:var(--red)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+.abilities-grid,.void-cards{grid-template-columns:1fr 1fr}
+.tower-grid{grid-template-columns:1fr}
+.tower-visual{height:300px}
+.enemies-list{grid-template-columns:1fr}
+nav{padding:10px 16px}
+.nav-links{gap:12px}
+.nav-links a{font-size:0.65rem}
+}
+@media(max-width:600px){
+.abilities-grid,.void-cards{grid-template-columns:1fr}
+section{padding:60px 5%}
+.hero{min-height:600px}
+footer{flex-direction:column;text-align:center}
+}
+
+/* LANGUAGE TOGGLE */
+[data-lang="en"] .zh{display:none}
+[data-lang="zh"] .en{display:none}
+[data-lang="zh"] body{font-family:'Noto Sans SC',sans-serif}
+[data-lang="zh"] .hero-title,[data-lang="zh"] .section-title,[data-lang="zh"] .cta-title{font-family:'Noto Sans SC',sans-serif}
+</style>
+</head>
+<body>
+<canvas id="speedCanvas"></canvas>
+
+<!-- NAV -->
+<nav>
+<div class="nav-logo">
+GHOSTRUNNER
+<span class="en">ONE HIT // ONE KILL</span>
+<span class="zh">一击 // 必杀</span>
+</div>
+<div class="nav-links">
+<a href="#tower"><span class="en">TOWER</span><span class="zh">塔</span></a>
+<a href="#abilities"><span class="en">ABILITIES</span><span class="zh">能力</span></a>
+<a href="#enemies"><span class="en">ENEMIES</span><span class="zh">敌人</span></a>
+<a href="#cybervoid"><span class="en">CYBERVOID</span><span class="zh">赛博虚空</span></a>
+<button class="toggle-btn" id="langToggle">中/EN</button>
+<button class="toggle-btn" id="themeToggle">◐</button>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+<div class="hero-scanline"></div>
+<div class="hero-slash"></div>
+<div class="hero-slash"></div>
+<div class="hero-vertical"></div>
+<div class="hero-vertical"></div>
+<div class="hero-vertical"></div>
+<div class="hero-tower"></div>
+<div class="hero-content">
+<div class="hero-pre">
+<span class="en">// SYSTEM BOOT :: SUBJECT_74 ONLINE</span>
+<span class="zh">// 系统启动 :: 对象_74 在线</span>
+</div>
+<h1 class="hero-title">
+<span class="hero-title-glitch">GHOST</span><span class="red">RUNNER</span>
+</h1>
+<p class="hero-sub">
+<span class="dash"></span>
+<span class="en">THE LAST CYBERNETIC SWORDSMAN</span>
+<span class="zh">最后的赛博武士</span>
+<span class="dash"></span>
+</p>
+<a href="#tower" class="hero-cta">
+<span class="en">ENTER DHARMA TOWER</span>
+<span class="zh">进入达摩塔</span>
+</a>
+</div>
+</section>
+
+<!-- SLASH DIVIDER -->
+<div class="slash-divider"><div class="cut"></div></div>
+
+<!-- DHARMA TOWER -->
+<section id="tower" class="section-bg-navy">
+<div class="circuit-overlay"></div>
+<div class="section-header reveal">
+<div class="section-tag">
+<span class="en">// LOCATION DATA</span>
+<span class="zh">// 地点数据</span>
+</div>
+<h2 class="section-title">
+<span class="en">DHARMA <span class="accent">TOWER</span></span>
+<span class="zh">达摩<span class="accent">塔</span></span>
+</h2>
+<div class="section-line"></div>
+</div>
+<div class="tower-grid">
+<div class="tower-visual reveal speed-left">
+<div class="tower-structure">
+<div class="tower-level"></div>
+<div class="tower-level"></div>
+<div class="tower-level"></div>
+<div class="tower-level"></div>
+<div class="tower-glow"></div>
+</div>
+</div>
+<div class="tower-text reveal speed-right">
+<h3>
+<span class="en">Humanity's Last Refuge</span>
+<span class="zh">人类最后的避难所</span>
+</h3>
+<p class="en">Dharma Tower stands as the final bastion of human civilization after a global cataclysm rendered the outside world uninhabitable. Ruled by the tyrannical Keymaster — known as Mara — the tower's inhabitants are stratified into rigid social classes, with the wealthy elite occupying the summit while the impoverished masses toil in the lower depths.</p>
+<p class="zh">达摩塔是全球大灾难使外部世界无法居住后，人类文明最后的堡垒。在暴虐的密钥大师——玛拉的统治下，塔的居民被严格划分为社会阶层，富裕的精英占据塔顶，而贫困的大众在底层辛苦劳作。</p>
+<p class="en">The Architect, the tower's creator, was betrayed and killed by Mara. Now his consciousness persists in the cybervoid, guiding Jack — the last Ghostrunner — on a mission to ascend the tower and overthrow the tyrant.</p>
+<p class="zh">建筑师，塔的创造者，被玛拉背叛杀害。现在他的意识存留在赛博虚空中，引导杰克——最后的幽灵行者——执行攀登塔顶推翻暴君的任务。</p>
+<div class="tower-stats">
+<div class="stat-box">
+<div class="val">001</div>
+<div class="label"><span class="en">GHOSTRUNNER</span><span class="zh">幽灵行者</span></div>
+</div>
+<div class="stat-box">
+<div class="val">∞</div>
+<div class="label"><span class="en">DEATHS</span><span class="zh">死亡次数</span></div>
+</div>
+<div class="stat-box">
+<div class="val">0.1s</div>
+<div class="label"><span class="en">KILL TIME</span><span class="zh">击杀时间</span></div>
+</div>
+<div class="stat-box">
+<div class="val">MAX</div>
+<div class="label"><span class="en">VELOCITY</span><span class="zh">速度</span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="slash-divider"><div class="cut"></div></div>
+
+<!-- ABILITIES -->
+<section id="abilities" class="section-bg-charcoal">
+<div class="circuit-overlay"></div>
+<div class="section-header reveal">
+<div class="section-tag">
+<span class="en">// COMBAT SYSTEMS</span>
+<span class="zh">// 战斗系统</span>
+</div>
+<h2 class="section-title">
+<span class="en"><span class="accent">ABILITIES</span> MATRIX</span>
+<span class="zh"><span class="accent">能力</span>矩阵</span>
+</h2>
+<div class="section-line"></div>
+</div>
+<div class="abilities-grid">
+<div class="ability-card reveal" style="--delay:0s">
+<span class="ability-icon">⚡</span>
+<div class="ability-name">
+<span class="en">TEMPEST</span>
+<span class="zh">暴风</span>
+</div>
+<p class="ability-desc en">Unleash a devastating radial shockwave that sweeps enemies in a wide arc. Jack spins with lethal precision, his blade cutting through everything in range.</p>
+<p class="ability-desc zh">释放毁灭性的径向冲击波，在大范围内横扫敌人。杰克以致命的精准旋转，他的刀刃切割范围内的一切。</p>
+<span class="ability-tag">AOE</span>
+</div>
+<div class="ability-card reveal" style="--delay:0.1s">
+<span class="ability-icon">◈</span>
+<div class="ability-name">
+<span class="en">BLINK</span>
+<span class="zh">闪现</span>
+</div>
+<p class="ability-desc en">Dash through enemies at blinding speed, slashing each one as you pass. A trail of afterimages marks the path of destruction.</p>
+<p class="ability-desc zh">以令人眩目的速度穿过敌人，经过时斩杀每一个。残影轨迹标记着毁灭之路。</p>
+<span class="ability-tag">DASH</span>
+</div>
+<div class="ability-card reveal" style="--delay:0.2s">
+<span class="ability-icon">⊕</span>
+<div class="ability-name">
+<span class="en">SURGE</span>
+<span class="zh">激涌</span>
+</div>
+<p class="ability-desc en">Channel kinetic energy into a focused beam of raw force. Project a devastating wave of energy that tears through enemies in a straight line.</p>
+<p class="ability-desc zh">将动能聚集成一束集中的原始力量。投射出一道毁灭性的能量波，在直线上撕裂敌人。</p>
+<span class="ability-tag">BEAM</span>
+</div>
+<div class="ability-card reveal" style="--delay:0.3s">
+<span class="ability-icon">◉</span>
+<div class="ability-name">
+<span class="en">OVERLORD</span>
+<span class="zh">霸主</span>
+</div>
+<p class="ability-desc en">Hack into enemy neural networks, turning their own soldiers against them. Dominated enemies fight with the same lethal efficiency as their new master.</p>
+<p class="ability-desc zh">入侵敌人的神经网络，让他们自己的士兵反戈相向。被支配的敌人以与其新主人相同的致命效率战斗。</p>
+<span class="ability-tag">HACK</span>
+</div>
+<div class="ability-card reveal" style="--delay:0.4s">
+<span class="ability-icon">⬡</span>
+<div class="ability-name">
+<span class="en">SENSORY BOOST</span>
+<span class="zh">感官增强</span>
+</div>
+<p class="ability-desc en">Dilate time perception to near-standstill. The world slows while Jack's reflexes remain at peak speed — dodge bullets in mid-air with surgical precision.</p>
+<p class="ability-desc zh">将时间感知扩张到近乎静止。世界变慢而杰克的反应保持在巅峰速度——以手术般的精确在空中躲避子弹。</p>
+<span class="ability-tag">SLOW-MO</span>
+</div>
+<div class="ability-card reveal" style="--delay:0.5s">
+<span class="ability-icon">⧫</span>
+<div class="ability-name">
+<span class="en">SHURIKEN</span>
+<span class="zh">手里剑</span>
+</div>
+<p class="ability-desc en">Deploy lethal throwing stars to eliminate distant targets. Can be fanned out for multi-target engagement or focused for shield-breaking precision.</p>
+<p class="ability-desc zh">部署致命的投掷星消灭远距离目标。可以扇形展开进行多目标打击，或集中力量精确破盾。</p>
+<span class="ability-tag">RANGED</span>
+</div>
+</div>
+</section>
+
+<div class="slash-divider"><div class="cut"></div></div>
+
+<!-- ENEMIES -->
+<section id="enemies" class="section-bg-navy">
+<div class="section-header reveal">
+<div class="section-tag">
+<span class="en">// THREAT ANALYSIS</span>
+<span class="zh">// 威胁分析</span>
+</div>
+<h2 class="section-title">
+<span class="en">ENEMY <span class="accent">DATABASE</span></span>
+<span class="zh">敌人<span class="accent">数据库</span></span>
+</h2>
+<div class="section-line"></div>
+</div>
+<div class="enemies-list">
+<div class="enemy-row reveal">
+<div class="enemy-rank">01</div>
+<div class="enemy-info">
+<h4><span class="en">Key Master — Mara</span><span class="zh">密钥大师 — 玛拉</span></h4>
+<p><span class="en">Tyrant ruler of Dharma Tower. Betrayed the Architect.</span><span class="zh">达摩塔的暴君统治者。背叛了建筑师。</span></p>
+</div>
+<span class="enemy-threat high"><span class="en">BOSS</span><span class="zh">首领</span></span>
+</div>
+<div class="enemy-row reveal">
+<div class="enemy-rank">02</div>
+<div class="enemy-info">
+<h4><span class="en">Hel</span><span class="zh">赫尔</span></h4>
+<p><span class="en">Cybernetic enforcer. Mara's elite lieutenant.</span><span class="zh">赛博执法者。玛拉的精英副官。</span></p>
+</div>
+<span class="enemy-threat high"><span class="en">BOSS</span><span class="zh">首领</span></span>
+</div>
+<div class="enemy-row reveal">
+<div class="enemy-rank">03</div>
+<div class="enemy-info">
+<h4><span class="en">Shield Enforcer</span><span class="zh">盾牌执法者</span></h4>
+<p><span class="en">Heavy armored with energy shields. Requires flanking.</span><span class="zh">重装甲配备能量盾。需要侧翼攻击。</span></p>
+</div>
+<span class="enemy-threat mid"><span class="en">HIGH</span><span class="zh">高</span></span>
+</div>
+<div class="enemy-row reveal">
+<div class="enemy-rank">04</div>
+<div class="enemy-info">
+<h4><span class="en">Sniper</span><span class="zh">狙击手</span></h4>
+<p><span class="en">Long-range laser targeting. One-shot kill at distance.</span><span class="zh">远程激光瞄准。远距离一击必杀。</span></p>
+</div>
+<span class="enemy-threat mid"><span class="en">HIGH</span><span class="zh">高</span></span>
+</div>
+<div class="enemy-row reveal">
+<div class="enemy-rank">05</div>
+<div class="enemy-info">
+<h4><span class="en">Drone Swarm</span><span class="zh">无人机群</span></h4>
+<p><span class="en">Aerial attack units. Fast and evasive.</span><span class="zh">空中攻击单位。快速且善于闪避。</span></p>
+</div>
+<span class="enemy-threat low"><span class="en">MED</span><span class="zh">中</span></span>
+</div>
+<div class="enemy-row reveal">
+<div class="enemy-rank">06</div>
+<div class="enemy-info">
+<h4><span class="en">Pistol Grunt</span><span class="zh">手枪小兵</span></h4>
+<p><span class="en">Standard infantry. One slash, one kill.</span><span class="zh">标准步兵。一刀一命。</span></p>
+</div>
+<span class="enemy-threat low"><span class="en">LOW</span><span class="zh">低</span></span>
+</div>
+</div>
+</section>
+
+<div class="slash-divider"><div class="cut"></div></div>
+
+<!-- CYBERVOID -->
+<section id="cybervoid" class="cybervoid-section">
+<div class="section-header reveal">
+<div class="section-tag">
+<span class="en">// VIRTUAL DIMENSION</span>
+<span class="zh">// 虚拟维度</span>
+</div>
+<h2 class="section-title">
+<span class="en">CYBER<span class="accent">VOID</span></span>
+<span class="zh">赛博<span class="accent">虚空</span></span>
+</h2>
+<div class="section-line"></div>
+</div>
+<p class="reveal" style="color:var(--text-secondary);max-width:700px;margin-bottom:40px;font-size:0.95rem;line-height:1.8">
+<span class="en">The Cybervoid is a digital realm between dimensions where the Architect's consciousness resides. Jack is pulled into this space to upgrade his abilities and confront abstract challenges that test mind and reflexes.</span>
+<span class="zh">赛博虚空是维度之间的数字领域，建筑师的意识居住于此。杰克被拉入这个空间升级能力，面对考验心智和反应力的抽象挑战。</span>
+</p>
+<div class="void-cards">
+<div class="void-card reveal">
+<div class="void-num">01</div>
+<h4><span class="en">Platform Trials</span><span class="zh">平台试炼</span></h4>
+<p><span class="en">Navigate abstract floating geometry. Precision jumping through impossible spaces where physics bends to will.</span><span class="zh">穿越抽象的悬浮几何体。在物理法则屈从于意志的不可能空间中进行精确跳跃。</span></p>
+</div>
+<div class="void-card reveal">
+<div class="void-num">02</div>
+<h4><span class="en">Combat Arenas</span><span class="zh">战斗竞技场</span></h4>
+<p><span class="en">Face waves of digital constructs in enclosed kill-boxes. Pure combat mastery with no room for error.</span><span class="zh">在封闭的杀戮区域面对数字构造体的波次攻击。纯粹的战斗精通，没有犯错的余地。</span></p>
+</div>
+<div class="void-card reveal">
+<div class="void-num">03</div>
+<h4><span class="en">Memory Fragments</span><span class="zh">记忆碎片</span></h4>
+<p><span class="en">Piece together the Architect's shattered memories. Uncover the truth about Jack's origin and the tower's dark history.</span><span class="zh">拼凑建筑师破碎的记忆。揭开杰克身世和塔的黑暗历史的真相。</span></p>
+</div>
+</div>
+</section>
+
+<div class="slash-divider"><div class="cut"></div></div>
+
+<!-- QUOTE -->
+<section class="quote-section">
+<div class="reveal">
+<p class="quote-text">
+<span class="en">"<span class="highlight">Speed</span> is your weapon. <span class="highlight">Precision</span> is your shield. There are no second chances — only the next <span class="highlight">slash</span>."</span>
+<span class="zh">"<span class="highlight">速度</span>是你的武器。<span class="highlight">精准</span>是你的盾牌。没有第二次机会——只有下一次<span class="highlight">斩击</span>。"</span>
+</p>
+<p class="quote-attr">
+<span class="en">— The Architect // Dharma Tower Core</span>
+<span class="zh">— 建筑师 // 达摩塔核心</span>
+</p>
+</div>
+</section>
+
+<div class="slash-divider"><div class="cut"></div></div>
+
+<!-- CTA -->
+<section class="cta-section">
+<div class="reveal">
+<h2 class="cta-title">
+<span class="en">BECOME THE <span class="red">GHOST</span></span>
+<span class="zh">成为<span class="red">幽灵</span></span>
+</h2>
+<p class="cta-sub">
+<span class="en">ONE HIT. ONE KILL. NO MERCY.</span>
+<span class="zh">一击。必杀。绝不留情。</span>
+</p>
+<a href="#hero" class="cta-btn">
+<span class="en">ASCEND THE TOWER</span>
+<span class="zh">攀登达摩塔</span>
+</a>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="footer-brand">
+<span>GHOSTRUNNER</span> // <span class="en">幽灵行者 FAN PAGE</span><span class="zh">粉丝页面</span> // 2026
+</div>
+<div class="footer-links">
+<a href="#tower"><span class="en">TOWER</span><span class="zh">塔</span></a>
+<a href="#abilities"><span class="en">ABILITIES</span><span class="zh">能力</span></a>
+<a href="#enemies"><span class="en">ENEMIES</span><span class="zh">敌人</span></a>
+<a href="#cybervoid"><span class="en">CYBERVOID</span><span class="zh">虚空</span></a>
+</div>
+</footer>
+
+<script>
+/* === SPEED-LINE CANVAS === */
+const canvas=document.getElementById('speedCanvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+
+class SpeedLine{
+constructor(){this.reset()}
+reset(){
+this.x=Math.random()*W;
+this.y=Math.random()*H;
+this.len=40+Math.random()*120;
+this.speed=8+Math.random()*16;
+this.angle=-0.6+Math.random()*0.3;
+this.width=0.5+Math.random()*1.5;
+const r=Math.random();
+if(r<0.6){this.color='rgba(255,23,68,'}
+else if(r<0.85){this.color='rgba(0,229,255,'}
+else{this.color='rgba(124,77,255,'}
+this.alpha=0.15+Math.random()*0.35;
+this.life=0;this.maxLife=30+Math.random()*60;
+}
+update(){
+const dx=Math.cos(this.angle)*this.speed;
+const dy=Math.sin(this.angle)*this.speed;
+this.x+=dx;this.y+=dy;
+this.life++;
+if(this.life>this.maxLife||this.x>W+100||this.y>H+100||this.x<-100||this.y<-100)this.reset();
+}
+draw(){
+const progress=this.life/this.maxLife;
+const a=this.alpha*(1-progress*0.5);
+ctx.beginPath();
+ctx.moveTo(this.x,this.y);
+const ex=this.x-Math.cos(this.angle)*this.len;
+const ey=this.y-Math.sin(this.angle)*this.len;
+ctx.lineTo(ex,ey);
+ctx.strokeStyle=this.color+a+')';
+ctx.lineWidth=this.width;
+ctx.stroke();
+}
+}
+
+const lines=[];
+for(let i=0;i<50;i++)lines.push(new SpeedLine());
+
+function animate(){
+ctx.clearRect(0,0,W,H);
+lines.forEach(l=>{l.update();l.draw()});
+requestAnimationFrame(animate);
+}
+animate();
+
+/* === SCROLL REVEAL === */
+const reveals=document.querySelectorAll('.reveal');
+const revealObs=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{
+if(e.isIntersecting){
+e.target.classList.add('visible');
+revealObs.unobserve(e.target);
+}
+});
+},{threshold:0.15});
+reveals.forEach(el=>revealObs.observe(el));
+
+/* === LANGUAGE TOGGLE === */
+document.getElementById('langToggle').addEventListener('click',()=>{
+const html=document.documentElement;
+const cur=html.getAttribute('data-lang');
+html.setAttribute('data-lang',cur==='en'?'zh':'en');
+});
+
+/* === THEME TOGGLE === */
+document.getElementById('themeToggle').addEventListener('click',()=>{
+const html=document.documentElement;
+const cur=html.getAttribute('data-theme');
+html.setAttribute('data-theme',cur==='dark'?'light':'dark');
+});
+
+/* === NAV SCROLL EFFECT === */
+const nav=document.querySelector('nav');
+window.addEventListener('scroll',()=>{
+if(window.scrollY>50)nav.style.borderBottomColor='rgba(255,23,68,0.4)';
+else nav.style.borderBottomColor='rgba(255,23,68,0.15)';
+});
+</script>
+</body>
+</html>

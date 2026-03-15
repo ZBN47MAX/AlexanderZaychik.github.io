@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NieR:Automata — Glory to Mankind</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garabold:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Noto+Sans+SC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#1a1810;--bg2:#2a2820;--bg3:#3a3830;
+--text:#d4c8b0;--text2:#c4b898;--text-dim:#8a7e66;
+--gold:#a09060;--gold-bright:#c0a868;
+--red:#8b0000;--red-glow:#a01010;
+--border:#5a5040;--border-dim:#3a3428;
+--card-bg:rgba(42,40,32,0.85);
+--font-serif:'Cormorant Garamond','Noto Serif SC',Georgia,serif;
+--font-sans:'Noto Sans SC','Segoe UI',sans-serif;
+--font-mono:'Space Mono','Courier New',monospace;
+}
+[data-theme="light"]{
+--bg:#e8e0d0;--bg2:#d8d0c0;--bg3:#c8c0b0;
+--text:#2a2820;--text2:#3a3830;--text-dim:#6a6050;
+--gold:#7a6a40;--gold-bright:#8a7a50;
+--border:#9a8e76;--border-dim:#b0a48c;
+--card-bg:rgba(216,208,192,0.9);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+font-family:var(--font-sans);color:var(--text);background:var(--bg);
+overflow-x:hidden;line-height:1.7;transition:background .6s,color .6s;
+}
+canvas#petals{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+/* Circuit pattern overlay */
+body::before{
+content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+pointer-events:none;z-index:0;opacity:.03;
+background-image:
+  repeating-linear-gradient(0deg,transparent,transparent 60px,var(--gold) 60px,var(--gold) 61px),
+  repeating-linear-gradient(90deg,transparent,transparent 60px,var(--gold) 60px,var(--gold) 61px),
+  radial-gradient(circle 2px at 30px 30px,var(--gold) 1px,transparent 2px);
+background-size:61px 61px,61px 61px,61px 61px;
+}
+/* Vertical text decorations */
+.vert-text{
+position:fixed;writing-mode:vertical-rl;text-orientation:mixed;
+font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);
+opacity:.25;letter-spacing:4px;z-index:1;pointer-events:none;
+}
+.vert-left{left:15px;top:50%;transform:translateY(-50%)}
+.vert-right{right:15px;top:50%;transform:translateY(-50%)}
+/* Controls */
+.controls{
+position:fixed;top:20px;right:20px;z-index:1000;
+display:flex;gap:10px;align-items:center;
+}
+.ctrl-btn{
+background:var(--card-bg);border:1px solid var(--border-dim);
+color:var(--text);font-family:var(--font-mono);font-size:.7rem;
+padding:6px 14px;cursor:pointer;letter-spacing:2px;
+text-transform:uppercase;transition:all .3s;backdrop-filter:blur(6px);
+}
+.ctrl-btn:hover{border-color:var(--gold);color:var(--gold)}
+/* Pod UI frame mixin */
+.pod-frame{
+border:1px solid var(--border-dim);position:relative;
+}
+.pod-frame::before,.pod-frame::after{
+content:'';position:absolute;width:12px;height:12px;
+border-color:var(--gold);border-style:solid;
+}
+.pod-frame::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.pod-frame::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+/* Black box ID */
+.black-box-id{
+font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);
+letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;
+opacity:.6;
+}
+/* Sections */
+section{position:relative;z-index:2;padding:100px 20px}
+.container{max-width:1100px;margin:0 auto}
+/* Section headers */
+.section-header{text-align:center;margin-bottom:60px}
+.section-header .designation{
+font-family:var(--font-mono);font-size:.65rem;letter-spacing:6px;
+color:var(--gold);text-transform:uppercase;margin-bottom:12px;
+display:flex;align-items:center;justify-content:center;gap:20px;
+}
+.section-header .designation::before,.section-header .designation::after{
+content:'';width:40px;height:1px;background:var(--border);
+}
+.section-header h2{
+font-family:var(--font-serif);font-size:2.6rem;font-weight:300;
+color:var(--text);letter-spacing:3px;margin-bottom:10px;
+}
+.section-header .sub{
+font-family:var(--font-sans);font-size:.85rem;color:var(--text-dim);
+font-weight:300;
+}
+/* HERO */
+.hero{
+min-height:100vh;display:flex;flex-direction:column;
+align-items:center;justify-content:center;text-align:center;
+padding:40px 20px;position:relative;
+}
+.hero-logo{margin-bottom:30px;position:relative}
+.hero-logo .bracket{
+font-family:var(--font-mono);font-size:1rem;color:var(--border);
+}
+.hero-logo h1{
+font-family:var(--font-serif);font-size:4.5rem;font-weight:300;
+letter-spacing:12px;color:var(--text);line-height:1.1;
+}
+.hero-logo h1 span.colon{color:var(--gold)}
+.hero-logo h1 .automata{
+display:block;font-size:1.5rem;letter-spacing:18px;
+font-weight:400;margin-top:5px;color:var(--text2);
+}
+.hero-sub{
+font-family:var(--font-mono);font-size:.7rem;letter-spacing:6px;
+color:var(--text-dim);margin:25px 0 10px;text-transform:uppercase;
+}
+.hero-tagline{
+font-family:var(--font-serif);font-size:1.2rem;font-style:italic;
+color:var(--text2);font-weight:300;margin-bottom:40px;
+}
+.hero-line{
+width:1px;height:80px;background:linear-gradient(to bottom,var(--gold),transparent);
+margin:0 auto;
+}
+/* Lunar tear flower CSS */
+.lunar-tear{
+width:30px;height:30px;position:relative;display:inline-block;
+margin:20px auto;opacity:.5;
+}
+.lunar-tear::before{
+content:'';position:absolute;width:8px;height:8px;
+background:var(--text);border-radius:50%;top:50%;left:50%;
+transform:translate(-50%,-50%);box-shadow:
+  0 -10px 0 -2px var(--text),
+  9.5px -3px 0 -2px var(--text),
+  5.9px 8.1px 0 -2px var(--text),
+  -5.9px 8.1px 0 -2px var(--text),
+  -9.5px -3px 0 -2px var(--text);
+}
+/* YoRHa scroll text */
+.scroll-text{
+overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--border-dim);
+padding:12px 0;font-family:var(--font-mono);font-size:.65rem;
+color:var(--text-dim);letter-spacing:4px;
+}
+.scroll-text span{
+display:inline-block;animation:scrollTxt 30s linear infinite;
+}
+@keyframes scrollTxt{0%{transform:translateX(100vw)}100%{transform:translateX(-200%)}}
+/* World section */
+.world-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.world-text p{margin-bottom:18px;font-weight:300;font-size:.95rem;line-height:1.9;color:var(--text2)}
+.world-stats{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.stat-box{
+padding:25px;background:var(--card-bg);text-align:center;
+backdrop-filter:blur(4px);
+}
+.stat-box .num{
+font-family:var(--font-serif);font-size:2.2rem;color:var(--gold-bright);
+font-weight:300;
+}
+.stat-box .label{
+font-family:var(--font-mono);font-size:.6rem;letter-spacing:3px;
+color:var(--text-dim);text-transform:uppercase;margin-top:6px;
+}
+/* Character cards */
+.char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:25px}
+.char-card{
+background:var(--card-bg);padding:30px 20px;text-align:center;
+backdrop-filter:blur(4px);transition:transform .4s,border-color .4s;
+}
+.char-card:hover{transform:translateY(-5px);border-color:var(--gold)}
+.char-avatar{
+width:80px;height:80px;border-radius:50%;margin:0 auto 20px;
+border:1px solid var(--border);display:flex;align-items:center;
+justify-content:center;font-family:var(--font-serif);font-size:1.8rem;
+color:var(--gold);background:var(--bg);
+}
+.char-card .designation{
+font-family:var(--font-mono);font-size:.6rem;letter-spacing:4px;
+color:var(--gold);text-transform:uppercase;margin-bottom:8px;
+}
+.char-card h3{
+font-family:var(--font-serif);font-size:1.5rem;font-weight:300;
+margin-bottom:6px;letter-spacing:2px;
+}
+.char-card .type{
+font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);
+letter-spacing:2px;margin-bottom:14px;
+}
+.char-card p{font-size:.8rem;color:var(--text-dim);font-weight:300;line-height:1.7}
+.char-card .status{
+margin-top:15px;font-family:var(--font-mono);font-size:.55rem;
+letter-spacing:3px;text-transform:uppercase;
+padding:4px 12px;border:1px solid var(--border-dim);display:inline-block;
+}
+.status-active{color:#6a8a5a;border-color:#6a8a5a !important}
+.status-kia{color:var(--red);border-color:var(--red) !important}
+/* Machine Lifeforms */
+.machine-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:25px}
+.machine-card{
+background:var(--card-bg);padding:30px;backdrop-filter:blur(4px);
+}
+.machine-card .icon{
+font-size:2rem;margin-bottom:15px;filter:grayscale(.5);
+}
+.machine-card h3{
+font-family:var(--font-serif);font-size:1.3rem;font-weight:300;
+margin-bottom:4px;letter-spacing:1px;
+}
+.machine-card .alt-name{
+font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);
+letter-spacing:2px;margin-bottom:12px;
+}
+.machine-card p{font-size:.8rem;color:var(--text-dim);font-weight:300;line-height:1.7}
+/* Weapon Stories */
+.weapon-list{display:flex;flex-direction:column;gap:20px}
+.weapon-item{
+display:flex;align-items:flex-start;gap:30px;padding:25px 30px;
+background:var(--card-bg);backdrop-filter:blur(4px);
+}
+.weapon-item .weapon-icon{
+font-family:var(--font-serif);font-size:2rem;color:var(--gold);
+min-width:40px;text-align:center;
+}
+.weapon-item h3{
+font-family:var(--font-serif);font-size:1.2rem;font-weight:300;
+margin-bottom:4px;letter-spacing:1px;
+}
+.weapon-item .weapon-type{
+font-family:var(--font-mono);font-size:.55rem;color:var(--gold);
+letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;
+}
+.weapon-item p{font-size:.8rem;color:var(--text-dim);font-weight:300;line-height:1.7;font-style:italic}
+/* Pod Programs */
+.pod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.pod-card{
+background:var(--card-bg);padding:25px;text-align:center;
+backdrop-filter:blur(4px);
+}
+.pod-card .pod-id{
+font-family:var(--font-mono);font-size:.6rem;color:var(--gold);
+letter-spacing:3px;margin-bottom:10px;
+}
+.pod-card h3{
+font-family:var(--font-serif);font-size:1.15rem;font-weight:300;
+margin-bottom:6px;letter-spacing:1px;
+}
+.pod-card p{font-size:.75rem;color:var(--text-dim);font-weight:300;line-height:1.6}
+/* Endings */
+.endings-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:15px}
+.ending-card{
+background:var(--card-bg);padding:20px 15px;text-align:center;
+backdrop-filter:blur(4px);transition:transform .3s,border-color .3s;
+cursor:default;
+}
+.ending-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.ending-card .letter{
+font-family:var(--font-serif);font-size:2.5rem;font-weight:300;
+color:var(--gold);line-height:1;margin-bottom:8px;
+}
+.ending-card h4{
+font-family:var(--font-serif);font-size:.9rem;font-weight:300;
+margin-bottom:6px;letter-spacing:1px;
+}
+.ending-card p{font-size:.7rem;color:var(--text-dim);font-weight:300;line-height:1.5}
+.ending-card.ending-e{border-color:var(--red) !important}
+.ending-card.ending-e .letter{color:var(--red)}
+/* Quote */
+.quote-section{text-align:center;padding:120px 20px}
+.quote-section blockquote{
+font-family:var(--font-serif);font-size:2rem;font-weight:300;
+font-style:italic;color:var(--text);max-width:700px;
+margin:0 auto 20px;line-height:1.6;letter-spacing:1px;
+}
+.quote-section .attribution{
+font-family:var(--font-mono);font-size:.65rem;letter-spacing:4px;
+color:var(--text-dim);text-transform:uppercase;
+}
+/* CTA */
+.cta-section{text-align:center;padding:100px 20px}
+.cta-section h2{
+font-family:var(--font-serif);font-size:2.2rem;font-weight:300;
+margin-bottom:15px;letter-spacing:3px;
+}
+.cta-section p{
+font-size:.9rem;color:var(--text-dim);margin-bottom:35px;font-weight:300;
+}
+.cta-btn{
+display:inline-block;padding:14px 50px;border:1px solid var(--gold);
+color:var(--gold);font-family:var(--font-mono);font-size:.7rem;
+letter-spacing:4px;text-transform:uppercase;text-decoration:none;
+cursor:pointer;background:transparent;transition:all .4s;position:relative;
+}
+.cta-btn:hover{background:var(--gold);color:var(--bg)}
+/* Footer */
+footer{
+text-align:center;padding:50px 20px;
+border-top:1px solid var(--border-dim);
+}
+footer .yorha-logo{
+font-family:var(--font-serif);font-size:1.2rem;letter-spacing:6px;
+color:var(--text-dim);margin-bottom:15px;
+}
+footer p{font-size:.7rem;color:var(--text-dim);font-weight:300;letter-spacing:1px;margin-bottom:4px}
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+/* Responsive */
+@media(max-width:900px){
+  .char-grid{grid-template-columns:repeat(2,1fr)}
+  .machine-grid{grid-template-columns:1fr 1fr}
+  .pod-grid{grid-template-columns:1fr 1fr}
+  .endings-grid{grid-template-columns:repeat(3,1fr)}
+  .world-grid{grid-template-columns:1fr}
+  .hero-logo h1{font-size:3rem;letter-spacing:6px}
+  .vert-text{display:none}
+}
+@media(max-width:600px){
+  .char-grid{grid-template-columns:1fr}
+  .machine-grid{grid-template-columns:1fr}
+  .pod-grid{grid-template-columns:1fr}
+  .endings-grid{grid-template-columns:repeat(2,1fr)}
+  section{padding:60px 15px}
+  .hero-logo h1{font-size:2.2rem;letter-spacing:4px}
+  .section-header h2{font-size:1.8rem}
+  .quote-section blockquote{font-size:1.4rem}
+  .weapon-item{flex-direction:column;gap:15px}
+  .controls{top:10px;right:10px}
+}
+</style>
+</head>
+<body>
+<canvas id="petals"></canvas>
+
+<div class="vert-text vert-left">YoRHa No.2 Type B — 戦闘用アンドロイド — Black Box Signal Active</div>
+<div class="vert-text vert-right">Project YoRHa — Bunker Command — Glory to Mankind — 人類に栄光あれ</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="langToggle" onclick="toggleLang()">中文</button>
+  <button class="ctrl-btn" id="themeToggle" onclick="toggleTheme()">LIGHT</button>
+</div>
+
+<!-- Scrolling Banner -->
+<div class="scroll-text">
+  <span>/// YoRHa STRATEGIC ANDROID FORCE — GLORY TO MANKIND — 人類に栄光あれ — BUNKER ORBITAL STATION — BLACK BOX SIGNAL NOMINAL — POD 042 ONLINE — POD 153 ONLINE — MACHINE LIFEFORM ALERT LEVEL: ELEVATED — OPERATION: PEARL HARBOR DESCENT — ALL UNITS REPORT ///&nbsp;&nbsp;&nbsp;</span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-logo">
+    <div class="bracket">[  ]</div>
+    <h1>NieR<span class="colon">:</span><span class="automata">Automata</span></h1>
+  </div>
+  <div class="hero-sub" data-en="The Weight of the World" data-zh="世界的重量">The Weight of the World</div>
+  <div class="hero-tagline" data-en="Everything that lives is designed to end." data-zh="一切生命的设计，都是为了走向终结。">Everything that lives is designed to end.</div>
+  <div class="lunar-tear"></div>
+  <div class="hero-line"></div>
+</section>
+
+<!-- THE WORLD -->
+<section id="world">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="designation" data-en="Mission Briefing" data-zh="任务简报">Mission Briefing</div>
+      <h2 data-en="The World — 11945 AD" data-zh="世界 — 公元11945年">The World — 11945 AD</h2>
+      <div class="sub" data-en="A planet without its creators" data-zh="一颗失去造物主的星球">A planet without its creators</div>
+    </div>
+    <div class="world-grid reveal">
+      <div class="world-text">
+        <div class="black-box-id">[BlackBox Rec No. 0927]</div>
+        <p data-en="In the distant future, Earth has been invaded by alien machines. Humanity fled to the Moon, leaving behind android soldiers — the YoRHa units — to fight an endless proxy war against the machine lifeforms that now dominate the ruined surface."
+           data-zh="在遥远的未来，地球遭到外星机械生命体的入侵。人类逃往月球，留下人造人士兵——寄叶部队——在荒废的地表上代替人类与机械生命体进行无尽的代理战争。">In the distant future, Earth has been invaded by alien machines. Humanity fled to the Moon, leaving behind android soldiers — the YoRHa units — to fight an endless proxy war against the machine lifeforms that now dominate the ruined surface.</p>
+        <p data-en="But the truth is far more painful than the lie. The Council of Humanity on the Moon is a fiction. Humanity is extinct. The androids fight for a cause that no longer exists — and the machines they destroy may be more alive than anyone admits."
+           data-zh="但真相远比谎言更加残酷。月球上的人类议会不过是虚构。人类早已灭绝。人造人为一个不复存在的信念而战——而她们所摧毁的机械生命体，或许比任何人愿意承认的都更加鲜活。">But the truth is far more painful than the lie. The Council of Humanity on the Moon is a fiction. Humanity is extinct. The androids fight for a cause that no longer exists — and the machines they destroy may be more alive than anyone admits.</p>
+      </div>
+      <div class="world-stats">
+        <div class="stat-box pod-frame">
+          <div class="num">11,945</div>
+          <div class="label" data-en="Current Year" data-zh="当前纪年">Current Year</div>
+        </div>
+        <div class="stat-box pod-frame">
+          <div class="num">0</div>
+          <div class="label" data-en="Humans Remaining" data-zh="存活人类">Humans Remaining</div>
+        </div>
+        <div class="stat-box pod-frame">
+          <div class="num">13</div>
+          <div class="label" data-en="Machine Wars" data-zh="机械战争次数">Machine Wars</div>
+        </div>
+        <div class="stat-box pod-frame">
+          <div class="num">∞</div>
+          <div class="label" data-en="Cycle Repeats" data-zh="循环次数">Cycle Repeats</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- YORHA UNITS -->
+<section id="yorha">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="designation" data-en="Personnel Database" data-zh="人员数据库">Personnel Database</div>
+      <h2 data-en="YoRHa Units" data-zh="寄叶部队">YoRHa Units</h2>
+      <div class="sub" data-en="Soldiers without a cause" data-zh="没有信念的士兵">Soldiers without a cause</div>
+    </div>
+    <div class="char-grid reveal">
+      <!-- 2B -->
+      <div class="char-card pod-frame">
+        <div class="black-box-id">[Unit File 002B]</div>
+        <div class="char-avatar">2B</div>
+        <div class="designation">YoRHa No.2 Type B</div>
+        <h3>2B</h3>
+        <div class="type" data-en="Battle Type Android" data-zh="战斗型人造人">Battle Type Android</div>
+        <p data-en="Calm, composed, and duty-bound. She suppresses her emotions beneath a mask of professionalism — but her repeated orders to kill 9S have left invisible scars that no maintenance can repair."
+           data-zh="冷静、沉着、忠于职责。她将情感掩藏在专业的面具之下——但反复接到处决9S的命令，在她心中留下了任何维护都无法修复的无形伤痕。">Calm, composed, and duty-bound. She suppresses her emotions beneath a mask of professionalism — but her repeated orders to kill 9S have left invisible scars that no maintenance can repair.</p>
+        <div class="status status-kia" data-en="KIA — Virus Corruption" data-zh="阵亡 — 病毒感染">KIA — Virus Corruption</div>
+      </div>
+      <!-- 9S -->
+      <div class="char-card pod-frame">
+        <div class="black-box-id">[Unit File 009S]</div>
+        <div class="char-avatar">9S</div>
+        <div class="designation">YoRHa No.9 Type S</div>
+        <h3>9S</h3>
+        <div class="type" data-en="Scanner Type Android" data-zh="扫描型人造人">Scanner Type Android</div>
+        <p data-en="Curious, emotional, and dangerously intelligent. His relentless pursuit of truth ultimately shatters his sanity when he discovers the lies at the heart of YoRHa — and what 2B truly was."
+           data-zh="好奇、感性且危险地聪慧。当他发现寄叶核心的谎言——以及2B的真实身份时，他对真相的不懈追求最终击碎了他的理智。">Curious, emotional, and dangerously intelligent. His relentless pursuit of truth ultimately shatters his sanity when he discovers the lies at the heart of YoRHa — and what 2B truly was.</p>
+        <div class="status status-kia" data-en="KIA — Logic Virus / Mental Collapse" data-zh="阵亡 — 逻辑病毒/精神崩溃">KIA — Logic Virus / Mental Collapse</div>
+      </div>
+      <!-- A2 -->
+      <div class="char-card pod-frame">
+        <div class="black-box-id">[Unit File 002A]</div>
+        <div class="char-avatar">A2</div>
+        <div class="designation">YoRHa Type A No.2</div>
+        <h3>A2</h3>
+        <div class="type" data-en="Attacker Type Android" data-zh="攻击型人造人">Attacker Type Android</div>
+        <p data-en="A deserter and prototype. Hardened by betrayal and the loss of her squad, A2 carries the weight of YoRHa's original sin. In the end, she inherits 2B's will — and her sword."
+           data-zh="一个逃兵，也是原型机。被背叛和小队的牺牲所磨砺，A2承载着寄叶最初的罪孽。最终，她继承了2B的意志——以及她的剑。">A deserter and prototype. Hardened by betrayal and the loss of her squad, A2 carries the weight of YoRHa's original sin. In the end, she inherits 2B's will — and her sword.</p>
+        <div class="status status-kia" data-en="KIA — Tower Collapse" data-zh="阵亡 — 塔楼崩塌">KIA — Tower Collapse</div>
+      </div>
+      <!-- Commander -->
+      <div class="char-card pod-frame">
+        <div class="black-box-id">[Unit File CMD-W]</div>
+        <div class="char-avatar">白</div>
+        <div class="designation">Commander White</div>
+        <h3 data-en="Commander" data-zh="指挥官">Commander</h3>
+        <div class="type" data-en="Bunker Commander" data-zh="据点指挥官">Bunker Commander</div>
+        <p data-en="The leader who knew the truth — that humanity was gone — yet chose to maintain the lie so her soldiers would have something to fight for. She went down with the Bunker, saluting until the end."
+           data-zh="知晓真相的领袖——人类已不复存在——却选择维持谎言，让她的士兵有值得为之战斗的信念。她与据点一同沉没，直到最后仍在敬礼。">The leader who knew the truth — that humanity was gone — yet chose to maintain the lie so her soldiers would have something to fight for. She went down with the Bunker, saluting until the end.</p>
+        <div class="status status-kia" data-en="KIA — Bunker Destruction" data-zh="阵亡 — 据点毁灭">KIA — Bunker Destruction</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MACHINE LIFEFORMS -->
+<section id="machines">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="designation" data-en="Enemy Analysis" data-zh="敌方分析">Enemy Analysis</div>
+      <h2 data-en="Machine Lifeforms" data-zh="机械生命体">Machine Lifeforms</h2>
+      <div class="sub" data-en="They began to feel. They began to think." data-zh="它们开始感受。它们开始思考。">They began to feel. They began to think.</div>
+    </div>
+    <div class="machine-grid reveal">
+      <div class="machine-card pod-frame">
+        <div class="black-box-id">[Analysis M-001]</div>
+        <div class="icon">⚙</div>
+        <h3 data-en="Adam & Eve" data-zh="亚当与夏娃">Adam & Eve</h3>
+        <div class="alt-name">アダム / イヴ</div>
+        <p data-en="Born from the machine network's desire to understand humanity. Adam became obsessed with death and meaning; Eve, with his brother. Their bond mirrors the androids' own struggle with attachment."
+           data-zh="诞生于机械网络理解人类的渴望。亚当沉迷于死亡与意义；夏娃则执着于兄长。他们的羁绊映射了人造人自身对执着的挣扎。">Born from the machine network's desire to understand humanity. Adam became obsessed with death and meaning; Eve, with his brother. Their bond mirrors the androids' own struggle with attachment.</p>
+      </div>
+      <div class="machine-card pod-frame">
+        <div class="black-box-id">[Analysis M-002]</div>
+        <div class="icon">🎭</div>
+        <h3 data-en="Pascal's Village" data-zh="帕斯卡的村庄">Pascal's Village</h3>
+        <div class="alt-name">パスカル</div>
+        <p data-en="A pacifist machine who built a village, taught children, and believed in peace. When his children chose death over fear, Pascal begged to have his memories erased — the cruelest mercy."
+           data-zh="一个和平主义的机械生命体，建立了村庄、教导孩童、信仰和平。当他的孩子们因恐惧而选择死亡时，帕斯卡请求抹去自己的记忆——最残忍的仁慈。">A pacifist machine who built a village, taught children, and believed in peace. When his children chose death over fear, Pascal begged to have his memories erased — the cruelest mercy.</p>
+      </div>
+      <div class="machine-card pod-frame">
+        <div class="black-box-id">[Analysis M-003]</div>
+        <div class="icon">👑</div>
+        <h3 data-en="The Machine Network" data-zh="机械网络">The Machine Network</h3>
+        <div class="alt-name">機械生命体ネットワーク</div>
+        <p data-en="The collective consciousness that drives all machines. It created N2 — the Red Girls — as an experiment in evolution. Having studied humanity to extinction, it seeks to transcend its own existence."
+           data-zh="驱动所有机械生命体的集体意识。它创造了N2——红衣少女——作为进化的实验。在研究人类直至灭绝后，它试图超越自身的存在。">The collective consciousness that drives all machines. It created N2 — the Red Girls — as an experiment in evolution. Having studied humanity to extinction, it seeks to transcend its own existence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WEAPON STORIES -->
+<section id="weapons">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="designation" data-en="Armory Records" data-zh="武器档案">Armory Records</div>
+      <h2 data-en="Weapon Stories" data-zh="武器故事">Weapon Stories</h2>
+      <div class="sub" data-en="Every blade carries a memory of sorrow" data-zh="每一把刀刃都承载着悲伤的记忆">Every blade carries a memory of sorrow</div>
+    </div>
+    <div class="weapon-list reveal">
+      <div class="weapon-item pod-frame">
+        <div class="weapon-icon">†</div>
+        <div>
+          <div class="black-box-id">[Weapon Lv.4]</div>
+          <h3 data-en="Virtuous Contract" data-zh="白之契约">Virtuous Contract</h3>
+          <div class="weapon-type" data-en="Small Sword — 2B's Default" data-zh="小型剑 — 2B默认武器">Small Sword — 2B's Default</div>
+          <p data-en="A white blade forged in the old world. Its story tells of a young girl who promised to protect someone precious — a promise she was doomed to keep, and break, forever."
+             data-zh="一把铸造于旧世界的白色刀刃。它的故事讲述了一个少女许下保护珍贵之人的誓言——一个她注定要永远遵守、又永远打破的承诺。">A white blade forged in the old world. Its story tells of a young girl who promised to protect someone precious — a promise she was doomed to keep, and break, forever.</p>
+        </div>
+      </div>
+      <div class="weapon-item pod-frame">
+        <div class="weapon-icon">⚔</div>
+        <div>
+          <div class="black-box-id">[Weapon Lv.4]</div>
+          <h3 data-en="Cruel Oath" data-zh="残酷誓约">Cruel Oath</h3>
+          <div class="weapon-type" data-en="Small Sword — 2B's Secondary" data-zh="小型剑 — 2B副武器">Small Sword — 2B's Secondary</div>
+          <p data-en="A black blade, partner to the white. Its story speaks of a boy who was killed again and again by the one he loved — never knowing why, always forgiving, always forgetting."
+             data-zh="一把黑色的刀刃，白色之刃的伙伴。它的故事讲述了一个男孩被他所爱之人一次又一次杀死——从不知道原因，总是原谅，总是遗忘。">A black blade, partner to the white. Its story speaks of a boy who was killed again and again by the one he loved — never knowing why, always forgiving, always forgetting.</p>
+        </div>
+      </div>
+      <div class="weapon-item pod-frame">
+        <div class="weapon-icon">⊕</div>
+        <div>
+          <div class="black-box-id">[Weapon Lv.4]</div>
+          <h3 data-en="Type-40 Sword" data-zh="四〇式战术刀">Type-40 Sword</h3>
+          <div class="weapon-type" data-en="Small Sword — YoRHa Standard Issue" data-zh="小型剑 — 寄叶标准配备">Small Sword — YoRHa Standard Issue</div>
+          <p data-en="Standard-issue for all YoRHa units. Mass-produced, efficient, disposable — much like the androids who wield them. Its story is classified. Perhaps that is the cruelest story of all."
+             data-zh="所有寄叶部队的标准配备。量产、高效、可丢弃——就像使用它们的人造人一样。它的故事被列为机密。也许这才是最残酷的故事。">Standard-issue for all YoRHa units. Mass-produced, efficient, disposable — much like the androids who wield them. Its story is classified. Perhaps that is the cruelest story of all.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POD PROGRAMS -->
+<section id="pods">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="designation" data-en="Support Systems" data-zh="辅助系统">Support Systems</div>
+      <h2 data-en="Pod Programs" data-zh="辅助机程序">Pod Programs</h2>
+      <div class="sub" data-en="Tactical support units — more loyal than they should be" data-zh="战术辅助单元——比它们应有的更加忠诚">Tactical support units — more loyal than they should be</div>
+    </div>
+    <div class="pod-grid reveal">
+      <div class="pod-card pod-frame">
+        <div class="pod-id">Pod 042</div>
+        <h3 data-en="R010: Laser" data-zh="R010：激光">R010: Laser</h3>
+        <p data-en="Concentrated energy beam. Pod 042, assigned to 2B, eventually develops something resembling devotion — choosing to defy its programming to save what remains."
+           data-zh="集中能量光束。分配给2B的Pod 042，最终发展出类似忠诚的东西——选择违抗程序以拯救残存之物。">Concentrated energy beam. Pod 042, assigned to 2B, eventually develops something resembling devotion — choosing to defy its programming to save what remains.</p>
+      </div>
+      <div class="pod-card pod-frame">
+        <div class="pod-id">Pod 153</div>
+        <h3 data-en="A080: Wave" data-zh="A080：波动">A080: Wave</h3>
+        <p data-en="Shockwave field generator. Pod 153, assigned to 9S, bears witness to his descent into madness — recording everything, saying nothing, until the very end."
+           data-zh="冲击波力场发生器。分配给9S的Pod 153，见证了他坠入疯狂的过程——记录一切，沉默不语，直到最后。">Shockwave field generator. Pod 153, assigned to 9S, bears witness to his descent into madness — recording everything, saying nothing, until the very end.</p>
+      </div>
+      <div class="pod-card pod-frame">
+        <div class="pod-id">Pod 042 + 153</div>
+        <h3 data-en="Final Decision" data-zh="最终决定">Final Decision</h3>
+        <p data-en="After all data is lost, both Pods refuse to delete the androids' memories. They choose hope over protocol — the most human decision machines ever made."
+           data-zh="在所有数据丢失之后，两个辅助机拒绝删除人造人的记忆。它们选择了希望而非协议——这是机器做出过的最像人类的决定。">After all data is lost, both Pods refuse to delete the androids' memories. They choose hope over protocol — the most human decision machines ever made.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENDINGS -->
+<section id="endings">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="designation" data-en="Route Classification" data-zh="路线分类">Route Classification</div>
+      <h2 data-en="Endings" data-zh="结局">Endings</h2>
+      <div class="sub" data-en="Twenty-six ways a story can end — five that matter" data-zh="二十六种故事结束的方式——五种真正重要的">Twenty-six ways a story can end — five that matter</div>
+    </div>
+    <div class="endings-grid reveal">
+      <div class="ending-card pod-frame">
+        <div class="letter">A</div>
+        <h4 data-en="flowers for m[A]chines" data-zh="献给机[A]械的花">flowers for m[A]chines</h4>
+        <p data-en="2B and 9S defeat Eve. The surface war continues. Nothing is resolved." data-zh="2B和9S击败了夏娃。地表战争继续。什么都没有解决。">2B and 9S defeat Eve. The surface war continues. Nothing is resolved.</p>
+      </div>
+      <div class="ending-card pod-frame">
+        <div class="letter">B</div>
+        <h4 data-en="or not to [B]e" data-zh="生存还是毁[B]灭">or not to [B]e</h4>
+        <p data-en="The same events through 9S's eyes. He sees more — and understands less." data-zh="同样的事件，透过9S的双眼。他看到了更多——却理解得更少。">The same events through 9S's eyes. He sees more — and understands less.</p>
+      </div>
+      <div class="ending-card pod-frame">
+        <div class="letter">C</div>
+        <h4 data-en="meaningless [C]ode" data-zh="无意义的代[C]码">meaningless [C]ode</h4>
+        <p data-en="A2 chooses to destroy the tower. 9S dies. The cycle of violence claims everyone." data-zh="A2选择摧毁塔楼。9S死去。暴力的循环吞噬了所有人。">A2 chooses to destroy the tower. 9S dies. The cycle of violence claims everyone.</p>
+      </div>
+      <div class="ending-card pod-frame">
+        <div class="letter">D</div>
+        <h4 data-en="chil[D]hood's end" data-zh="童年的终[D]结">chil[D]hood's end</h4>
+        <p data-en="9S chooses to go with A2 into the ark. Both are uploaded. Earth is left behind." data-zh="9S选择与A2一同进入方舟。两人都被上传。地球被抛在身后。">9S chooses to go with A2 into the ark. Both are uploaded. Earth is left behind.</p>
+      </div>
+      <div class="ending-card pod-frame ending-e">
+        <div class="letter">E</div>
+        <h4 data-en="the [E]nd of YoRHa" data-zh="寄叶的终[E]结">the [E]nd of YoRHa</h4>
+        <p data-en="The Pods rebel against fate. They reconstruct 2B, 9S, and A2. A chance at a different future — bought with your save data." data-zh="辅助机反抗命运。它们重建了2B、9S和A2。一个不同未来的机会——以你的存档数据为代价。">The Pods rebel against fate. They reconstruct 2B, 9S, and A2. A chance at a different future — bought with your save data.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote-section reveal">
+  <div class="lunar-tear"></div>
+  <blockquote data-en="&ldquo;A future is not given to you. It is something you must take for yourself.&rdquo;" data-zh="&ldquo;未来不是被赐予的。而是你必须亲手去争取的。&rdquo;">&ldquo;A future is not given to you. It is something you must take for yourself.&rdquo;</blockquote>
+  <div class="attribution">— Pod 042</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section reveal">
+  <div class="black-box-id">[Proposal No. 21O — Priority: Omega]</div>
+  <h2 data-en="Will You Help Them?" data-zh="你愿意帮助他们吗？">Will You Help Them?</h2>
+  <p data-en="Ending E asks you to sacrifice your save data so strangers may live. A stranger once did the same for you." data-zh="结局E要求你牺牲存档数据，让陌生人得以存活。曾经也有陌生人为你做了同样的事。">Ending E asks you to sacrifice your save data so strangers may live. A stranger once did the same for you.</p>
+  <a class="cta-btn pod-frame" data-en="Accept" data-zh="接受">Accept</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="yorha-logo">[ YoRHa ]</div>
+  <p data-en="Glory to Mankind. | 人類に栄光あれ" data-zh="人类荣光万岁。| Glory to Mankind.">Glory to Mankind. | 人類に栄光あれ</p>
+  <p style="margin-top:10px;font-family:var(--font-mono);font-size:.55rem;letter-spacing:3px;color:var(--text-dim);opacity:.5">
+    THIS PAGE IS A FAN TRIBUTE — NIER:AUTOMATA © SQUARE ENIX / PLATINUM GAMES
+  </p>
+</footer>
+
+<script>
+// === LANGUAGE TOGGLE ===
+function toggleLang(){
+  const html=document.documentElement;
+  const curr=html.getAttribute('data-lang');
+  const next=curr==='en'?'zh':'en';
+  html.setAttribute('data-lang',next);
+  document.getElementById('langToggle').textContent=next==='en'?'中文':'EN';
+  document.querySelectorAll('[data-en][data-zh]').forEach(el=>{
+    el.innerHTML=el.getAttribute('data-'+next);
+  });
+}
+// === THEME TOGGLE ===
+function toggleTheme(){
+  const html=document.documentElement;
+  const curr=html.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  document.getElementById('themeToggle').textContent=next==='dark'?'LIGHT':'DARK';
+}
+// === SCROLL REVEAL ===
+const revealObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObserver.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));
+
+// === PETAL / FEATHER CANVAS ===
+(function(){
+  const canvas=document.getElementById('petals');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  window.addEventListener('resize',resize);resize();
+
+  class Petal{
+    constructor(){this.reset()}
+    reset(){
+      this.x=Math.random()*W;
+      this.y=Math.random()*H-H;
+      this.size=Math.random()*3+1.5;
+      this.speedY=Math.random()*0.3+0.1;
+      this.speedX=Math.random()*0.4-0.2;
+      this.rotation=Math.random()*Math.PI*2;
+      this.rotSpeed=(Math.random()-0.5)*0.005;
+      this.opacity=Math.random()*0.25+0.05;
+      this.drift=Math.random()*0.5+0.5;
+      this.driftPhase=Math.random()*Math.PI*2;
+    }
+    update(){
+      this.y+=this.speedY;
+      this.driftPhase+=0.003;
+      this.x+=Math.sin(this.driftPhase)*this.drift*0.15+this.speedX*0.1;
+      this.rotation+=this.rotSpeed;
+      if(this.y>H+20)this.reset();
+      if(this.x<-20||this.x>W+20)this.reset();
+    }
+    draw(){
+      ctx.save();
+      ctx.translate(this.x,this.y);
+      ctx.rotate(this.rotation);
+      ctx.globalAlpha=this.opacity;
+      ctx.fillStyle='#e8e0d0';
+      // Draw petal shape
+      ctx.beginPath();
+      ctx.ellipse(0,0,this.size*0.6,this.size*1.8,0,0,Math.PI*2);
+      ctx.fill();
+      // Add subtle highlight
+      ctx.globalAlpha=this.opacity*0.5;
+      ctx.fillStyle='#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(-this.size*0.15,-this.size*0.3,this.size*0.2,this.size*0.8,0.2,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const petals=[];
+  const count=window.innerWidth<600?25:50;
+  for(let i=0;i<count;i++){
+    const p=new Petal();
+    p.y=Math.random()*H;// spread initial
+    petals.push(p);
+  }
+
+  function animate(){
+    ctx.clearRect(0,0,W,H);
+    petals.forEach(p=>{p.update();p.draw()});
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>

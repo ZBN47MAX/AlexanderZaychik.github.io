@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>赛博朋克 2077 | CYBERPUNK 2077</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #0f0f18;
+    --bg3: #16162a;
+    --text: #e0dce8;
+    --text-dim: #5a5670;
+    --cyan: #00f0ff;
+    --cyan-dim: rgba(0, 240, 255, 0.08);
+    --cyan-glow: rgba(0, 240, 255, 0.2);
+    --yellow: #fcee09;
+    --yellow-dim: rgba(252, 238, 9, 0.06);
+    --yellow-glow: rgba(252, 238, 9, 0.15);
+    --magenta: #ff2a6d;
+    --magenta-dim: rgba(255, 42, 109, 0.08);
+    --magenta-glow: rgba(255, 42, 109, 0.15);
+    --red: #e8003f;
+    --safe: #00e87a;
+    --surface: rgba(255, 255, 255, 0.025);
+    --border: rgba(0, 240, 255, 0.08);
+    --border-hot: rgba(255, 42, 109, 0.12);
+    --shadow: 0 0 40px rgba(0, 240, 255, 0.06);
+    --font-zh: 'Noto Sans SC', sans-serif;
+    --font-en: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Orbitron', sans-serif;
+    --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --clip-corner: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    --clip-corner-sm: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+
+  [data-theme="light"] {
+    --bg: #e8e4f0;
+    --bg2: #dcd8e8;
+    --bg3: #d0cce0;
+    --text: #18162a;
+    --text-dim: #706888;
+    --cyan: #0090a0;
+    --cyan-dim: rgba(0, 144, 160, 0.06);
+    --cyan-glow: rgba(0, 144, 160, 0.1);
+    --yellow: #a09000;
+    --yellow-dim: rgba(160, 144, 0, 0.06);
+    --yellow-glow: rgba(160, 144, 0, 0.1);
+    --magenta: #c0204a;
+    --magenta-dim: rgba(192, 32, 74, 0.06);
+    --magenta-glow: rgba(192, 32, 74, 0.1);
+    --red: #b00030;
+    --safe: #00964a;
+    --surface: rgba(0, 0, 0, 0.035);
+    --border: rgba(0, 144, 160, 0.1);
+    --border-hot: rgba(192, 32, 74, 0.1);
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-zh);
+    line-height: 1.8;
+    transition: background var(--transition), color var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ===== Canvas ===== */
+  #rain-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; opacity: 0.35;
+  }
+  [data-theme="light"] #rain-canvas { opacity: 0.1; }
+
+  /* ===== Glitch Scanline ===== */
+  .scanlines {
+    position: fixed; inset: 0; z-index: 9998;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
+  }
+
+  /* ===== Neon bar decorations ===== */
+  .neon-bar-left {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 3px; z-index: 2;
+    background: linear-gradient(to bottom,
+      transparent 5%, var(--cyan) 15%, var(--magenta) 40%,
+      var(--yellow) 65%, var(--cyan) 85%, transparent 95%
+    );
+    opacity: 0.12;
+  }
+  .neon-bar-right {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: 3px; z-index: 2;
+    background: linear-gradient(to bottom,
+      transparent 5%, var(--magenta) 20%, var(--cyan) 50%,
+      var(--yellow) 80%, transparent 95%
+    );
+    opacity: 0.08;
+  }
+
+  /* ===== Glitch text effect (Hero title) ===== */
+  @keyframes glitch-1 {
+    0%, 90% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+    91% { clip-path: inset(10% 0 60% 0); transform: translate(-4px, 2px) skewX(-2deg); }
+    92% { clip-path: inset(40% 0 30% 0); transform: translate(5px, -1px) skewX(3deg); }
+    93% { clip-path: inset(70% 0 5% 0); transform: translate(-3px, 1px); }
+    94% { clip-path: inset(5% 0 80% 0); transform: translate(4px, -2px) skewX(-1deg); }
+    95% { clip-path: inset(25% 0 55% 0); transform: translate(-6px, 0) skewX(4deg); }
+    96% { clip-path: inset(60% 0 20% 0); transform: translate(3px, 2px); }
+    97% { clip-path: inset(85% 0 2% 0); transform: translate(-2px, -1px) skewX(-3deg); }
+    98% { clip-path: inset(15% 0 70% 0); transform: translate(5px, 1px); }
+    99% { clip-path: inset(50% 0 40% 0); transform: translate(-4px, -2px) skewX(2deg); }
+    100% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+  }
+  @keyframes glitch-2 {
+    0%, 88% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+    89% { clip-path: inset(55% 0 25% 0); transform: translate(5px, -2px) skewX(3deg); }
+    90% { clip-path: inset(20% 0 60% 0); transform: translate(-4px, 1px); }
+    91% { clip-path: inset(75% 0 10% 0); transform: translate(3px, -1px) skewX(-2deg); }
+    92% { clip-path: inset(35% 0 45% 0); transform: translate(-6px, 2px) skewX(4deg); }
+    93% { clip-path: inset(5% 0 85% 0); transform: translate(4px, 0); }
+    94% { clip-path: inset(65% 0 15% 0); transform: translate(-3px, -2px) skewX(-3deg); }
+    95% { clip-path: inset(45% 0 35% 0); transform: translate(6px, 1px); }
+    96% { clip-path: inset(10% 0 75% 0); transform: translate(-5px, -1px) skewX(2deg); }
+    97% { clip-path: inset(80% 0 5% 0); transform: translate(3px, 2px); }
+    98%, 100% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+  }
+
+  .glitch-text {
+    position: relative;
+  }
+  .glitch-text::before, .glitch-text::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .glitch-text::before {
+    color: var(--cyan);
+    animation: glitch-1 3s infinite linear;
+    opacity: 0.7;
+    text-shadow: 2px 0 var(--cyan);
+  }
+  .glitch-text::after {
+    color: var(--magenta);
+    animation: glitch-2 3s infinite linear;
+    opacity: 0.7;
+    text-shadow: -2px 0 var(--magenta);
+  }
+
+  /* ===== RGB Split / Chromatic Aberration (hover only) ===== */
+  @keyframes rgb-split {
+    0%, 85%, 100% { filter: none; text-shadow: none; }
+    86% { text-shadow: -3px 0 var(--cyan), 3px 0 var(--magenta); }
+    88% { text-shadow: 4px 0 var(--magenta), -4px 0 var(--cyan); }
+    90% { text-shadow: -2px 1px var(--cyan), 2px -1px var(--magenta), 0 2px var(--yellow); }
+    92% { text-shadow: 3px -1px var(--yellow), -3px 1px var(--cyan); }
+    94% { text-shadow: none; }
+  }
+
+  /* ===== Glitch on section titles (hover only) ===== */
+  .section-title:hover {
+    animation: rgb-split 2s infinite;
+  }
+
+  /* ===== Glitch card effect (hover only) ===== */
+  .cyber-panel:hover {
+    text-shadow: -2px 0 var(--cyan), 2px 0 var(--magenta);
+    transition: text-shadow 0.1s;
+  }
+
+  /* ===== Controls ===== */
+  .controls {
+    position: fixed; top: 20px; right: 20px;
+    z-index: 100; display: flex; gap: 8px;
+  }
+  .ctrl-btn {
+    background: var(--cyan-dim);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: 42px; height: 42px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    clip-path: var(--clip-corner-sm);
+    transition: all 0.3s;
+  }
+  .ctrl-btn:hover {
+    background: var(--cyan-glow);
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px var(--cyan-glow);
+    color: var(--bg);
+  }
+
+  /* ===== Nav ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 90;
+    padding: 14px 36px;
+    display: flex; align-items: center; gap: 28px;
+    backdrop-filter: blur(20px);
+    background: linear-gradient(to bottom, var(--bg), transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: var(--yellow);
+    text-shadow: 0 0 10px var(--yellow-glow);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-v {
+    font-size: 20px;
+    color: var(--cyan);
+    text-shadow: 0 0 12px var(--cyan-glow);
+    font-weight: 900;
+  }
+  .nav-links { display: flex; gap: 20px; list-style: none; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    clip-path: var(--clip-corner-sm);
+  }
+  .nav-links a:hover {
+    color: var(--cyan);
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
+    text-shadow: 0 0 8px var(--cyan-glow);
+    animation: rgb-split 2s infinite;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 80px;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 70% 30%, var(--magenta-dim) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 70%, var(--cyan-dim) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, var(--yellow-dim) 0%, transparent 30%);
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 800px; }
+
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px var(--cyan-glow);
+  }
+  .hero-tag .blink {
+    animation: cursor-blink 1s step-end infinite;
+  }
+  @keyframes cursor-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 110px);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--yellow);
+    text-shadow: 0 0 40px var(--yellow-glow), 0 0 80px var(--yellow-dim);
+    margin-bottom: 4px;
+  }
+  .hero h1 .sub {
+    display: block;
+    font-family: var(--font-en);
+    font-size: 0.22em;
+    letter-spacing: 14px;
+    color: var(--text-dim);
+    text-shadow: none;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .hero h1 .num {
+    color: var(--cyan);
+    text-shadow: 0 0 30px var(--cyan-glow);
+  }
+
+  .hero-sub {
+    margin-top: 28px;
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 540px;
+    line-height: 2;
+  }
+
+  /* Hero HUD panel */
+  .hero-hud {
+    margin-top: 36px;
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    clip-path: var(--clip-corner);
+    overflow: hidden;
+  }
+  .hud-cell {
+    padding: 16px 28px;
+    border-right: 1px solid var(--border);
+    background: var(--cyan-dim);
+    transition: all 0.3s;
+  }
+  .hud-cell:last-child { border-right: none; }
+  .hud-cell:hover { background: var(--cyan-glow); }
+  .hud-val {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    color: var(--cyan);
+    text-shadow: 0 0 12px var(--cyan-glow);
+    line-height: 1;
+  }
+  .hud-val.magenta { color: var(--magenta); text-shadow: 0 0 12px var(--magenta-glow); }
+  .hud-val.yellow { color: var(--yellow); text-shadow: 0 0 12px var(--yellow-glow); }
+  .hud-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+
+  /* Scrolling city deco */
+  .city-silhouette {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 180px;
+    background: linear-gradient(to top, var(--bg) 20%, transparent);
+    z-index: 1;
+  }
+
+  /* ===== Sections ===== */
+  section {
+    position: relative; z-index: 1;
+    padding: 100px 80px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--magenta);
+    margin-bottom: 10px;
+    text-shadow: 0 0 8px var(--magenta-glow);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before {
+    content: '//';
+    color: var(--cyan);
+    opacity: 0.5;
+  }
+  .section-title {
+    font-size: clamp(26px, 3.5vw, 46px);
+    font-weight: 700;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 580px;
+    margin-bottom: 56px;
+    font-size: 14px;
+  }
+
+  /* ===== Cyber Panels ===== */
+  .cyber-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    clip-path: var(--clip-corner);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+  }
+  .cyber-panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--yellow));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .cyber-panel:hover::before { opacity: 1; }
+  .cyber-panel:hover {
+    border-color: var(--cyan);
+    box-shadow: var(--shadow), inset 0 0 60px var(--cyan-dim);
+  }
+
+  /* Corner bracket deco */
+  .bracket-tl, .bracket-br {
+    position: absolute;
+    width: 16px; height: 16px;
+    z-index: 3;
+  }
+  .bracket-tl {
+    top: 6px; left: 6px;
+    border-top: 2px solid var(--cyan);
+    border-left: 2px solid var(--cyan);
+    opacity: 0.4;
+  }
+  .bracket-br {
+    bottom: 6px; right: 6px;
+    border-bottom: 2px solid var(--magenta);
+    border-right: 2px solid var(--magenta);
+    opacity: 0.4;
+  }
+
+  /* ===== Cards Grid ===== */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .cyber-card {
+    padding: 36px 28px;
+  }
+  .cyber-card .card-id {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--magenta);
+    margin-bottom: 14px;
+    opacity: 0.7;
+  }
+  .cyber-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .cyber-card p {
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .cyber-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border: 1px solid;
+    clip-path: var(--clip-corner-sm);
+  }
+  .cyber-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: currentColor;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    animation: tag-pulse 2s ease-in-out infinite;
+  }
+  @keyframes tag-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .tag-cyan { color: var(--cyan); border-color: var(--cyan); }
+  .tag-magenta { color: var(--magenta); border-color: var(--magenta); }
+  .tag-yellow { color: var(--yellow); border-color: var(--yellow); }
+  .tag-safe { color: var(--safe); border-color: var(--safe); }
+  .tag-red { color: var(--red); border-color: var(--red); }
+
+  /* ===== Stats ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin: 60px 0;
+  }
+  .stat-cell {
+    padding: 36px 20px;
+    text-align: center;
+  }
+  .stat-cell .stat-num {
+    font-family: var(--font-display);
+    font-size: 32px;
+    line-height: 1;
+  }
+  .stat-cell:nth-child(1) .stat-num { color: var(--cyan); text-shadow: 0 0 16px var(--cyan-glow); }
+  .stat-cell:nth-child(2) .stat-num { color: var(--magenta); text-shadow: 0 0 16px var(--magenta-glow); }
+  .stat-cell:nth-child(3) .stat-num { color: var(--yellow); text-shadow: 0 0 16px var(--yellow-glow); }
+  .stat-cell:nth-child(4) .stat-num { color: var(--cyan); text-shadow: 0 0 16px var(--cyan-glow); }
+  .stat-cell .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 2px;
+    font-family: var(--font-mono);
+  }
+
+  /* ===== District Map ===== */
+  .district-map {
+    padding: 48px;
+    position: relative;
+  }
+  .district-map .map-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--cyan);
+    margin-bottom: 24px;
+    text-shadow: 0 0 8px var(--cyan-glow);
+  }
+  .district-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .district {
+    background: var(--cyan-dim);
+    border: 1px dashed var(--border);
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+    clip-path: var(--clip-corner-sm);
+    position: relative;
+  }
+  .district:hover {
+    border-color: var(--cyan);
+    background: var(--cyan-glow);
+    box-shadow: 0 0 20px var(--cyan-dim);
+  }
+  .district-name {
+    font-family: var(--font-en);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .district-type {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin: 4px 0;
+  }
+  .district-gang {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+  .gang-maelstrom { color: var(--red); }
+  .gang-valentinos { color: var(--magenta); }
+  .gang-voodoo { color: var(--cyan); }
+  .gang-tyger { color: var(--yellow); }
+  .gang-animals { color: var(--safe); }
+  .gang-6th { color: #9a6aff; }
+  .gang-corpo { color: var(--cyan); }
+  .gang-arasaka { color: var(--red); }
+  .gang-militech { color: var(--yellow); }
+
+  /* ===== Lifepath section ===== */
+  .lifepath-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .lifepath-card {
+    padding: 40px 28px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .lifepath-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+    filter: drop-shadow(0 0 12px var(--cyan-glow));
+  }
+  .lifepath-card h3 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+  }
+  .lifepath-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .lifepath-card:nth-child(1) h3 { color: var(--yellow); text-shadow: 0 0 8px var(--yellow-glow); }
+  .lifepath-card:nth-child(2) h3 { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
+  .lifepath-card:nth-child(3) h3 { color: var(--magenta); text-shadow: 0 0 8px var(--magenta-glow); }
+
+  /* ===== Terminal ===== */
+  .terminal {
+    padding: 32px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 2.2;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    clip-path: var(--clip-corner);
+    position: relative;
+    overflow: hidden;
+  }
+  .terminal::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,240,255,0.008) 3px, rgba(0,240,255,0.008) 4px);
+    pointer-events: none;
+  }
+  .terminal-header {
+    color: var(--cyan);
+    letter-spacing: 4px;
+    font-size: 11px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    text-shadow: 0 0 8px var(--cyan-glow);
+  }
+  .t-line { color: var(--text-dim); }
+  .t-line .ts { color: var(--cyan); opacity: 0.4; margin-right: 10px; }
+  .t-line .ok { color: var(--safe); }
+  .t-line .warn { color: var(--yellow); }
+  .t-line .err { color: var(--red); }
+  .t-line .hl { color: var(--magenta); }
+  .t-cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--cyan);
+    animation: cursor-blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 4px;
+    box-shadow: 0 0 6px var(--cyan-glow);
+  }
+
+  /* ===== Characters ===== */
+  .char-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .char-card {
+    display: flex; gap: 20px;
+    padding: 28px;
+  }
+  .char-avatar {
+    width: 60px; height: 60px;
+    flex-shrink: 0;
+    border: 2px solid var(--cyan);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: var(--cyan-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 0 16px var(--cyan-dim);
+  }
+  .char-card h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .char-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--magenta);
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 6px var(--magenta-glow);
+  }
+  .char-card p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ===== Quote ===== */
+  .quote-section {
+    text-align: center;
+    padding: 120px 40px;
+  }
+  .quote-v {
+    font-family: var(--font-display);
+    font-size: 80px;
+    font-weight: 900;
+    color: var(--yellow);
+    text-shadow: 0 0 40px var(--yellow-glow);
+    line-height: 1;
+    margin-bottom: 28px;
+    opacity: 0.3;
+  }
+  blockquote {
+    font-size: clamp(18px, 2.5vw, 30px);
+    font-weight: 300;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .quote-src {
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--magenta);
+    letter-spacing: 4px;
+    text-shadow: 0 0 6px var(--magenta-glow);
+  }
+
+  /* ===== CTA ===== */
+  .cta-section { text-align: center; padding: 100px 40px; }
+  .cta-btn {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--yellow), var(--cyan));
+    border: none;
+    padding: 18px 56px;
+    cursor: pointer;
+    clip-path: var(--clip-corner);
+    transition: all 0.3s;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-btn:hover {
+    box-shadow: 0 0 40px var(--cyan-glow), 0 0 60px var(--yellow-glow);
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    font-family: var(--font-mono);
+  }
+  footer span.neon-cyan { color: var(--cyan); }
+  footer span.neon-magenta { color: var(--magenta); }
+
+  /* ===== Animations ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s, transform 0.7s;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    nav { padding: 12px 16px; gap: 12px; }
+    .nav-links { display: none; }
+    .hero { padding: 0 20px; }
+    section { padding: 60px 20px; }
+    .stats-row, .lifepath-grid { grid-template-columns: repeat(2, 1fr); }
+    .char-list, .district-grid { grid-template-columns: 1fr; }
+    .hero-hud { flex-wrap: wrap; }
+    .controls { top: 14px; right: 14px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="rain-canvas"></canvas>
+<div class="scanlines"></div>
+<div class="neon-bar-left"></div>
+<div class="neon-bar-right"></div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="lang-toggle" title="EN / 中文">文</button>
+  <button class="ctrl-btn" id="theme-toggle" title="Light / Dark">☀</button>
+</div>
+
+<!-- Nav -->
+<nav>
+  <div class="logo">
+    <span class="logo-v">V</span>
+    CYBERPUNK
+  </div>
+  <ul class="nav-links">
+    <li><a href="#nightcity" data-zh="夜之城" data-en="Night City">夜之城</a></li>
+    <li><a href="#chrome" data-zh="义体改造" data-en="Chrome">义体改造</a></li>
+    <li><a href="#districts" data-zh="区域" data-en="Districts">区域</a></li>
+    <li><a href="#lifepath" data-zh="人生路" data-en="Lifepath">人生路</a></li>
+    <li><a href="#chooms" data-zh="战友" data-en="Chooms">战友</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag">
+      <span data-zh="▶ 系统启动中... 欢迎回来，V" data-en="▶ SYSTEM BOOT... WELCOME BACK, V">▶ 系统启动中... 欢迎回来，V</span><span class="blink">_</span>
+    </div>
+    <h1 class="glitch-text" data-text="CYBERPUNK 2077">
+      <span class="sub">CD PROJEKT RED PRESENTS</span>
+      CYBER<br>PUNK <span class="num">2077</span>
+    </h1>
+    <p class="hero-sub" data-zh="夜之城——一个沉迷于权力、魅力和义体改造的巨型都市。你是V，一个在这座城市最危险街区谋生的雇佣兵。一块军用级别的生物芯片正在缓慢改写你的大脑。" data-en="Night City — a megalopolis obsessed with power, glamour, and body modification. You are V, a mercenary navigating the city's most dangerous streets. A military-grade biochip is slowly rewriting your brain.">夜之城——一个沉迷于权力、魅力和义体改造的巨型都市。你是V，一个在这座城市最危险街区谋生的雇佣兵。一块军用级别的生物芯片正在缓慢改写你的大脑。</p>
+
+    <div class="hero-hud">
+      <div class="hud-cell">
+        <div class="hud-val">2077</div>
+        <div class="hud-label" data-zh="当前年份" data-en="CURRENT YEAR">当前年份</div>
+      </div>
+      <div class="hud-cell">
+        <div class="hud-val magenta">6.5M</div>
+        <div class="hud-label" data-zh="夜之城人口" data-en="POPULATION">夜之城人口</div>
+      </div>
+      <div class="hud-cell">
+        <div class="hud-val yellow">V</div>
+        <div class="hud-label" data-zh="佣兵代号" data-en="MERC HANDLE">佣兵代号</div>
+      </div>
+      <div class="hud-cell">
+        <div class="hud-val">MAX</div>
+        <div class="hud-label" data-zh="街头声望" data-en="STREET CRED">街头声望</div>
+      </div>
+    </div>
+  </div>
+  <div class="city-silhouette"></div>
+</section>
+
+<!-- Night City -->
+<section id="nightcity">
+  <div class="reveal">
+    <div class="section-label" data-zh="数据库 // 夜之城" data-en="DATABASE // NIGHT CITY">数据库 // 夜之城</div>
+    <h2 class="section-title" data-zh="欢迎来到夜之城" data-en="Welcome to Night City">欢迎来到夜之城</h2>
+    <p class="section-desc" data-zh="夜之城位于加利福尼亚自由州，是一座被企业控制的巨型都市。这里霓虹闪烁，犯罪猖獗，每个人都在寻找传说——那条通往不朽的路。" data-en="Night City sits in the Free State of California — a corporate-controlled megalopolis. Neon lights blaze, crime runs rampant, and everyone is chasing the legend — the path to immortality.">夜之城位于加利福尼亚自由州，是一座被企业控制的巨型都市。这里霓虹闪烁，犯罪猖獗，每个人都在寻找传说——那条通往不朽的路。</p>
+  </div>
+
+  <div class="stats-row reveal">
+    <div class="stat-cell cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="stat-num">6</div>
+      <div class="stat-label" data-zh="行政区" data-en="DISTRICTS">行政区</div>
+    </div>
+    <div class="stat-cell cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="stat-num">12+</div>
+      <div class="stat-label" data-zh="帮派势力" data-en="GANGS">帮派势力</div>
+    </div>
+    <div class="stat-cell cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="stat-num">∞</div>
+      <div class="stat-label" data-zh="义体改造" data-en="CYBERWARE">义体改造</div>
+    </div>
+    <div class="stat-cell cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="stat-num">0%</div>
+      <div class="stat-label" data-zh="安全指数" data-en="SAFETY INDEX">安全指数</div>
+    </div>
+  </div>
+</section>
+
+<!-- Chrome / Cyberware -->
+<section id="chrome">
+  <div class="reveal">
+    <div class="section-label" data-zh="义体 // 超越肉体" data-en="CHROME // BEYOND FLESH">义体 // 超越肉体</div>
+    <h2 class="section-title" data-zh="义体改造：你的身体，你的武器" data-en="Cyberware: Your Body, Your Weapon">义体改造：你的身体，你的武器</h2>
+    <p class="section-desc" data-zh="在夜之城，肉体是最初级的装备。义体医生遍布城市的每个角落，只要你付得起费用，一切都可以升级。" data-en="In Night City, flesh is entry-level gear. Ripperdocs line every corner — if you can pay, everything can be upgraded.">在夜之城，肉体是最初级的装备。义体医生遍布城市的每个角落，只要你付得起费用，一切都可以升级。</p>
+  </div>
+
+  <div class="cards-grid reveal">
+    <div class="cyber-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="card-id">CW-001</div>
+      <h3 data-zh="山岚 Mk.5 操作系统" data-en="Sandevistan Mk.5 OS">山岚 Mk.5 操作系统</h3>
+      <p data-zh="军用级别的神经操作系统。激活后可将主观时间减速至10%，在敌人眨眼之间完成致命突袭。冷却时间30秒。" data-en="Military-grade neural operating system. When activated, slows subjective time to 10%, executing lethal strikes in the blink of an enemy's eye. 30-second cooldown.">军用级别的神经操作系统。激活后可将主观时间减速至10%，在敌人眨眼之间完成致命突袭。冷却时间30秒。</p>
+      <span class="cyber-tag tag-magenta">LEGENDARY</span>
+    </div>
+    <div class="cyber-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="card-id">CW-002</div>
+      <h3 data-zh="柯尔泰克斯光学义眼" data-en="Kiroshi Optics">柯尔泰克斯光学义眼</h3>
+      <p data-zh="取代原生眼球的高级光学义体。提供实时威胁分析、目标标记、变焦和低光夜视功能。支持多种扫描模组。" data-en="Advanced optical cyberware replacing natural eyes. Provides real-time threat analysis, target tagging, zoom, and low-light vision. Supports multiple scanner modules.">取代原生眼球的高级光学义体。提供实时威胁分析、目标标记、变焦和低光夜视功能。支持多种扫描模组。</p>
+      <span class="cyber-tag tag-cyan">INSTALLED</span>
+    </div>
+    <div class="cyber-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="card-id">CW-003</div>
+      <h3 data-zh="螳螂刀" data-en="Mantis Blades">螳螂刀</h3>
+      <p data-zh="植入前臂的可伸缩刀刃。由高碳钛合金锻造，可在近战中高速斩击，并附加出血或电击属性。" data-en="Retractable blades implanted in the forearms. Forged from high-carbon titanium alloy, enabling rapid melee strikes with optional bleed or electric mods.">植入前臂的可伸缩刀刃。由高碳钛合金锻造，可在近战中高速斩击，并附加出血或电击属性。</p>
+      <span class="cyber-tag tag-red">LETHAL</span>
+    </div>
+    <div class="cyber-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="card-id">CW-004</div>
+      <h3 data-zh="Cyberdeck 网络仓" data-en="Cyberdeck">Cyberdeck 网络仓</h3>
+      <p data-zh="黑客的核心义体。通过Cyberdeck，网络行者可以入侵敌方网络、上传恶意程序、控制摄像头，甚至远程引爆敌人的义体。" data-en="A hacker's core cyberware. Through Cyberdecks, netrunners can breach enemy networks, upload daemons, control cameras, and even remotely detonate enemies' implants.">黑客的核心义体。通过Cyberdeck，网络行者可以入侵敌方网络、上传恶意程序、控制摄像头，甚至远程引爆敌人的义体。</p>
+      <span class="cyber-tag tag-cyan">NETRUNNER</span>
+    </div>
+    <div class="cyber-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="card-id">CW-005</div>
+      <h3 data-zh="大猩猩手臂" data-en="Gorilla Arms">大猩猩手臂</h3>
+      <p data-zh="增强型人工肌肉臂。赋予使用者远超常人的力量，可徒手击碎混凝土墙壁，在肉搏战中势不可挡。" data-en="Enhanced artificial muscle arms. Grant the user strength far beyond human norms — capable of smashing concrete walls barehanded and dominating in hand-to-hand combat.">增强型人工肌肉臂。赋予使用者远超常人的力量，可徒手击碎混凝土墙壁，在肉搏战中势不可挡。</p>
+      <span class="cyber-tag tag-yellow">BRUTE FORCE</span>
+    </div>
+    <div class="cyber-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="card-id">CW-006</div>
+      <h3 data-zh="Relic 生物芯片" data-en="Relic Biochip">Relic 生物芯片</h3>
+      <p data-zh="荒坂公司的最高机密项目。这枚芯片能够存储人类的意识数字副本，实现某种形式的"永生"——但它正在杀死V。" data-en="Arasaka's top-secret project. This chip stores a digital copy of human consciousness, achieving a form of 'immortality' — but it's killing V.">荒坂公司的最高机密项目。这枚芯片能够存储人类的意识数字副本，实现某种形式的"永生"——但它正在杀死V。</p>
+      <span class="cyber-tag tag-red">CRITICAL</span>
+    </div>
+  </div>
+</section>
+
+<!-- Districts -->
+<section id="districts">
+  <div class="reveal">
+    <div class="section-label" data-zh="地图 // 行政分区" data-en="MAP // DISTRICTS">地图 // 行政分区</div>
+    <h2 class="section-title" data-zh="夜之城行政区" data-en="Night City Districts">夜之城行政区</h2>
+    <p class="section-desc" data-zh="每个区都有自己的规则、帮派和生存法则。这里没有真正安全的地方。" data-en="Each district has its own rules, gangs, and laws of survival. There is no truly safe place.">每个区都有自己的规则、帮派和生存法则。这里没有真正安全的地方。</p>
+  </div>
+
+  <div class="district-map cyber-panel reveal">
+    <div class="bracket-tl"></div><div class="bracket-br"></div>
+    <div class="map-header" data-zh="◆ 夜之城 // 行政区域总览" data-en="◆ NIGHT CITY // DISTRICT OVERVIEW">◆ 夜之城 // 行政区域总览</div>
+    <div class="district-grid">
+      <div class="district">
+        <div class="district-name" data-zh="沃森" data-en="Watson">沃森</div>
+        <div class="district-type" data-zh="V的起点" data-en="V'S ORIGIN">V的起点</div>
+        <div class="district-gang gang-maelstrom" data-zh="漩涡帮 / 虎爪帮" data-en="MAELSTROM / TYGER CLAWS">漩涡帮 / 虎爪帮</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="威斯布鲁克" data-en="Westbrook">威斯布鲁克</div>
+        <div class="district-type" data-zh="富人区" data-en="LUXURY">富人区</div>
+        <div class="district-gang gang-tyger" data-zh="虎爪帮" data-en="TYGER CLAWS">虎爪帮</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="市中心" data-en="City Center">市中心</div>
+        <div class="district-type" data-zh="企业核心" data-en="CORPO HUB">企业核心</div>
+        <div class="district-gang gang-corpo" data-zh="荒坂 / 军用科技" data-en="ARASAKA / MILITECH">荒坂 / 军用科技</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="海木" data-en="Heywood">海木</div>
+        <div class="district-type" data-zh="拉美文化区" data-en="LATINO QUARTER">拉美文化区</div>
+        <div class="district-gang gang-valentinos" data-zh="瓦伦蒂诺帮" data-en="VALENTINOS">瓦伦蒂诺帮</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="太平洲" data-en="Pacifica">太平洲</div>
+        <div class="district-type" data-zh="战区" data-en="COMBAT ZONE">战区</div>
+        <div class="district-gang gang-voodoo" data-zh="巫毒帮" data-en="VOODOO BOYS">巫毒帮</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="圣多明戈" data-en="Santo Domingo">圣多明戈</div>
+        <div class="district-type" data-zh="工业区" data-en="INDUSTRIAL">工业区</div>
+        <div class="district-gang gang-6th" data-zh="第六街帮" data-en="6TH STREET">第六街帮</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="恶土" data-en="Badlands">恶土</div>
+        <div class="district-type" data-zh="城外荒野" data-en="WASTELAND">城外荒野</div>
+        <div class="district-gang gang-animals" data-zh="流浪者 / 迷魂者" data-en="NOMADS / WRAITHS">流浪者 / 迷魂者</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="狗镇" data-en="Dogtown">狗镇</div>
+        <div class="district-type" data-zh="幻影自由 DLC" data-en="PHANTOM LIBERTY">幻影自由 DLC</div>
+        <div class="district-gang gang-arasaka" data-zh="库尔特·汉森的势力" data-en="KURT HANSEN'S FORCES">库尔特·汉森的势力</div>
+      </div>
+      <div class="district">
+        <div class="district-name" data-zh="北橡" data-en="North Oak">北橡</div>
+        <div class="district-type" data-zh="豪宅区" data-en="MANSIONS">豪宅区</div>
+        <div class="district-gang gang-corpo" data-zh="企业精英" data-en="CORPORATE ELITE">企业精英</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lifepath -->
+<section id="lifepath">
+  <div class="reveal">
+    <div class="section-label" data-zh="起源 // 人生路" data-en="ORIGIN // LIFEPATH">起源 // 人生路</div>
+    <h2 class="section-title" data-zh="选择你的人生路" data-en="Choose Your Lifepath">选择你的人生路</h2>
+    <p class="section-desc" data-zh="你的过去定义了你在夜之城的开局。三条截然不同的人生路，三段独特的故事起点。" data-en="Your past defines how you start in Night City. Three distinct lifepaths, three unique story beginnings.">你的过去定义了你在夜之城的开局。三条截然不同的人生路，三段独特的故事起点。</p>
+  </div>
+
+  <div class="lifepath-grid reveal">
+    <div class="lifepath-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <span class="lifepath-icon">🏜</span>
+      <h3 data-zh="流浪者" data-en="NOMAD">流浪者</h3>
+      <p data-zh="来自恶土荒野的自由灵魂。你离开了家族部落，独自驶向夜之城的霓虹灯海。你了解荒野的法则，但城市的规矩对你来说是全新的。" data-en="A free soul from the Badlands. You left your clan behind and drove alone toward Night City's neon sea. You know the laws of the wasteland, but the city's rules are entirely new to you.">来自恶土荒野的自由灵魂。你离开了家族部落，独自驶向夜之城的霓虹灯海。你了解荒野的法则，但城市的规矩对你来说是全新的。</p>
+    </div>
+    <div class="lifepath-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <span class="lifepath-icon">🏙</span>
+      <h3 data-zh="街头小子" data-en="STREET KID">街头小子</h3>
+      <p data-zh="你在夜之城的街头长大，混凝土就是你的操场。你了解每一条暗巷、每一个帮派头目，以及在这座城市生存的潜规则。" data-en="You grew up on Night City's streets — concrete was your playground. You know every dark alley, every gang boss, and the unwritten rules of survival in this city.">你在夜之城的街头长大，混凝土就是你的操场。你了解每一条暗巷、每一个帮派头目，以及在这座城市生存的潜规则。</p>
+    </div>
+    <div class="lifepath-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <span class="lifepath-icon">🏢</span>
+      <h3 data-zh="公司人" data-en="CORPO">公司人</h3>
+      <p data-zh="荒坂公司的精英特工。你曾在权力金字塔的顶端俯瞰众生，直到被自己的上司出卖，一夜之间跌落谷底。" data-en="An elite Arasaka operative. You once looked down from the top of the power pyramid — until your own boss betrayed you, and you fell from grace overnight.">荒坂公司的精英特工。你曾在权力金字塔的顶端俯瞰众生，直到被自己的上司出卖，一夜之间跌落谷底。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Characters -->
+<section id="chooms">
+  <div class="reveal">
+    <div class="section-label" data-zh="档案 // 关键人物" data-en="FILES // KEY FIGURES">档案 // 关键人物</div>
+    <h2 class="section-title" data-zh="你在夜之城的战友" data-en="Your Night City Chooms">你在夜之城的战友</h2>
+    <p class="section-desc" data-zh="在这座每个人都可能背叛你的城市里，这些人选择了站在你身边。" data-en="In a city where anyone might betray you, these people chose to stand by your side.">在这座每个人都可能背叛你的城市里，这些人选择了站在你身边。</p>
+  </div>
+
+  <div class="char-list reveal">
+    <div class="char-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="char-avatar">👤</div>
+      <div>
+        <h3 data-zh="强尼·银手" data-en="Johnny Silverhand">强尼·银手</h3>
+        <div class="char-role" data-zh="摇滚小子 / 数字幽灵" data-en="ROCKERBOY / DIGITAL GHOST">摇滚小子 / 数字幽灵</div>
+        <p data-zh="传奇摇滚歌手，反企业斗士。他的意识被存储在Relic芯片中，如今寄生在V的大脑里。他想要的只有一件事——毁灭荒坂。" data-en="Legendary rocker and anti-corporate rebel. His consciousness is stored in the Relic chip, now parasitizing V's brain. He wants only one thing — to destroy Arasaka.">传奇摇滚歌手，反企业斗士。他的意识被存储在Relic芯片中，如今寄生在V的大脑里。他想要的只有一件事——毁灭荒坂。</p>
+      </div>
+    </div>
+    <div class="char-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="char-avatar">💀</div>
+      <div>
+        <h3 data-zh="杰克·威尔斯" data-en="Jackie Welles">杰克·威尔斯</h3>
+        <div class="char-role" data-zh="V的搭档 / 海木之子" data-en="V'S PARTNER / HEYWOOD'S SON">V的搭档 / 海木之子</div>
+        <p data-zh="海木区长大的硬汉，V最忠诚的搭档。他梦想着出人头地，成为夜之城的传奇。他是你在这座城市里最值得信赖的人。" data-en="A tough guy raised in Heywood, V's most loyal partner. He dreams of making it big and becoming a Night City legend. He's the most trustworthy person you'll find in this city.">海木区长大的硬汉，V最忠诚的搭档。他梦想着出人头地，成为夜之城的传奇。他是你在这座城市里最值得信赖的人。</p>
+      </div>
+    </div>
+    <div class="char-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="char-avatar">🔧</div>
+      <div>
+        <h3 data-zh="朱迪·阿尔瓦雷兹" data-en="Judy Alvarez">朱迪·阿尔瓦雷兹</h3>
+        <div class="char-role" data-zh="超梦技师 / 反叛者" data-en="BD TECHNICIAN / REBEL">超梦技师 / 反叛者</div>
+        <p data-zh="才华横溢的超梦编辑师，对夜之城的腐朽深恶痛绝。她想要改变世界，但这座城市似乎不允许任何人保持纯真。" data-en="A brilliant braindance editor who despises Night City's corruption. She wants to change the world, but this city doesn't seem to let anyone stay innocent.">才华横溢的超梦编辑师，对夜之城的腐朽深恶痛绝。她想要改变世界，但这座城市似乎不允许任何人保持纯真。</p>
+      </div>
+    </div>
+    <div class="char-card cyber-panel">
+      <div class="bracket-tl"></div><div class="bracket-br"></div>
+      <div class="char-avatar">⚡</div>
+      <div>
+        <h3 data-zh="帕南·帕尔默" data-en="Panam Palmer">帕南·帕尔默</h3>
+        <div class="char-role" data-zh="流浪者 / 奥德卡恩部落" data-en="NOMAD / ALDECALDOS">流浪者 / 奥德卡恩部落</div>
+        <p data-zh="脾气火爆的流浪者佣兵。她脱离了原来的部落，独自闯荡恶土。凭借出色的驾驶技术和不屈的意志，她是荒野中最可靠的战友。" data-en="A fiery Nomad merc. She left her original clan, striking out alone in the Badlands. With exceptional driving skills and unbreakable will, she's the most dependable companion in the wasteland.">脾气火爆的流浪者佣兵。她脱离了原来的部落，独自闯荡恶土。凭借出色的驾驶技术和不屈的意志，她是荒野中最可靠的战友。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Terminal -->
+<section>
+  <div class="reveal">
+    <div class="section-label" data-zh="系统 // 网络监控" data-en="SYSTEM // NET MONITOR">系统 // 网络监控</div>
+    <h2 class="section-title" data-zh="夜之城网络终端" data-en="Night City Net Terminal">夜之城网络终端</h2>
+  </div>
+  <div class="terminal reveal">
+    <div class="terminal-header" data-zh="NCPD 网络监控系统 // 加密通道" data-en="NCPD NET MONITOR // ENCRYPTED CHANNEL">NCPD 网络监控系统 // 加密通道</div>
+    <div class="t-line"><span class="ts">23:14:07</span> <span data-zh="网络扫描完成。检测到 847 个活跃ICE防火墙" data-en="Net scan complete. 847 active ICE firewalls detected.">网络扫描完成。检测到 847 个活跃ICE防火墙</span></div>
+    <div class="t-line"><span class="ts">23:15:22</span> <span class="warn" data-zh="[警告] 太平洲区域检测到巫毒帮大规模网络入侵活动" data-en="[WARNING] Massive Voodoo Boys netrunning activity detected in Pacifica sector">[警告] 太平洲区域检测到巫毒帮大规模网络入侵活动</span></div>
+    <div class="t-line"><span class="ts">23:16:48</span> <span class="err" data-zh="[紧急] Relic芯片同步率异常——宿主神经退化加速中" data-en="[CRITICAL] Relic chip sync anomaly — host neural degradation accelerating">[紧急] Relic芯片同步率异常——宿主神经退化加速中</span></div>
+    <div class="t-line"><span class="ts">23:18:01</span> <span class="ok" data-zh="[完成] 委托任务「高风险赌局」已完成。信誉 +350" data-en="[COMPLETE] Gig 'High Stakes' finished. Street Cred +350">[完成] 委托任务「高风险赌局」已完成。信誉 +350</span></div>
+    <div class="t-line"><span class="ts">23:19:33</span> <span class="hl" data-zh="[JOHNNY] 醒醒，V。我们还有荒坂要对付。" data-en="[JOHNNY] Wake up, V. We've got a corporation to burn.">[JOHNNY] 醒醒，V。我们还有荒坂要对付。</span></div>
+    <div class="t-line"><span class="ts">23:20:15</span> <span data-zh="荒坂工业园区检测到可疑武装车队移动" data-en="Suspicious armed convoy movement detected near Arasaka Industrial Park">荒坂工业园区检测到可疑武装车队移动</span></div>
+    <div class="t-line"><span class="ts">23:21:42</span> <span class="warn" data-zh="[警告] 市中心发生四级网络恐怖袭击。NCPD已部署最大战术小组" data-en="[WARNING] Tier-4 cyberterror incident in City Center. NCPD MaxTac deployed">[警告] 市中心发生四级网络恐怖袭击。NCPD已部署最大战术小组</span></div>
+    <div class="t-line"><span class="ts">23:22:58</span> <span data-zh="等待输入..." data-en="Awaiting input...">等待输入...</span><span class="t-cursor"></span></div>
+  </div>
+</section>
+
+<!-- Quote -->
+<section class="quote-section reveal">
+  <div class="quote-v">V</div>
+  <blockquote data-zh="在夜之城，你要么成为传说，要么成为无名尸体。没有中间地带，没有退路。而我——我选择燃烧。" data-en="In Night City, you either become a legend or end up as a nameless corpse. No middle ground, no way back. And me — I choose to burn.">在夜之城，你要么成为传说，要么成为无名尸体。没有中间地带，没有退路。而我——我选择燃烧。</blockquote>
+  <div class="quote-src">— V // NIGHT CITY LEGEND</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="reveal">
+    <div class="section-label" style="justify-content:center;" data-zh="// 接入夜之城" data-en="// JACK INTO NIGHT CITY">// 接入夜之城</div>
+    <h2 class="section-title" style="text-align:center;" data-zh="准备好了吗，V？" data-en="Ready, V?">准备好了吗，V？</h2>
+    <p class="section-desc" style="text-align:center; margin: 14px auto 36px;" data-zh="插上你的神经线缆，连接到夜之城。传说不会自己书写。" data-en="Plug in your neural cable and connect to Night City. Legends don't write themselves.">插上你的神经线缆，连接到夜之城。传说不会自己书写。</p>
+    <button class="cta-btn" data-zh="接入网络" data-en="JACK IN">接入网络</button>
+  </div>
+</section>
+
+<footer>
+  <p><span class="neon-cyan">NIGHT CITY</span> // FREE STATE OF CALIFORNIA // <span class="neon-magenta">2077</span></p>
+</footer>
+
+<script>
+// ===== Neon Rain =====
+const canvas = document.getElementById('rain-canvas');
+const ctx = canvas.getContext('2d');
+let drops = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function initDrops() {
+  drops = [];
+  const count = Math.floor(window.innerWidth / 7);
+  for (let i = 0; i < count; i++) {
+    const colors = ['cyan', 'magenta', 'yellow'];
+    drops.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      len: Math.random() * 24 + 8,
+      speed: Math.random() * 5 + 2,
+      opacity: Math.random() * 0.25 + 0.05,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+}
+initDrops();
+
+const colorMap = {
+  dark: { cyan: [0,240,255], magenta: [255,42,109], yellow: [252,238,9] },
+  light: { cyan: [0,120,140], magenta: [160,30,60], yellow: [140,130,0] }
+};
+
+function drawRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const cm = isDark ? colorMap.dark : colorMap.light;
+
+  drops.forEach(d => {
+    const c = cm[d.color];
+    ctx.beginPath();
+    ctx.moveTo(d.x, d.y);
+    ctx.lineTo(d.x + 0.3, d.y + d.len);
+    ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${d.opacity})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    d.y += d.speed;
+    if (d.y > canvas.height) {
+      d.y = -d.len;
+      d.x = Math.random() * canvas.width;
+    }
+  });
+  requestAnimationFrame(drawRain);
+}
+drawRain();
+
+// ===== Theme =====
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  this.textContent = isDark ? '☾' : '☀';
+});
+
+// ===== Language =====
+document.getElementById('lang-toggle').addEventListener('click', function() {
+  const html = document.documentElement;
+  const isZh = html.getAttribute('data-lang') === 'zh';
+  const newLang = isZh ? 'en' : 'zh';
+  html.setAttribute('data-lang', newLang);
+  html.setAttribute('lang', newLang === 'zh' ? 'zh-CN' : 'en');
+  this.textContent = isZh ? '中' : '文';
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    el.textContent = el.getAttribute(`data-${newLang}`);
+  });
+});
+
+// ===== Scroll Reveal =====
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RESIDENT EVIL / 生化危机</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Special+Elite&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blood-dark:#4a0000;--blood:#6b0000;--blood-mid:#8b0000;--blood-bright:#b30000;
+  --flesh:#3a2a1a;--concrete:#3a3a3a;--biohazard:#aacc00;
+  --bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--text:#c8c0b0;--text-dim:#7a7060;
+  --card-bg:rgba(20,15,10,0.85);--border:rgba(107,0,0,0.4);
+  --font-body:'Rajdhani',sans-serif;--font-zh:'Noto Sans SC',sans-serif;
+  --font-typewriter:'Special Elite',monospace;
+  --vignette-opacity:0.5;--grain-opacity:0.05;
+}
+[data-theme="light"]{
+  --bg:#d4c8a0;--bg2:#c8bc94;--bg3:#bfb388;--text:#2a1a0a;--text-dim:#5a4a30;
+  --card-bg:rgba(190,175,140,0.9);--border:rgba(107,0,0,0.3);
+  --vignette-opacity:0.3;--grain-opacity:0.06;
+}
+html{scroll-behavior:smooth;font-size:16px;}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  overflow-x:hidden;min-height:100vh;position:relative;
+  transition:background 0.6s,color 0.6s;
+}
+/* ===== VIGNETTE ===== */
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:9998;
+  background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,var(--vignette-opacity)) 100%);
+}
+/* ===== GRAIN / NOISE OVERLAY ===== */
+#grain{
+  position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+  pointer-events:none;z-index:9997;opacity:var(--grain-opacity);
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+/* ===== FLICKER OVERLAY (removed — was too flashy) ===== */
+#flicker-overlay{display:none;}
+/* ===== RED EYE GLOW ===== */
+.eye-glow{
+  position:fixed;width:8px;height:4px;
+  background:radial-gradient(ellipse,#ff0000 20%,#8b0000 60%,transparent 100%);
+  border-radius:50%;pointer-events:none;z-index:9995;
+  opacity:0;animation:eyeAppear 15s infinite;
+  box-shadow:0 0 8px #ff0000,0 0 16px rgba(139,0,0,0.5);
+}
+.eye-glow.eye1{top:15%;right:3%;animation-delay:0s;}
+.eye-glow.eye2{top:45%;left:2%;animation-delay:7s;}
+.eye-glow.eye3{bottom:20%;right:5%;animation-delay:12s;}
+@keyframes eyeAppear{
+  0%,95%,100%{opacity:0;}
+  92%{opacity:0.6;}95%{opacity:0.8;}97%{opacity:0.3;}
+}
+/* ===== BLOOD SPLATTERS (CSS) ===== */
+.blood-splatter{position:absolute;pointer-events:none;z-index:1;opacity:0.7;}
+.blood-splatter::before,.blood-splatter::after{
+  content:'';position:absolute;border-radius:50%;
+}
+.bs1{top:5%;left:8%;width:60px;height:45px;background:radial-gradient(ellipse at 40% 50%,#6b0000 25%,#4a0000 50%,transparent 70%);}
+.bs2{top:12%;right:5%;width:40px;height:80px;background:radial-gradient(ellipse at 50% 30%,#8b0000 20%,#5a0000 45%,transparent 65%);transform:rotate(15deg);}
+.bs3{top:22%;left:15%;width:30px;height:30px;background:radial-gradient(circle,#7b0000 30%,transparent 65%);}
+.bs3::before{width:15px;height:40px;top:20px;left:8px;background:radial-gradient(ellipse,#6b0000 30%,transparent 70%);}
+.bs4{top:30%;right:12%;width:70px;height:50px;background:radial-gradient(ellipse at 60% 40%,#6b0000 20%,transparent 60%);transform:rotate(-20deg);}
+.bs5{top:38%;left:3%;width:25px;height:25px;background:radial-gradient(circle,#8b0000 35%,transparent 65%);}
+.bs5::before{width:8px;height:50px;top:18px;left:6px;background:radial-gradient(ellipse,#5a0000 30%,transparent 70%);}
+.bs6{top:45%;right:8%;width:55px;height:35px;background:radial-gradient(ellipse,#6b0000 25%,#4a0000 50%,transparent 70%);transform:rotate(30deg);}
+.bs7{top:52%;left:20%;width:35px;height:70px;background:radial-gradient(ellipse at 50% 30%,#7b0000 20%,transparent 60%);}
+.bs8{top:58%;right:15%;width:45px;height:45px;background:radial-gradient(circle,#6b0000 30%,transparent 60%);}
+.bs8::before{width:20px;height:60px;top:30px;left:12px;background:radial-gradient(ellipse,#4a0000 25%,transparent 65%);}
+.bs9{top:65%;left:7%;width:50px;height:30px;background:radial-gradient(ellipse,#8b0000 20%,transparent 55%);transform:rotate(-10deg);}
+.bs10{top:72%;right:4%;width:30px;height:55px;background:radial-gradient(ellipse at 50% 40%,#6b0000 25%,transparent 60%);}
+.bs11{top:78%;left:25%;width:40px;height:40px;background:radial-gradient(circle,#5a0000 30%,transparent 65%);}
+.bs11::before{width:12px;height:45px;top:28px;left:14px;background:radial-gradient(ellipse,#6b0000 30%,transparent 70%);}
+.bs12{top:83%;right:20%;width:65px;height:40px;background:radial-gradient(ellipse,#7b0000 20%,transparent 55%);transform:rotate(25deg);}
+.bs13{top:88%;left:10%;width:35px;height:35px;background:radial-gradient(circle,#6b0000 35%,transparent 70%);}
+.bs14{top:92%;right:10%;width:50px;height:25px;background:radial-gradient(ellipse,#8b0000 25%,transparent 60%);transform:rotate(-15deg);}
+.bs15{top:15%;left:50%;width:20px;height:20px;background:radial-gradient(circle,#6b0000 40%,transparent 70%);}
+.bs16{top:48%;left:45%;width:30px;height:60px;background:radial-gradient(ellipse at 50% 30%,#5a0000 20%,transparent 55%);}
+.bs17{top:35%;left:70%;width:40px;height:30px;background:radial-gradient(ellipse,#7b0000 25%,transparent 60%);transform:rotate(40deg);}
+.bs18{top:60%;left:60%;width:25px;height:50px;background:radial-gradient(ellipse,#6b0000 30%,transparent 65%);}
+.bs19{top:75%;left:40%;width:45px;height:35px;background:radial-gradient(ellipse,#8b0000 20%,transparent 55%);transform:rotate(-30deg);}
+.bs20{top:85%;left:55%;width:30px;height:30px;background:radial-gradient(circle,#6b0000 35%,transparent 70%);}
+
+/* ===== BLOOD DRIP ANIMATION ===== */
+@keyframes bloodDrip{
+  0%{height:0;opacity:0.8;}
+  60%{height:60px;opacity:0.9;}
+  80%{height:80px;opacity:0.6;}
+  100%{height:100px;opacity:0;}
+}
+.blood-drip-border{
+  position:relative;overflow:visible;
+}
+.blood-drip-border::after{
+  content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;
+  background:var(--blood);
+  box-shadow:
+    15px 0 0 0 var(--blood),
+    15px 10px 0 0 var(--blood-dark),
+    50px 0 0 0 var(--blood),
+    50px 15px 0 0 var(--blood-dark),
+    50px 25px 0 0 var(--blood-dark),
+    120px 0 0 0 var(--blood),
+    120px 8px 0 0 var(--blood-dark),
+    200px 0 0 0 var(--blood-mid),
+    200px 20px 0 0 var(--blood-dark),
+    200px 35px 0 0 var(--blood-dark),
+    300px 0 0 0 var(--blood),
+    300px 12px 0 0 var(--blood-dark),
+    400px 0 0 0 var(--blood-mid),
+    400px 18px 0 0 var(--blood-dark),
+    400px 30px 0 0 var(--blood-dark),
+    500px 0 0 0 var(--blood),
+    500px 7px 0 0 var(--blood-dark);
+}
+.drip-line{
+  position:absolute;width:3px;background:linear-gradient(to bottom,var(--blood),var(--blood-dark),transparent);
+  border-radius:0 0 50% 50%;animation:dripDown 4s infinite;opacity:0;
+}
+@keyframes dripDown{
+  0%{height:0;opacity:0;}10%{opacity:0.8;}
+  70%{height:50px;opacity:0.7;}100%{height:70px;opacity:0;}
+}
+
+/* ===== HEARTBEAT EKG ===== */
+.ekg-divider{
+  width:100%;height:60px;position:relative;overflow:hidden;margin:40px 0;
+}
+.ekg-divider svg{width:100%;height:100%;}
+.ekg-line{
+  stroke:var(--blood-bright);stroke-width:2;fill:none;
+  stroke-dasharray:600;stroke-dashoffset:600;
+  animation:ekgDraw 3s linear infinite;
+  filter:drop-shadow(0 0 4px var(--blood-bright));
+}
+@keyframes ekgDraw{
+  0%{stroke-dashoffset:600;}100%{stroke-dashoffset:0;}
+}
+
+/* ===== HEARTBEAT PULSE ===== */
+@keyframes heartbeat{
+  0%,100%{transform:scale(1);}
+  5%{transform:scale(1.02);}
+  10%{transform:scale(1);}
+  15%{transform:scale(1.03);}
+  20%{transform:scale(1);}
+}
+
+/* ===== CONTROLS ===== */
+.controls{
+  position:fixed;top:20px;right:20px;z-index:10000;
+  display:flex;gap:8px;
+}
+.ctrl-btn{
+  font-family:var(--font-typewriter);font-size:0.75rem;
+  padding:8px 14px;border:2px solid var(--blood);
+  background:var(--bg2);color:var(--text);cursor:pointer;
+  transition:all 0.3s;position:relative;
+  box-shadow:0 3px 0 var(--blood-dark),inset 0 -2px 0 rgba(0,0,0,0.3);
+  border-radius:3px;
+}
+.ctrl-btn:hover{background:var(--blood-dark);color:#fff;}
+.ctrl-btn:active{box-shadow:0 1px 0 var(--blood-dark);transform:translateY(2px);}
+
+/* ===== UMBRELLA LOGO (CSS) ===== */
+.umbrella-logo{
+  width:120px;height:120px;border-radius:50%;
+  position:relative;overflow:hidden;margin:0 auto 30px;
+  border:3px solid rgba(107,0,0,0.6);
+  animation:heartbeat 2s infinite;
+  box-shadow:0 0 30px rgba(107,0,0,0.5),0 0 60px rgba(107,0,0,0.2);
+}
+.umbrella-logo .slice{position:absolute;width:50%;height:50%;top:0;left:0;transform-origin:100% 100%;}
+.umbrella-logo .slice:nth-child(1){background:#cc0000;transform:rotate(0deg);}
+.umbrella-logo .slice:nth-child(2){background:#fff;transform:rotate(45deg);}
+.umbrella-logo .slice:nth-child(3){background:#cc0000;transform:rotate(90deg);}
+.umbrella-logo .slice:nth-child(4){background:#fff;transform:rotate(135deg);}
+.umbrella-logo .slice:nth-child(5){background:#cc0000;transform:rotate(180deg);}
+.umbrella-logo .slice:nth-child(6){background:#fff;transform:rotate(225deg);}
+.umbrella-logo .slice:nth-child(7){background:#cc0000;transform:rotate(270deg);}
+.umbrella-logo .slice:nth-child(8){background:#fff;transform:rotate(315deg);}
+.umbrella-logo .center{
+  position:absolute;width:30px;height:30px;border-radius:50%;
+  background:var(--bg);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;
+}
+
+/* ===== BIOHAZARD SYMBOL ===== */
+.biohazard{
+  font-size:2rem;color:var(--biohazard);
+  text-shadow:0 0 10px rgba(170,204,0,0.5);
+  display:inline-block;
+}
+
+/* ===== SECTION COMMON ===== */
+section{
+  padding:80px 20px;max-width:1200px;margin:0 auto;
+  position:relative;
+}
+.section-title{
+  font-family:var(--font-body);font-weight:700;font-size:2.5rem;
+  text-transform:uppercase;letter-spacing:4px;
+  color:var(--blood-mid);margin-bottom:40px;text-align:center;
+  text-shadow:0 0 20px rgba(139,0,0,0.4),2px 2px 4px rgba(0,0,0,0.8);
+  position:relative;
+}
+.section-title .biohazard{margin:0 15px;font-size:1.5rem;vertical-align:middle;}
+
+/* ===== HERO ===== */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  position:relative;
+}
+#hero::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:
+    radial-gradient(ellipse at 20% 80%,rgba(107,0,0,0.15) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 20%,rgba(74,0,0,0.1) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 50%,rgba(58,42,26,0.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.hero-title{
+  font-family:var(--font-body);font-size:5rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:12px;
+  color:#cc0000;position:relative;
+  text-shadow:
+    0 0 40px rgba(204,0,0,0.6),
+    0 0 80px rgba(139,0,0,0.3),
+    3px 3px 0 var(--blood-dark),
+    0 5px 15px rgba(0,0,0,0.8);
+  animation:heartbeat 2.5s infinite;
+}
+.hero-title-zh{
+  font-family:var(--font-zh);font-size:2.5rem;font-weight:700;
+  color:var(--blood-mid);letter-spacing:15px;margin-top:10px;
+  text-shadow:0 0 20px rgba(139,0,0,0.4),2px 2px 0 rgba(0,0,0,0.5);
+}
+.hero-subtitle{
+  font-family:var(--font-typewriter);font-size:1rem;
+  color:var(--text-dim);margin-top:25px;letter-spacing:3px;
+}
+.hero-biohazard{
+  font-size:8rem;color:var(--biohazard);opacity:0.15;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-shadow:0 0 40px rgba(170,204,0,0.2);
+  pointer-events:none;
+}
+/* Blood drips from hero title */
+.title-drips{position:relative;display:inline-block;}
+.title-drips .drip{
+  position:absolute;bottom:-5px;width:3px;
+  background:linear-gradient(to bottom,#cc0000,#6b0000,transparent);
+  border-radius:0 0 50% 50%;
+}
+.title-drips .drip:nth-child(1){left:15%;height:0;animation:titleDrip 5s 1s infinite;}
+.title-drips .drip:nth-child(2){left:35%;height:0;animation:titleDrip 6s 2.5s infinite;}
+.title-drips .drip:nth-child(3){left:55%;height:0;animation:titleDrip 4.5s 0.5s infinite;}
+.title-drips .drip:nth-child(4){left:75%;height:0;animation:titleDrip 5.5s 3s infinite;}
+.title-drips .drip:nth-child(5){left:90%;height:0;animation:titleDrip 7s 1.5s infinite;}
+@keyframes titleDrip{
+  0%{height:0;opacity:0;}
+  10%{opacity:0.9;}
+  60%{height:80px;opacity:0.7;}
+  100%{height:120px;opacity:0;}
+}
+
+/* ===== UMBRELLA SECTION ===== */
+.umbrella-panel{
+  background:var(--card-bg);border:1px solid var(--border);
+  padding:40px;position:relative;
+  border-left:4px solid var(--blood);
+}
+.umbrella-panel::before{
+  content:'CLASSIFIED';position:absolute;top:15px;right:15px;
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--blood);letter-spacing:3px;opacity:0.5;
+  border:1px solid var(--blood);padding:2px 8px;
+}
+.umbrella-panel p{
+  font-size:1.05rem;line-height:1.8;color:var(--text);margin-bottom:15px;
+}
+.umbrella-panel .redacted{
+  background:var(--blood-dark);color:var(--blood-dark);
+  padding:0 4px;transition:all 0.3s;cursor:pointer;
+  user-select:none;
+}
+.umbrella-panel .redacted:hover{color:#ff6666;}
+
+/* ===== VIRUS CARDS ===== */
+.virus-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:25px;
+}
+.virus-card{
+  background:var(--card-bg);border:1px solid var(--border);
+  padding:30px;position:relative;overflow:hidden;
+  transition:transform 0.3s,box-shadow 0.3s;
+}
+.virus-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 10px 30px rgba(107,0,0,0.3);
+}
+.virus-card::before{
+  content:'☣';position:absolute;top:-10px;right:-10px;
+  font-size:5rem;opacity:0.05;color:var(--biohazard);
+  pointer-events:none;
+}
+.virus-card::after{
+  content:'';position:absolute;top:0;right:0;width:40px;height:40px;
+  background:radial-gradient(ellipse at 70% 30%,var(--blood) 20%,transparent 60%);
+  opacity:0.5;
+}
+.virus-name{
+  font-family:var(--font-body);font-weight:700;font-size:1.4rem;
+  color:var(--biohazard);margin-bottom:5px;
+  text-shadow:0 0 8px rgba(170,204,0,0.3);
+}
+.virus-class{
+  font-family:var(--font-typewriter);font-size:0.75rem;
+  color:var(--blood-mid);letter-spacing:2px;margin-bottom:15px;
+}
+.virus-desc{font-size:0.95rem;line-height:1.6;color:var(--text-dim);margin-bottom:15px;}
+.infection-bar{
+  height:6px;background:rgba(255,255,255,0.05);border-radius:3px;
+  overflow:hidden;position:relative;
+}
+.infection-bar .fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--biohazard),var(--blood-bright));
+  transition:width 1.5s ease;width:0;
+}
+.infection-label{
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--text-dim);margin-top:5px;display:flex;justify-content:space-between;
+}
+
+/* ===== BOW GALLERY ===== */
+.bow-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:25px;
+}
+.bow-card{
+  background:var(--card-bg);border:1px solid var(--border);
+  padding:25px;position:relative;overflow:hidden;
+  transition:transform 0.3s;
+}
+.bow-card:hover{transform:scale(1.02);}
+/* Blood smear on cards */
+.bow-card::before{
+  content:'';position:absolute;top:-20px;right:-10px;width:100px;height:150px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(107,0,0,0.2) 10%,transparent 50%);
+  transform:rotate(20deg);pointer-events:none;
+}
+.bow-card::after{
+  content:'';position:absolute;bottom:0;left:0;width:100%;height:3px;
+  background:linear-gradient(90deg,transparent,var(--blood),transparent);
+}
+.bow-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;}
+.bow-name{
+  font-family:var(--font-body);font-weight:700;font-size:1.3rem;
+  color:var(--blood-bright);
+}
+.bow-aka{
+  font-family:var(--font-typewriter);font-size:0.7rem;color:var(--text-dim);
+}
+.threat-level{
+  font-family:var(--font-typewriter);font-size:0.65rem;
+  padding:3px 10px;border:1px solid var(--blood);
+  color:var(--blood-bright);letter-spacing:2px;
+}
+.threat-level.extreme{border-color:#ff0000;color:#ff0000;animation:heartbeat 1.5s infinite;}
+.bow-desc{font-size:0.9rem;line-height:1.7;color:var(--text-dim);margin-bottom:12px;}
+.bow-stats{display:flex;gap:15px;flex-wrap:wrap;}
+.bow-stat{
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--text-dim);border:1px solid rgba(255,255,255,0.05);
+  padding:3px 8px;
+}
+
+/* ===== SURVIVOR PROFILES ===== */
+.survivor-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;
+}
+.survivor-file{
+  background:var(--card-bg);border:1px solid var(--border);
+  padding:25px;position:relative;
+  border-top:3px solid var(--blood);
+}
+.survivor-file::before{
+  content:'R.P.D. PERSONNEL FILE';position:absolute;top:8px;right:10px;
+  font-family:var(--font-typewriter);font-size:0.55rem;
+  color:var(--text-dim);letter-spacing:2px;opacity:0.4;
+}
+.survivor-file::after{
+  content:'';position:absolute;top:3px;left:10px;width:20px;height:20px;
+  background:radial-gradient(circle,var(--blood) 30%,transparent 70%);
+  opacity:0.3;
+}
+.survivor-name{
+  font-family:var(--font-body);font-weight:700;font-size:1.2rem;
+  color:var(--text);margin-bottom:3px;
+}
+.survivor-role{
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--blood-mid);letter-spacing:2px;margin-bottom:12px;
+}
+.survivor-desc{font-size:0.85rem;line-height:1.6;color:var(--text-dim);}
+.survivor-status{
+  font-family:var(--font-typewriter);font-size:0.65rem;
+  margin-top:12px;padding:4px 8px;display:inline-block;
+}
+.survivor-status.alive{border:1px solid var(--biohazard);color:var(--biohazard);}
+.survivor-status.mia{border:1px solid #ff8800;color:#ff8800;}
+
+/* ===== LOCATIONS ===== */
+.location-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:25px;
+}
+.location-card{
+  background:var(--card-bg);border:1px solid var(--border);
+  padding:25px;position:relative;overflow:hidden;
+}
+.location-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:
+    radial-gradient(ellipse at 80% 80%,rgba(107,0,0,0.1) 0%,transparent 50%),
+    radial-gradient(ellipse at 20% 20%,rgba(58,42,26,0.1) 0%,transparent 50%);
+  pointer-events:none;
+}
+.location-name{
+  font-family:var(--font-body);font-weight:700;font-size:1.3rem;
+  color:var(--text);margin-bottom:5px;
+}
+.location-year{
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--blood-mid);letter-spacing:2px;margin-bottom:12px;
+}
+.location-desc{font-size:0.9rem;line-height:1.7;color:var(--text-dim);}
+
+/* ===== INVENTORY GRID (RE4 Attache Case) ===== */
+.attache-case{
+  background:linear-gradient(135deg,#1a1812,#2a2520,#1a1812);
+  border:3px solid #3a3020;padding:20px;position:relative;
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.5),0 5px 20px rgba(0,0,0,0.5);
+  max-width:600px;margin:0 auto;
+}
+.attache-case::before{
+  content:'ATTACHE CASE';position:absolute;top:-25px;left:0;
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--text-dim);letter-spacing:3px;
+}
+.inv-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
+}
+.inv-cell{
+  aspect-ratio:1;background:rgba(40,35,25,0.8);
+  border:1px solid rgba(80,70,50,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;position:relative;
+  transition:background 0.3s;
+}
+.inv-cell:hover{background:rgba(60,50,35,0.9);}
+.inv-cell .item-name{
+  position:absolute;bottom:2px;left:2px;right:2px;
+  font-family:var(--font-typewriter);font-size:0.45rem;
+  color:var(--text-dim);text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.inv-cell.occupied{border-color:rgba(170,204,0,0.3);}
+.inv-cell.key-item{border-color:rgba(255,200,0,0.4);}
+.inv-cell.ammo{border-color:rgba(200,200,200,0.3);}
+.inv-cell.health{border-color:rgba(0,200,0,0.3);}
+
+/* ===== TYPEWRITER SAVE ROOM ===== */
+.save-room{
+  background:linear-gradient(135deg,#0d0d0a,#1a1a14,#0d0d0a);
+  border:2px solid rgba(107,0,0,0.3);padding:50px 40px;
+  position:relative;max-width:700px;margin:0 auto;
+  box-shadow:inset 0 0 40px rgba(0,0,0,0.6);
+}
+.save-room::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,200,100,0.03) 0%,transparent 50%);
+  pointer-events:none;
+}
+.typewriter-text{
+  font-family:var(--font-typewriter);font-size:1.1rem;
+  line-height:2;color:var(--text);text-align:center;
+  position:relative;
+}
+.typewriter-text em{
+  color:var(--blood-mid);font-style:normal;
+}
+.ink-ribbon{
+  font-family:var(--font-typewriter);font-size:0.75rem;
+  color:var(--text-dim);text-align:center;margin-top:25px;
+  letter-spacing:3px;
+}
+.ink-ribbon span{color:var(--biohazard);}
+.save-icon{
+  text-align:center;margin-bottom:20px;font-size:2rem;
+  color:var(--text-dim);opacity:0.5;
+}
+
+/* ===== CTA ===== */
+#cta{text-align:center;padding:100px 20px;}
+.survive-btn{
+  font-family:var(--font-body);font-size:2.5rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:15px;
+  color:#cc0000;background:none;border:3px solid var(--blood);
+  padding:20px 60px;cursor:pointer;position:relative;
+  transition:all 0.4s;
+  text-shadow:0 0 20px rgba(204,0,0,0.5);
+  animation:heartbeat 2s infinite;
+}
+.survive-btn:hover{
+  background:var(--blood-dark);color:#fff;
+  box-shadow:0 0 40px rgba(107,0,0,0.5),inset 0 0 40px rgba(107,0,0,0.3);
+}
+.survive-btn::before{
+  content:'';position:absolute;top:-5px;left:20%;width:3px;height:0;
+  background:linear-gradient(to bottom,var(--blood),transparent);
+  animation:titleDrip 4s 1s infinite;
+}
+.survive-btn::after{
+  content:'';position:absolute;top:-5px;right:30%;width:3px;height:0;
+  background:linear-gradient(to bottom,var(--blood),transparent);
+  animation:titleDrip 5s 2s infinite;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  border-top:1px solid var(--border);padding:40px 20px;
+  text-align:center;position:relative;
+}
+footer::before{
+  content:'UMBRELLA CORPORATION — CLASSIFIED DOCUMENT — UNAUTHORIZED ACCESS PUNISHABLE UNDER SECTION 7.2';
+  display:block;font-family:var(--font-typewriter);font-size:0.6rem;
+  color:var(--blood);letter-spacing:2px;margin-bottom:15px;opacity:0.4;
+}
+footer p{
+  font-family:var(--font-typewriter);font-size:0.7rem;
+  color:var(--text-dim);line-height:2;
+}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal{
+  opacity:0;transform:translateY(30px);
+  transition:opacity 0.8s,transform 0.8s;
+}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal.shake{animation:horrorShake 0.3s ease;}
+@keyframes horrorShake{
+  0%,100%{transform:translateY(0) translateX(0);}
+  20%{transform:translateY(-2px) translateX(2px);}
+  40%{transform:translateY(1px) translateX(-1px);}
+  60%{transform:translateY(-1px) translateX(1px);}
+  80%{transform:translateY(2px) translateX(-2px);}
+}
+
+/* ===== JUMP SCARE ELEMENT ===== */
+.jump-scare{
+  position:relative;transition:transform 0.1s;
+}
+.jump-scare.triggered{
+  animation:jumpShift 0.15s ease;
+}
+@keyframes jumpShift{
+  0%{transform:translate(0,0) scale(1);}
+  30%{transform:translate(-5px,3px) scale(1.02);}
+  60%{transform:translate(3px,-2px) scale(0.98);}
+  100%{transform:translate(0,0) scale(1);}
+}
+
+/* ===== CANVAS ===== */
+#bg-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:9994;
+}
+
+/* ===== BLOODY HANDPRINT ===== */
+.handprint{
+  position:absolute;width:80px;height:100px;opacity:0.08;
+  pointer-events:none;z-index:1;
+}
+.handprint::before{
+  content:'';position:absolute;width:100%;height:70%;bottom:0;
+  background:var(--blood);border-radius:40% 40% 30% 30%;
+}
+.handprint::after{
+  content:'';position:absolute;top:0;left:10%;width:15%;height:40%;
+  background:var(--blood);border-radius:40%;
+  box-shadow:
+    16px -5px 0 var(--blood),
+    32px -8px 0 var(--blood),
+    48px -3px 0 var(--blood);
+}
+.handprint.hp1{top:20%;left:2%;transform:rotate(-15deg);}
+.handprint.hp2{top:55%;right:1%;transform:rotate(25deg) scaleX(-1);}
+.handprint.hp3{top:80%;left:5%;transform:rotate(-5deg);}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .hero-title{font-size:2.8rem;letter-spacing:6px;}
+  .hero-title-zh{font-size:1.5rem;letter-spacing:8px;}
+  .section-title{font-size:1.8rem;}
+  .bow-grid{grid-template-columns:1fr;}
+  .inv-grid{grid-template-columns:repeat(5,1fr);}
+  .controls{top:10px;right:10px;}
+  .save-room{padding:30px 20px;}
+  .survive-btn{font-size:1.8rem;letter-spacing:8px;padding:15px 40px;}
+}
+@media(max-width:480px){
+  .hero-title{font-size:2rem;letter-spacing:4px;}
+  .virus-grid,.survivor-grid,.location-grid{grid-template-columns:1fr;}
+  .inv-grid{grid-template-columns:repeat(4,1fr);}
+}
+
+/* ===== LANG TOGGLE ===== */
+[data-lang="en"] [data-zh]{display:none;}
+[data-lang="zh"] [data-en]{display:none;}
+</style>
+</head>
+<body>
+
+<!-- Overlays -->
+<div id="grain"></div>
+<div id="flicker-overlay"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- Eye glows -->
+<div class="eye-glow eye1"></div>
+<div class="eye-glow eye2"></div>
+<div class="eye-glow eye3"></div>
+
+<!-- Blood splatters -->
+<div class="blood-splatter bs1"></div>
+<div class="blood-splatter bs2"></div>
+<div class="blood-splatter bs3"></div>
+<div class="blood-splatter bs4"></div>
+<div class="blood-splatter bs5"></div>
+<div class="blood-splatter bs6"></div>
+<div class="blood-splatter bs7"></div>
+<div class="blood-splatter bs8"></div>
+<div class="blood-splatter bs9"></div>
+<div class="blood-splatter bs10"></div>
+<div class="blood-splatter bs11"></div>
+<div class="blood-splatter bs12"></div>
+<div class="blood-splatter bs13"></div>
+<div class="blood-splatter bs14"></div>
+<div class="blood-splatter bs15"></div>
+<div class="blood-splatter bs16"></div>
+<div class="blood-splatter bs17"></div>
+<div class="blood-splatter bs18"></div>
+<div class="blood-splatter bs19"></div>
+<div class="blood-splatter bs20"></div>
+
+<!-- Handprints -->
+<div class="handprint hp1"></div>
+<div class="handprint hp2"></div>
+<div class="handprint hp3"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="langToggle" onclick="toggleLang()">中/EN</button>
+  <button class="ctrl-btn" id="themeToggle" onclick="toggleTheme()">☀/☾</button>
+</div>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-biohazard">☣</div>
+  <div class="umbrella-logo">
+    <div class="slice"></div><div class="slice"></div>
+    <div class="slice"></div><div class="slice"></div>
+    <div class="slice"></div><div class="slice"></div>
+    <div class="slice"></div><div class="slice"></div>
+    <div class="center"></div>
+  </div>
+  <div class="title-drips">
+    <h1 class="hero-title">
+      <span data-en>RESIDENT EVIL</span>
+      <span data-zh>RESIDENT EVIL</span>
+    </h1>
+    <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+    <div class="drip"></div><div class="drip"></div>
+  </div>
+  <div class="hero-title-zh">生 化 危 机</div>
+  <p class="hero-subtitle">
+    <span data-en>UMBRELLA CORPORATION — INTERNAL DOCUMENT — LEVEL 10 CLEARANCE</span>
+    <span data-zh>保护伞公司 — 内部文件 — 十级权限</span>
+  </p>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== UMBRELLA CORPORATION ===== -->
+<section id="umbrella" class="reveal">
+  <h2 class="section-title blood-drip-border">
+    <span class="biohazard">☣</span>
+    <span data-en>THE UMBRELLA CORPORATION</span>
+    <span data-zh>保护伞公司</span>
+    <span class="biohazard">☣</span>
+  </h2>
+  <div class="umbrella-panel">
+    <p data-en>Founded in 1968 by Oswell E. Spencer, Edward Ashford, and James Marcus, the Umbrella Corporation presented itself as a leading pharmaceutical enterprise. Behind the facade of vaccines and consumer healthcare products, Umbrella conducted <span class="redacted">illegal biological weapons research</span> in hidden underground laboratories spanning multiple continents.</p>
+    <p data-zh>保护伞公司由奥斯维尔·E·斯宾塞、爱德华·阿什福德和詹姆斯·马库斯于1968年创立，表面上是一家领先的制药企业。在疫苗和消费者保健产品的幌子后面，保护伞在遍布多个大陆的隐秘地下实验室中进行<span class="redacted">非法生物武器研究</span>。</p>
+    <p data-en>The discovery of the Progenitor Virus in West Africa's Ndipaya tribe set in motion a chain of events that would threaten all human life. Project W. Subject selection. The T-Virus. <span class="redacted">The Raccoon City Incident</span>. Every step was calculated, every outbreak a field test for their true objective: <em style="color:var(--blood-bright)">the complete restructuring of the human species</em>.</p>
+    <p data-zh>在西非恩迪帕亚部落发现的始祖病毒引发了一系列威胁全人类的事件。W计划。实验体筛选。T病毒。<span class="redacted">浣熊市事件</span>。每一步都经过精心计算，每一次疫情爆发都是他们真正目标的实地测试：<em style="color:var(--blood-bright)">人类物种的彻底重构</em>。</p>
+  </div>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== VIRUS FILES ===== -->
+<section id="viruses" class="reveal">
+  <h2 class="section-title blood-drip-border">
+    <span class="biohazard">☣</span>
+    <span data-en>VIRUS FILES</span>
+    <span data-zh>病毒档案</span>
+    <span class="biohazard">☣</span>
+  </h2>
+  <div class="virus-grid">
+
+    <div class="virus-card reveal">
+      <div class="virus-name">T-VIRUS</div>
+      <div class="virus-class">
+        <span data-en>TYRANT VIRUS — CLASS A</span>
+        <span data-zh>暴君病毒 — A级</span>
+      </div>
+      <p class="virus-desc">
+        <span data-en>Derived from the Progenitor Virus. Causes cellular necrosis and reanimation. Responsible for the Raccoon City outbreak. Subjects lose higher brain function while gaining enhanced durability and aggression.</span>
+        <span data-zh>源自始祖病毒。导致细胞坏死与复活。是浣熊市疫情的元凶。感染者丧失高级脑功能，但获得增强的耐久性和攻击性。</span>
+      </p>
+      <div class="infection-bar"><div class="fill" data-width="85"></div></div>
+      <div class="infection-label"><span data-en>INFECTION RATE</span><span data-zh>感染率</span><span>85%</span></div>
+    </div>
+
+    <div class="virus-card reveal">
+      <div class="virus-name">G-VIRUS</div>
+      <div class="virus-class">
+        <span data-en>GOLGOTHA VIRUS — CLASS S</span>
+        <span data-zh>哥尔哥达病毒 — S级</span>
+      </div>
+      <p class="virus-desc">
+        <span data-en>Developed by William Birkin. Unlike the T-Virus, G causes uncontrollable mutagenic evolution. The host undergoes continuous, agonizing transformation, developing new limbs and sensory organs. Each mutation stage increases lethality exponentially.</span>
+        <span data-zh>由威廉·伯肯开发。与T病毒不同，G病毒导致不可控的突变进化。宿主经历持续的痛苦变形，发展出新的肢体和感觉器官。每个变异阶段的致命性呈指数级增长。</span>
+      </p>
+      <div class="infection-bar"><div class="fill" data-width="95"></div></div>
+      <div class="infection-label"><span data-en>MUTATION RATE</span><span data-zh>变异率</span><span>95%</span></div>
+    </div>
+
+    <div class="virus-card reveal">
+      <div class="virus-name">LAS PLAGAS</div>
+      <div class="virus-class">
+        <span data-en>PARASITIC ORGANISM — CLASS A</span>
+        <span data-zh>寄生体 — A级</span>
+      </div>
+      <p class="virus-desc">
+        <span data-en>Ancient parasitic organism discovered in rural Spain. Unlike viruses, Plagas maintain host consciousness while overriding free will. Hosts (Ganados) can be controlled remotely. The parasite eventually replaces the host's nervous system entirely.</span>
+        <span data-zh>在西班牙农村发现的古代寄生生物。与病毒不同，普拉加在保留宿主意识的同时覆盖其自由意志。宿主（加纳多）可被远程控制。寄生虫最终会完全替代宿主的神经系统。</span>
+      </p>
+      <div class="infection-bar"><div class="fill" data-width="72"></div></div>
+      <div class="infection-label"><span data-en>CONTROL RATE</span><span data-zh>控制率</span><span>72%</span></div>
+    </div>
+
+    <div class="virus-card reveal">
+      <div class="virus-name">MOLD (MUTAMYCETE)</div>
+      <div class="virus-class">
+        <span data-en>MYCOLOGICAL BIOWEAPON — CLASS S</span>
+        <span data-zh>真菌类生物武器 — S级</span>
+      </div>
+      <p class="virus-desc">
+        <span data-en>A megamycete-derived fungal superorganism. The Mold connects infected hosts into a hive consciousness controlled by a central Megamycete. Grants regeneration and biological manipulation abilities. Mother Miranda sought to use it to resurrect the dead.</span>
+        <span data-zh>一种源自超级菌体的真菌超级生物。菌体将感染宿主连接到由中央超级菌体控制的蜂巢意识中。赋予再生和生物操控能力。米兰达母亲试图用它来复活死者。</span>
+      </p>
+      <div class="infection-bar"><div class="fill" data-width="88"></div></div>
+      <div class="infection-label"><span data-en>SPREAD RATE</span><span data-zh>扩散率</span><span>88%</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== BOW GALLERY ===== -->
+<section id="bows" class="reveal">
+  <h2 class="section-title blood-drip-border">
+    <span class="biohazard">☣</span>
+    <span data-en>B.O.W. GALLERY</span>
+    <span data-zh>B.O.W. 生物兵器图鉴</span>
+    <span class="biohazard">☣</span>
+  </h2>
+  <div class="bow-grid">
+
+    <div class="bow-card reveal jump-scare">
+      <div class="bow-header">
+        <div>
+          <div class="bow-name">TYRANT / MR. X</div>
+          <div class="bow-aka"><span data-en>T-103 Model — Raccoon City</span><span data-zh>T-103型 — 浣熊市</span></div>
+        </div>
+        <div class="threat-level extreme">
+          <span data-en>EXTREME</span><span data-zh>极危</span>
+        </div>
+      </div>
+      <p class="bow-desc">
+        <span data-en>The pinnacle of Umbrella's Tyrant program. A towering humanoid B.O.W. deployed to eliminate survivors and retrieve the G-Virus sample. Its heavy footsteps echo through the RCPD halls. It cannot be stopped — only delayed. When its power limiter is removed, it mutates into a clawed monstrosity of exposed muscle and bone.</span>
+        <span data-zh>保护伞暴君计划的巅峰之作。一个被部署来消灭幸存者并取回G病毒样本的高大人形生物武器。它沉重的脚步声在RCPD大厅中回响。它无法被阻止——只能被延缓。当功率限制器被移除时，它会变异成一个暴露肌肉和骨骼的爪状怪物。</span>
+      </p>
+      <div class="bow-stats">
+        <span class="bow-stat">HEIGHT: 2.4M</span>
+        <span class="bow-stat">DURABILITY: S+</span>
+        <span class="bow-stat">PURSUIT: RELENTLESS</span>
+      </div>
+    </div>
+
+    <div class="bow-card reveal">
+      <div class="bow-header">
+        <div>
+          <div class="bow-name">NEMESIS</div>
+          <div class="bow-aka"><span data-en>Nemesis-T Type — Raccoon City</span><span data-zh>复仇女神-T型 — 浣熊市</span></div>
+        </div>
+        <div class="threat-level extreme">
+          <span data-en>EXTREME</span><span data-zh>极危</span>
+        </div>
+      </div>
+      <p class="bow-desc">
+        <span data-en>"S.T.A.R.S..." — its only word, its only purpose. An enhanced Tyrant implanted with a NE-α parasite, granting it intelligence, weapon usage, and an obsessive drive to hunt S.T.A.R.S. members. Equipped with a rocket launcher and tentacle appendages. Each defeat only accelerates its mutation into something worse.</span>
+        <span data-zh>"S.T.A.R.S..."——它唯一的词语，唯一的目的。一个被植入NE-α寄生虫的强化暴君，赋予它智慧、武器使用能力，以及追杀S.T.A.R.S.成员的执着驱动力。装备火箭筒和触手附肢。每次失败只会加速它向更恐怖形态的变异。</span>
+      </p>
+      <div class="bow-stats">
+        <span class="bow-stat">INTELLIGENCE: HIGH</span>
+        <span class="bow-stat">WEAPONRY: YES</span>
+        <span class="bow-stat">PURSUIT: OBSESSIVE</span>
+      </div>
+    </div>
+
+    <div class="bow-card reveal">
+      <div class="bow-header">
+        <div>
+          <div class="bow-name">LICKER</div>
+          <div class="bow-aka"><span data-en>T-Virus Mutation — Multiple Sites</span><span data-zh>T病毒变异体 — 多处出现</span></div>
+        </div>
+        <div class="threat-level">
+          <span data-en>HIGH</span><span data-zh>高危</span>
+        </div>
+      </div>
+      <p class="bow-desc">
+        <span data-en>The result of a zombie undergoing further V-ACT mutation. Completely blind but possessing hyper-acute hearing. Its exposed brain, skinless musculature, and razor-sharp tongue make it one of the most visually disturbing B.O.W.s. It crawls on walls and ceilings, striking with a tongue capable of decapitation.</span>
+        <span data-zh>僵尸经历进一步V-ACT变异的结果。完全失明但拥有超敏锐听觉。暴露的大脑、无皮肌肉组织和剃刀般锋利的舌头使其成为最令人不安的生物武器之一。它在墙壁和天花板上爬行，用能够斩首的舌头发动攻击。</span>
+      </p>
+      <div class="bow-stats">
+        <span class="bow-stat">SENSE: HEARING</span>
+        <span class="bow-stat">AGILITY: S</span>
+        <span class="bow-stat">TONGUE: LETHAL</span>
+      </div>
+    </div>
+
+    <div class="bow-card reveal">
+      <div class="bow-header">
+        <div>
+          <div class="bow-name">REGENERADOR</div>
+          <div class="bow-aka"><span data-en>Las Plagas Host — Spain</span><span data-zh>拉斯·普拉加斯宿主 — 西班牙</span></div>
+        </div>
+        <div class="threat-level extreme">
+          <span data-en>EXTREME</span><span data-zh>极危</span>
+        </div>
+      </div>
+      <p class="bow-desc">
+        <span data-en>The breathing. That horrible, rasping breathing. A Plagas-infested humanoid that regenerates any damage almost instantly. Shooting off limbs only causes them to regrow. The only way to kill it: destroy the internal Plagas parasites with an infrared scope. Its teeth-filled mouth stretches impossibly wide as it lunges forward.</span>
+        <span data-zh>那种呼吸。那种可怕的、嘶哑的呼吸。一种被普拉加斯感染的人形生物，几乎能瞬间再生任何伤害。射断四肢只会导致重新生长。唯一的杀死方法：用红外瞄准镜摧毁体内的普拉加斯寄生虫。它满是牙齿的嘴不可思议地张大，向前猛扑。</span>
+      </p>
+      <div class="bow-stats">
+        <span class="bow-stat">REGEN: NEAR-INSTANT</span>
+        <span class="bow-stat">WEAKNESS: IR SCOPE</span>
+        <span class="bow-stat">SOUND: BREATHING</span>
+      </div>
+    </div>
+
+    <div class="bow-card reveal">
+      <div class="bow-header">
+        <div>
+          <div class="bow-name">LADY DIMITRESCU</div>
+          <div class="bow-aka"><span data-en>Cadou Host — The Village</span><span data-zh>卡度宿主 — 村庄</span></div>
+        </div>
+        <div class="threat-level">
+          <span data-en>HIGH</span><span data-zh>高危</span>
+        </div>
+      </div>
+      <p class="bow-desc">
+        <span data-en>Alcina Dimitrescu. 2.9 meters of aristocratic terror. A hereditary blood disease made her the perfect Cadou host, granting immortality sustained by consuming maiden blood. Her retractable claws extend from elongated fingers. In her true form, she becomes a draconic mass of writhing flesh and insect colonies.</span>
+        <span data-zh>阿尔西娜·蒂米特雷斯库。2.9米的贵族恐怖。遗传性血液病使她成为完美的卡度宿主，通过饮用少女之血维持不朽。她的可伸缩利爪从细长的手指中延伸而出。在真实形态下，她变成由蠕动血肉和昆虫群落组成的龙形怪物。</span>
+      </p>
+      <div class="bow-stats">
+        <span class="bow-stat">HEIGHT: 2.9M</span>
+        <span class="bow-stat">WEAKNESS: COLD</span>
+        <span class="bow-stat">FORM: DRAGON</span>
+      </div>
+    </div>
+
+    <div class="bow-card reveal">
+      <div class="bow-header">
+        <div>
+          <div class="bow-name">LYCANS</div>
+          <div class="bow-aka"><span data-en>Cadou Host — The Village</span><span data-zh>卡度宿主 — 村庄</span></div>
+        </div>
+        <div class="threat-level">
+          <span data-en>MODERATE-HIGH</span><span data-zh>中高危</span>
+        </div>
+      </div>
+      <p class="bow-desc">
+        <span data-en>Villagers transformed by the Cadou parasite into feral, wolf-like creatures. Unlike zombies, Lycans retain crude intelligence — they use weapons, set ambushes, and hunt in coordinated packs. Their howls echo through the frozen mountain village at night. Led by the massive Urias, their alpha, who wields a sledgehammer.</span>
+        <span data-zh>被卡度寄生虫转化为野性狼人般生物的村民。与僵尸不同，狼人保留了粗糙的智力——他们使用武器、设置伏击、协调成群狩猎。它们的嚎叫声在夜间回荡在冰冻的山村中。由巨大的尤里亚斯领导，这个头目挥舞着大锤。</span>
+      </p>
+      <div class="bow-stats">
+        <span class="bow-stat">PACK SIZE: 8-20</span>
+        <span class="bow-stat">INTELLIGENCE: LOW-MED</span>
+        <span class="bow-stat">TOOLS: YES</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== SURVIVOR PROFILES ===== -->
+<section id="survivors" class="reveal">
+  <h2 class="section-title blood-drip-border">
+    <span class="biohazard">☣</span>
+    <span data-en>SURVIVOR PROFILES</span>
+    <span data-zh>幸存者档案</span>
+    <span class="biohazard">☣</span>
+  </h2>
+  <div class="survivor-grid">
+
+    <div class="survivor-file reveal">
+      <div class="survivor-name">CHRIS REDFIELD</div>
+      <div class="survivor-role">
+        <span data-en>BSAA OPERATIVE / EX-S.T.A.R.S.</span>
+        <span data-zh>BSAA特工 / 前S.T.A.R.S.成员</span>
+      </div>
+      <p class="survivor-desc">
+        <span data-en>The boulder-punching veteran. From the Spencer Mansion to the Village, Chris has fought every nightmare Umbrella unleashed. His idealism has hardened into grim determination. He carries the weight of every fallen comrade.</span>
+        <span data-zh>那个会打石头的老兵。从斯宾塞公馆到村庄，克里斯与保护伞释放的每一个噩梦都战斗过。他的理想主义已经磨砺成冷酷的决心。他承载着每一位阵亡战友的重量。</span>
+      </p>
+      <div class="survivor-status alive"><span data-en>STATUS: ACTIVE</span><span data-zh>状态：活跃</span></div>
+    </div>
+
+    <div class="survivor-file reveal">
+      <div class="survivor-name">JILL VALENTINE</div>
+      <div class="survivor-role">
+        <span data-en>BSAA OPERATIVE / EX-S.T.A.R.S.</span>
+        <span data-zh>BSAA特工 / 前S.T.A.R.S.成员</span>
+      </div>
+      <p class="survivor-desc">
+        <span data-en>The master of unlocking — and surviving. Escaped both the Mansion Incident and Nemesis's relentless pursuit through Raccoon City. Captured by Wesker, subjected to mind control experiments. She endured it all and returned stronger.</span>
+        <span data-zh>开锁大师——也是生存大师。从公馆事件和追击者在浣熊市的无情追杀中逃脱。被威斯克俘获，经受精神控制实验。她承受了一切，变得更加强大地归来。</span>
+      </p>
+      <div class="survivor-status alive"><span data-en>STATUS: ACTIVE</span><span data-zh>状态：活跃</span></div>
+    </div>
+
+    <div class="survivor-file reveal">
+      <div class="survivor-name">LEON S. KENNEDY</div>
+      <div class="survivor-role">
+        <span data-en>DSO AGENT / EX-R.P.D.</span>
+        <span data-zh>DSO特工 / 前R.P.D.警员</span>
+      </div>
+      <p class="survivor-desc">
+        <span data-en>His first day as a cop became a night in hell. Survived Raccoon City as a rookie, rescued the President's daughter from a Plagas cult in Spain. Behind the quips and leather jacket lies a man haunted by the things he's seen.</span>
+        <span data-zh>他当警察的第一天就变成了地狱之夜。作为新人警员从浣熊市幸存，从西班牙的普拉加斯邪教中营救了总统之女。在俏皮话和皮夹克之下，是一个被所见之事困扰的人。</span>
+      </p>
+      <div class="survivor-status alive"><span data-en>STATUS: ACTIVE</span><span data-zh>状态：活跃</span></div>
+    </div>
+
+    <div class="survivor-file reveal">
+      <div class="survivor-name">CLAIRE REDFIELD</div>
+      <div class="survivor-role">
+        <span data-en>TERRASAVE MEMBER</span>
+        <span data-zh>TERRASAVE成员</span>
+      </div>
+      <p class="survivor-desc">
+        <span data-en>Rode into Raccoon City on a motorcycle looking for her brother Chris. Found hell instead. Protected young Sherry Birkin through the nightmare. Now fights bioterrorism through humanitarian activism with TerraSave, proving not all heroes carry guns.</span>
+        <span data-zh>骑着摩托车进入浣熊市寻找哥哥克里斯。却找到了地狱。在噩梦中保护了年幼的雪莉·伯肯。现在通过TerraSave的人道主义活动对抗生物恐怖主义，证明并非所有英雄都需要枪。</span>
+      </p>
+      <div class="survivor-status alive"><span data-en>STATUS: ACTIVE</span><span data-zh>状态：活跃</span></div>
+    </div>
+
+    <div class="survivor-file reveal">
+      <div class="survivor-name">ETHAN WINTERS</div>
+      <div class="survivor-role">
+        <span data-en>CIVILIAN / MOLD HOST</span>
+        <span data-zh>平民 / 菌体宿主</span>
+      </div>
+      <p class="survivor-desc">
+        <span data-en>An ordinary man who walked into the Baker estate to find his missing wife Mia — and discovered he was already dead. The Mold had rebuilt him, let him reattach severed limbs, survive impossible wounds. He gave his life to destroy the Megamycete and save his daughter Rose.</span>
+        <span data-zh>一个走进贝克庄园寻找失踪妻子米娅的普通人——却发现自己早已死亡。菌体重建了他，让他能够接回被切断的四肢，从不可能的伤口中存活。他献出了自己的生命来摧毁超级菌体，拯救女儿罗斯。</span>
+      </p>
+      <div class="survivor-status mia"><span data-en>STATUS: K.I.A.</span><span data-zh>状态：阵亡</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== LOCATIONS ===== -->
+<section id="locations" class="reveal">
+  <h2 class="section-title blood-drip-border">
+    <span class="biohazard">☣</span>
+    <span data-en>INCIDENT LOCATIONS</span>
+    <span data-zh>事件地点</span>
+    <span class="biohazard">☣</span>
+  </h2>
+  <div class="location-grid">
+
+    <div class="location-card reveal">
+      <div class="location-name">
+        <span data-en>SPENCER MANSION</span>
+        <span data-zh>斯宾塞公馆</span>
+      </div>
+      <div class="location-year">ARKLAY MOUNTAINS — 1998</div>
+      <p class="location-desc">
+        <span data-en>A Victorian estate hiding an underground laboratory. Designed by George Trevor, whose own family became test subjects. Every locked door, every puzzle, every shadow conceals something waiting to kill you. The mansion where survival horror was born.</span>
+        <span data-zh>一座隐藏着地下实验室的维多利亚式庄园。由乔治·特雷弗设计，而他自己的家人却成了实验对象。每扇锁着的门、每个谜题、每个阴影都隐藏着等待杀死你的东西。生存恐怖诞生的公馆。</span>
+      </p>
+    </div>
+
+    <div class="location-card reveal">
+      <div class="location-name">
+        <span data-en>R.P.D. STATION</span>
+        <span data-zh>R.P.D. 警察局</span>
+      </div>
+      <div class="location-year">RACCOON CITY — 1998</div>
+      <p class="location-desc">
+        <span data-en>Once a grand art museum converted into a police station. During the outbreak, it became a tomb. The echoing halls filled with the shuffling dead. Mr. X's footsteps overhead. The Goddess statue watches over the fallen. Chief Irons' dark secret festers in the basement.</span>
+        <span data-zh>曾经是一座宏伟的艺术博物馆，被改建为警察局。在疫情爆发期间，它变成了一座坟墓。回荡的大厅里满是蹒跚的死者。头顶上是暴君先生的脚步声。女神雕像注视着倒下的人。艾恩斯局长的黑暗秘密在地下室中溃烂。</span>
+      </p>
+    </div>
+
+    <div class="location-card reveal">
+      <div class="location-name">
+        <span data-en>THE VILLAGE</span>
+        <span data-zh>村庄</span>
+      </div>
+      <div class="location-year">EASTERN EUROPE — 2021</div>
+      <p class="location-desc">
+        <span data-en>A snow-covered nightmare nestled in the mountains. Four lords rule under Mother Miranda: Dimitrescu's gothic castle, Beneviento's haunted dollhouse, Moreau's flooded reservoir, Heisenberg's industrial factory. The village itself is overrun with Lycans howling in the perpetual twilight.</span>
+        <span data-zh>一个坐落在群山中被雪覆盖的噩梦。四位领主在米兰达母亲的统治下：蒂米特雷斯库的哥特式城堡、贝尼维恩托的闹鬼玩偶屋、莫罗的淹没水库、海森堡的工业工厂。村庄本身被在永恒暮色中嚎叫的狼人所占据。</span>
+      </p>
+    </div>
+
+    <div class="location-card reveal">
+      <div class="location-name">
+        <span data-en>BAKER RESIDENCE</span>
+        <span data-zh>贝克庄园</span>
+      </div>
+      <div class="location-year">DULVEY, LOUISIANA — 2017</div>
+      <p class="location-desc">
+        <span data-en>A rotting plantation house in the Louisiana bayou. The Baker family — Jack, Marguerite, Lucas — were once ordinary people before Eveline's Mold infection twisted them into sadistic monsters. The dinner table is set. The food is unspeakable. Welcome to the family, son.</span>
+        <span data-zh>路易斯安那州沼泽中一座腐朽的种植园房屋。贝克一家——杰克、玛格丽特、卢卡斯——在伊芙琳的菌体感染将他们扭曲成虐待狂怪物之前，曾经是普通人。餐桌已经摆好。食物不堪入目。欢迎加入这个家庭，儿子。</span>
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== INVENTORY ===== -->
+<section id="inventory" class="reveal">
+  <h2 class="section-title blood-drip-border">
+    <span data-en>INVENTORY</span>
+    <span data-zh>物品栏</span>
+  </h2>
+  <div class="attache-case">
+    <div class="inv-grid">
+      <div class="inv-cell occupied health" title="Green Herb">🌿<span class="item-name"><span data-en>G.HERB</span><span data-zh>绿草药</span></span></div>
+      <div class="inv-cell occupied health" title="Red Herb">🌿<span class="item-name"><span data-en>R.HERB</span><span data-zh>红草药</span></span></div>
+      <div class="inv-cell occupied ammo" title="Handgun Ammo">🔫<span class="item-name"><span data-en>HG AMMO</span><span data-zh>手枪弹</span></span></div>
+      <div class="inv-cell occupied ammo" title="Shotgun Shells">💥<span class="item-name"><span data-en>SG AMMO</span><span data-zh>霰弹</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied key-item" title="Spade Key">🗝️<span class="item-name"><span data-en>SPADE KEY</span><span data-zh>黑桃钥匙</span></span></div>
+      <div class="inv-cell occupied health" title="First Aid Spray">💊<span class="item-name"><span data-en>F.A.SPRAY</span><span data-zh>急救喷雾</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied ammo" title="Magnum Ammo">🎯<span class="item-name"><span data-en>MAG AMMO</span><span data-zh>马格南弹</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied key-item" title="Diamond Key">🗝️<span class="item-name"><span data-en>DIAM KEY</span><span data-zh>方块钥匙</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied" title="Ink Ribbon">📜<span class="item-name"><span data-en>INK RIBN</span><span data-zh>墨水丝带</span></span></div>
+      <div class="inv-cell occupied ammo" title="Flame Rounds">🔥<span class="item-name"><span data-en>FLAME RD</span><span data-zh>火焰弹</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied key-item" title="Medal">🏅<span class="item-name"><span data-en>MEDAL</span><span data-zh>徽章</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied" title="Wooden Board">🪵<span class="item-name"><span data-en>BOARD</span><span data-zh>木板</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied health" title="Blue Herb">🌿<span class="item-name"><span data-en>B.HERB</span><span data-zh>蓝草药</span></span></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell"></div>
+      <div class="inv-cell occupied ammo" title="Grenade">💣<span class="item-name"><span data-en>GRENADE</span><span data-zh>手榴弹</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- EKG Divider -->
+<div class="ekg-divider">
+  <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+    <polyline class="ekg-line" points="0,30 80,30 100,30 110,10 120,50 130,5 140,55 150,30 170,30 250,30 270,30 280,10 290,50 300,5 310,55 320,30 340,30 420,30 440,30 450,10 460,50 470,5 480,55 490,30 510,30 600,30"/>
+  </svg>
+</div>
+
+<!-- ===== SAVE ROOM (TYPEWRITER) ===== -->
+<section id="saveroom" class="reveal">
+  <h2 class="section-title">
+    <span data-en>SAVE ROOM</span>
+    <span data-zh>存档室</span>
+  </h2>
+  <div class="save-room">
+    <div class="save-icon">🖋️</div>
+    <div class="typewriter-text">
+      <p data-en>"<em>No one can escape the fate that was chosen for them.</em><br>All that remains is the end, where you will all perish.<br>Eternal life awaits those who embrace<br>the <em>Umbrella</em>."</p>
+      <p data-zh>"<em>没有人能逃脱被选中的命运。</em><br>剩下的只有终结，你们都将在此灭亡。<br>永生等待着那些拥抱<br><em>保护伞</em>的人。"</p>
+    </div>
+    <div class="ink-ribbon">
+      <span data-en>INK RIBBONS REMAINING: <span>3</span></span>
+      <span data-zh>剩余墨水丝带：<span>3</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section id="cta" class="reveal">
+  <button class="survive-btn" onclick="this.style.boxShadow='0 0 80px rgba(107,0,0,0.8),inset 0 0 60px rgba(107,0,0,0.5)';setTimeout(()=>this.style.boxShadow='',1000)">
+    <span data-en>S U R V I V E</span>
+    <span data-zh>生 存</span>
+  </button>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="blood-drip-border">
+  <p>
+    <span data-en>UMBRELLA CORPORATION &copy; 1968 — ALL RIGHTS RESERVED<br>
+    DOCUMENT CLASSIFICATION: LEVEL 10 — EYES ONLY<br>
+    ☣ UNAUTHORIZED REPRODUCTION IS A CAPITAL OFFENSE ☣</span>
+    <span data-zh>保护伞公司 &copy; 1968 — 版权所有<br>
+    文件等级：十级 — 仅限阅览<br>
+    ☣ 未经授权复制将受到极刑 ☣</span>
+  </p>
+</footer>
+
+<script>
+// ===== LANGUAGE TOGGLE =====
+function toggleLang(){
+  const html=document.documentElement;
+  html.dataset.lang=html.dataset.lang==='en'?'zh':'en';
+}
+
+// ===== THEME TOGGLE =====
+function toggleTheme(){
+  const html=document.documentElement;
+  html.dataset.theme=html.dataset.theme==='dark'?'light':'dark';
+}
+
+// ===== SCROLL REVEAL =====
+const reveals=document.querySelectorAll('.reveal');
+let jumpScareTriggered=false;
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+      // Subtle reveal only, no shake
+      // Infection bars
+      entry.target.querySelectorAll('.infection-bar .fill').forEach(bar=>{
+        bar.style.width=bar.dataset.width+'%';
+      });
+      // Jump scare (once)
+      if(!jumpScareTriggered&&entry.target.classList.contains('jump-scare')){
+        jumpScareTriggered=true;
+        setTimeout(()=>{
+          entry.target.classList.add('triggered');
+          setTimeout(()=>entry.target.classList.remove('triggered'),200);
+        },500);
+      }
+    }
+  });
+},{threshold:0.15});
+reveals.forEach(el=>observer.observe(el));
+
+// ===== CANVAS: DUST + BLOOD DRIPS + FLICKER =====
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();
+window.addEventListener('resize',resize);
+
+// Dust particles
+const dustCount=80;
+const dust=[];
+for(let i=0;i<dustCount;i++){
+  dust.push({
+    x:Math.random()*W,y:Math.random()*H,
+    vx:(Math.random()-0.5)*0.3,vy:Math.random()*0.2+0.05,
+    size:Math.random()*2+0.5,
+    alpha:Math.random()*0.3+0.05
+  });
+}
+
+// Blood drip particles
+const drips=[];
+function spawnDrip(){
+  drips.push({
+    x:Math.random()*W,y:0,
+    speed:Math.random()*1.5+0.5,
+    width:Math.random()*2+1,
+    length:Math.random()*40+20,
+    alpha:Math.random()*0.4+0.2,
+    trail:[]
+  });
+}
+
+let flickerAlpha=0;
+let flickerTimer=0;
+
+function animate(){
+  ctx.clearRect(0,0,W,H);
+
+  // Dust
+  dust.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+    if(p.y>H){p.y=0;p.x=Math.random()*W;}
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fillStyle=`rgba(200,190,170,${p.alpha})`;
+    ctx.fill();
+  });
+
+  // Blood drips
+  if(Math.random()<0.008)spawnDrip();
+  for(let i=drips.length-1;i>=0;i--){
+    const d=drips[i];
+    d.y+=d.speed;
+    ctx.beginPath();
+    ctx.moveTo(d.x,Math.max(0,d.y-d.length));
+    ctx.lineTo(d.x,d.y);
+    ctx.strokeStyle=`rgba(107,0,0,${d.alpha})`;
+    ctx.lineWidth=d.width;
+    ctx.stroke();
+    // Drip end bulge
+    ctx.beginPath();
+    ctx.arc(d.x,d.y,d.width*1.5,0,Math.PI*2);
+    ctx.fillStyle=`rgba(107,0,0,${d.alpha*0.8})`;
+    ctx.fill();
+    if(d.y-d.length>H)drips.splice(i,1);
+  }
+
+  // Flicker simulation (very subtle)
+  flickerTimer++;
+  if(flickerTimer%300===0&&Math.random()<0.15){
+    flickerAlpha=0.01+Math.random()*0.02;
+  }else if(flickerAlpha>0){
+    flickerAlpha*=0.92;
+    if(flickerAlpha<0.003)flickerAlpha=0;
+  }
+  if(flickerAlpha>0){
+    ctx.fillStyle=`rgba(255,200,100,${flickerAlpha})`;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ===== GRAIN ANIMATION =====
+const grain=document.getElementById('grain');
+let grainX=0,grainY=0,grainFrame=0;
+function animateGrain(){
+  grainFrame++;
+  if(grainFrame%15===0){
+    grainX=Math.random()*100;
+    grainY=Math.random()*100;
+    grain.style.transform=`translate(${grainX-50}%,${grainY-50}%)`;
+  }
+  requestAnimationFrame(animateGrain);
+}
+animateGrain();
+
+// ===== REDACTED TEXT =====
+document.querySelectorAll('.redacted').forEach(el=>{
+  el.addEventListener('click',()=>{
+    el.style.background='transparent';
+    el.style.color='#ff6666';
+  });
+});
+</script>
+</body>
+</html>

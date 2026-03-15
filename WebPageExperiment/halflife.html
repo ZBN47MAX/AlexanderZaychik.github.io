@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Half-Life Universe | Black Mesa Research Facility</title>
+<style>
+/* ===== CSS RESET & VARIABLES ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#ff6d00;--orange-light:#ff8f00;--orange-glow:#ff6d0066;
+  --combine-blue:#4fc3f7;--combine-dark:#0277bd;
+  --warning-y:#ffd600;--warning-b:#212121;
+  --hev-green:#76ff03;--hev-red:#ff1744;
+  --bg-dark:#0a0a0a;--bg-card-dark:#141414;--bg-section-dark:#0e0e0e;
+  --text-dark:#e0e0e0;--text-muted-dark:#9e9e9e;
+  --bg-light:#f0ece4;--bg-card-light:#fff;--bg-section-light:#e8e0d0;
+  --text-light:#1a1a1a;--text-muted-light:#555;
+  --bg:var(--bg-dark);--bg-card:var(--bg-card-dark);--bg-section:var(--bg-section-dark);
+  --text:var(--text-dark);--text-muted:var(--text-muted-dark);
+  --transition:0.35s ease;
+  --font-body:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-mono:'Cascadia Code','Fira Mono','Consolas',monospace;
+  --warning-stripe:repeating-linear-gradient(45deg,var(--warning-y),var(--warning-y) 10px,var(--warning-b) 10px,var(--warning-b) 20px);
+}
+[data-theme="light"]{
+  --bg:var(--bg-light);--bg-card:var(--bg-card-light);--bg-section:var(--bg-section-light);
+  --text:var(--text-light);--text-muted:var(--text-muted-light);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);
+  transition:background var(--transition),color var(--transition);
+  overflow-x:hidden;line-height:1.7}
+a{color:var(--orange);text-decoration:none;transition:color .2s}
+a:hover{color:var(--orange-light)}
+img{max-width:100%}
+canvas#particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* ===== CONTROLS ===== */
+.controls{position:fixed;top:20px;right:20px;z-index:9999;display:flex;gap:8px}
+.ctrl-btn{
+  background:#1a1a1acc;border:1px solid var(--orange);color:var(--orange);
+  font-family:var(--font-mono);font-size:12px;padding:8px 14px;
+  cursor:pointer;text-transform:uppercase;letter-spacing:1px;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.ctrl-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,var(--orange-glow),transparent);
+  transition:left .4s}
+.ctrl-btn:hover::before{left:100%}
+.ctrl-btn:hover{background:var(--orange);color:#000;box-shadow:0 0 20px var(--orange-glow)}
+[data-theme="light"] .ctrl-btn{background:#ffffffcc}
+
+/* ===== LAMBDA SYMBOL ===== */
+.lambda{font-weight:700;color:var(--orange);font-size:inherit}
+.lambda-bg{position:absolute;font-size:300px;color:var(--orange);opacity:.03;
+  font-weight:900;pointer-events:none;user-select:none;z-index:0}
+
+/* ===== WARNING STRIPE ===== */
+.warning-border{border-top:4px solid transparent;border-image:var(--warning-stripe) 4}
+.warning-border-bottom{border-bottom:4px solid transparent;border-image:var(--warning-stripe) 4}
+.warning-bar{height:6px;background:var(--warning-stripe);width:100%}
+
+/* ===== HERO SECTION ===== */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;text-align:center}
+.hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,var(--orange-glow) 0%,transparent 70%);opacity:.15}
+.hero-content{position:relative;z-index:2}
+.hero-lambda{font-size:clamp(120px,20vw,220px);color:var(--orange);font-weight:900;
+  line-height:1;text-shadow:0 0 60px var(--orange-glow),0 0 120px var(--orange-glow);
+  animation:lambdaPulse 3s ease-in-out infinite;margin-bottom:16px}
+@keyframes lambdaPulse{0%,100%{text-shadow:0 0 60px var(--orange-glow),0 0 120px var(--orange-glow)}
+  50%{text-shadow:0 0 80px var(--orange),0 0 160px var(--orange-glow)}}
+.hero h1{font-family:var(--font-mono);font-size:clamp(28px,5vw,56px);font-weight:700;
+  letter-spacing:4px;text-transform:uppercase;margin-bottom:12px}
+.hero h1 .hl{color:var(--orange)}
+.hero-sub{font-size:clamp(14px,2vw,20px);color:var(--text-muted);font-family:var(--font-mono);
+  letter-spacing:2px;margin-bottom:32px}
+.hero-tagline{font-size:clamp(16px,2.5vw,22px);max-width:700px;margin:0 auto 40px;opacity:.85}
+.scroll-hint{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  color:var(--orange);font-family:var(--font-mono);font-size:12px;letter-spacing:2px;
+  animation:scrollBounce 2s infinite;opacity:.6}
+@keyframes scrollBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+.hev-line{width:200px;height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);
+  margin:20px auto}
+
+/* ===== SECTION COMMON ===== */
+section{padding:80px 0;position:relative}
+.section-title{font-family:var(--font-mono);font-size:clamp(24px,4vw,40px);font-weight:700;
+  text-transform:uppercase;letter-spacing:3px;margin-bottom:12px;position:relative;display:inline-block}
+.section-title::after{content:'';display:block;width:60px;height:3px;background:var(--orange);margin-top:8px}
+.section-title .lambda{font-size:inherit}
+.section-subtitle{color:var(--text-muted);font-size:14px;font-family:var(--font-mono);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:40px}
+.section-text{max-width:800px;font-size:17px;line-height:1.9;margin-bottom:24px;opacity:.9}
+
+/* ===== REVEAL ANIMATION ===== */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.15s}
+.reveal-delay-2{transition-delay:.3s}
+.reveal-delay-3{transition-delay:.45s}
+
+/* ===== BLACK MESA SECTION ===== */
+.blackmesa-section{background:var(--bg-section)}
+.blackmesa-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.blackmesa-logo{text-align:center;position:relative}
+.blackmesa-logo .bm-circle{width:200px;height:200px;border-radius:50%;
+  border:3px solid var(--orange);display:flex;align-items:center;justify-content:center;
+  margin:0 auto;position:relative}
+.blackmesa-logo .bm-circle::before{content:'';position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid var(--orange-glow);animation:bmSpin 20s linear infinite}
+@keyframes bmSpin{to{transform:rotate(360deg)}}
+.blackmesa-logo .bm-inner{font-size:80px;color:var(--orange);font-weight:900}
+.bm-label{font-family:var(--font-mono);font-size:14px;color:var(--orange);
+  letter-spacing:4px;text-transform:uppercase;margin-top:16px}
+.blackmesa-info{padding:20px 0}
+.facility-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+.stat-item{background:var(--bg-card);border-left:3px solid var(--orange);padding:16px;
+  font-family:var(--font-mono);font-size:13px}
+.stat-item .stat-val{font-size:22px;color:var(--orange);font-weight:700;display:block;margin-bottom:4px}
+.stat-item .stat-label{color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-size:11px}
+
+/* ===== COMBINE SECTION ===== */
+.combine-section{position:relative;overflow:hidden}
+.combine-section::before{content:'';position:absolute;top:0;right:0;width:50%;height:100%;
+  background:radial-gradient(ellipse at right,rgba(79,195,247,.05),transparent);pointer-events:none}
+.combine-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.combine-emblem{text-align:center}
+.combine-eye{width:160px;height:160px;border:3px solid var(--combine-blue);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin:0 auto;position:relative;
+  box-shadow:0 0 30px rgba(79,195,247,.15)}
+.combine-eye::after{content:'';position:absolute;width:60px;height:4px;background:var(--combine-blue);
+  box-shadow:0 0 15px var(--combine-blue)}
+.combine-eye-inner{width:40px;height:80px;border:3px solid var(--combine-blue);border-radius:50%;
+  position:absolute}
+.combine-label{font-family:var(--font-mono);font-size:13px;color:var(--combine-blue);
+  letter-spacing:4px;text-transform:uppercase;margin-top:16px}
+.combine-info .section-text{border-left:2px solid var(--combine-blue);padding-left:20px}
+.city17-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.c17-stat{background:var(--bg-card);border:1px solid rgba(79,195,247,.15);padding:14px;
+  font-family:var(--font-mono);text-align:center;position:relative;overflow:hidden}
+.c17-stat::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--combine-blue),transparent)}
+.c17-stat .c17-val{font-size:20px;color:var(--combine-blue);font-weight:700}
+.c17-stat .c17-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* ===== WEAPONS CARDS ===== */
+.weapons-section{background:var(--bg-section)}
+.weapons-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+.weapon-card{background:var(--bg-card);border:1px solid #2a2a2a;padding:0;overflow:hidden;
+  transition:transform .3s,border-color .3s,box-shadow .3s;position:relative;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
+.weapon-card:hover{transform:translateY(-4px);border-color:var(--orange);
+  box-shadow:0 8px 30px rgba(255,109,0,.1)}
+.weapon-card-header{background:var(--warning-stripe);height:6px}
+.weapon-card-body{padding:24px}
+.weapon-icon{font-size:36px;margin-bottom:12px;display:block}
+.weapon-name{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--orange);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.weapon-type{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.weapon-desc{font-size:14px;line-height:1.7;opacity:.85;margin-bottom:16px}
+.weapon-bar{height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-bottom:6px}
+.weapon-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.weapon-bar-fill.dmg{background:var(--hev-red)}
+.weapon-bar-fill.acc{background:var(--hev-green)}
+.weapon-bar-fill.rng{background:var(--combine-blue)}
+.weapon-bar-label{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);
+  display:flex;justify-content:space-between;margin-bottom:2px}
+[data-theme="light"] .weapon-card{border-color:#ccc}
+[data-theme="light"] .weapon-bar{background:#ddd}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;padding:20px 0}
+.timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,transparent,var(--orange),var(--orange),transparent);
+  transform:translateX(-50%)}
+.timeline-item{display:flex;align-items:flex-start;margin-bottom:60px;position:relative}
+.timeline-item:nth-child(odd){flex-direction:row-reverse;text-align:right}
+.timeline-item:nth-child(odd) .tl-content{margin-left:0;margin-right:40px}
+.timeline-item:nth-child(even) .tl-content{margin-left:40px}
+.tl-dot{width:20px;height:20px;background:var(--orange);border-radius:50%;
+  position:absolute;left:50%;transform:translateX(-50%);z-index:2;
+  box-shadow:0 0 15px var(--orange-glow);flex-shrink:0}
+.tl-content{flex:1;max-width:45%;background:var(--bg-card);border:1px solid #2a2a2a;padding:24px;
+  position:relative}
+.tl-content::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--orange)}
+.timeline-item:nth-child(odd) .tl-content::before{background:var(--combine-blue)}
+.tl-year{font-family:var(--font-mono);font-size:14px;color:var(--orange);font-weight:700;
+  letter-spacing:2px;margin-bottom:4px}
+.timeline-item:nth-child(odd) .tl-year{color:var(--combine-blue)}
+.tl-title{font-family:var(--font-mono);font-size:18px;font-weight:700;margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:1px}
+.tl-text{font-size:14px;line-height:1.7;opacity:.85}
+[data-theme="light"] .tl-content{border-color:#ccc}
+
+/* ===== GMAN QUOTE ===== */
+.quote-section{text-align:center;padding:100px 0;position:relative;overflow:hidden}
+.quote-section::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(79,195,247,.04),transparent)}
+.quote-icon{font-size:60px;color:var(--combine-blue);opacity:.3;margin-bottom:20px;font-family:serif}
+.quote-text{font-size:clamp(20px,3vw,32px);font-style:italic;max-width:800px;margin:0 auto 24px;
+  line-height:1.6;color:var(--text)}
+.quote-text .highlight{color:var(--combine-blue)}
+.quote-author{font-family:var(--font-mono);font-size:14px;color:var(--combine-blue);
+  letter-spacing:3px;text-transform:uppercase}
+.quote-author::before{content:'— '}
+
+/* ===== HEV SUIT STATUS PANEL ===== */
+.hev-section{background:var(--bg-section)}
+.hev-panel{background:var(--bg-card);border:1px solid var(--orange);max-width:700px;
+  margin:0 auto;overflow:hidden;position:relative}
+.hev-panel-header{background:linear-gradient(90deg,var(--orange),var(--orange-light));
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+.hev-panel-header h3{font-family:var(--font-mono);font-size:14px;color:#000;
+  text-transform:uppercase;letter-spacing:3px;font-weight:700}
+.hev-panel-header .hev-ver{font-family:var(--font-mono);font-size:11px;color:#000;opacity:.7}
+.hev-panel-body{padding:24px}
+.hev-row{display:flex;align-items:center;margin-bottom:16px;gap:16px}
+.hev-label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:2px;
+  width:120px;flex-shrink:0;color:var(--text-muted)}
+.hev-bar-container{flex:1;height:24px;background:#1a1a1a;position:relative;overflow:hidden;
+  border:1px solid #333}
+.hev-bar-fill{height:100%;transition:width 1.5s ease;position:relative}
+.hev-bar-fill.health{background:linear-gradient(90deg,var(--hev-green),#69f0ae);width:85%}
+.hev-bar-fill.armor{background:linear-gradient(90deg,var(--orange),var(--orange-light));width:70%}
+.hev-bar-fill.aux{background:linear-gradient(90deg,var(--combine-blue),#81d4fa);width:95%}
+.hev-bar-fill.ammo{background:linear-gradient(90deg,var(--hev-red),#ff5252);width:60%}
+.hev-bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;
+  background:#fff;animation:hevScan 2s infinite}
+@keyframes hevScan{0%,100%{opacity:1}50%{opacity:0}}
+.hev-val{font-family:var(--font-mono);font-size:14px;font-weight:700;width:50px;text-align:right;
+  flex-shrink:0}
+.hev-val.v-health{color:var(--hev-green)}
+.hev-val.v-armor{color:var(--orange)}
+.hev-val.v-aux{color:var(--combine-blue)}
+.hev-val.v-ammo{color:var(--hev-red)}
+.hev-alerts{border-top:1px solid #2a2a2a;padding-top:16px;margin-top:8px}
+.hev-alert{font-family:var(--font-mono);font-size:12px;padding:6px 12px;margin-bottom:6px;
+  border-left:3px solid var(--orange);background:rgba(255,109,0,.05);color:var(--text-muted);
+  letter-spacing:1px}
+.hev-alert.critical{border-color:var(--hev-red);background:rgba(255,23,68,.05)}
+.hev-alert .blink{animation:blinkText 1s infinite}
+@keyframes blinkText{0%,100%{opacity:1}50%{opacity:0}}
+[data-theme="light"] .hev-bar-container{background:#e0e0e0;border-color:#bbb}
+
+/* ===== CTA ===== */
+.cta-section{text-align:center;padding:100px 0;position:relative}
+.cta-section::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,var(--orange-glow),transparent);opacity:.08}
+.cta-title{font-family:var(--font-mono);font-size:clamp(24px,4vw,42px);font-weight:700;
+  text-transform:uppercase;letter-spacing:3px;margin-bottom:16px}
+.cta-text{font-size:18px;color:var(--text-muted);max-width:600px;margin:0 auto 32px}
+.cta-btn{display:inline-block;background:var(--orange);color:#000;font-family:var(--font-mono);
+  font-size:16px;font-weight:700;padding:16px 48px;text-transform:uppercase;letter-spacing:3px;
+  border:none;cursor:pointer;transition:all .3s;position:relative;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.cta-btn:hover{background:var(--orange-light);box-shadow:0 0 40px var(--orange-glow);transform:scale(1.03)}
+
+/* ===== FOOTER ===== */
+footer{background:var(--bg-section);border-top:1px solid #1a1a1a;padding:40px 0;position:relative;z-index:1}
+footer .warning-bar{margin-bottom:30px}
+.footer-content{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.footer-logo{font-family:var(--font-mono);font-size:18px;font-weight:700;letter-spacing:2px}
+.footer-logo .lambda{font-size:24px}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap}
+.footer-links a{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:2px;
+  color:var(--text-muted);transition:color .2s}
+.footer-links a:hover{color:var(--orange)}
+.footer-copy{text-align:center;margin-top:24px;font-size:12px;color:var(--text-muted);
+  font-family:var(--font-mono);letter-spacing:1px}
+[data-theme="light"] footer{border-color:#ccc}
+
+/* ===== LAMBDA DECORATIONS ===== */
+.lambda-float{position:absolute;color:var(--orange);opacity:.04;font-weight:900;
+  pointer-events:none;user-select:none;z-index:0}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .blackmesa-grid,.combine-grid{grid-template-columns:1fr}
+  .blackmesa-logo,.combine-emblem{margin-bottom:30px}
+  .timeline::before{left:20px}
+  .timeline-item,.timeline-item:nth-child(odd){flex-direction:column;text-align:left}
+  .tl-dot{left:20px}
+  .tl-content,.timeline-item:nth-child(odd) .tl-content{max-width:100%;margin-left:50px!important;margin-right:0!important}
+  .weapons-grid{grid-template-columns:1fr}
+  .facility-stats,.city17-stats{grid-template-columns:1fr}
+  .footer-content{flex-direction:column;text-align:center}
+}
+@media(max-width:600px){
+  .controls{top:10px;right:10px;gap:4px}
+  .ctrl-btn{padding:6px 10px;font-size:10px}
+  section{padding:60px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particles"></canvas>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <button class="ctrl-btn" id="langToggle" onclick="toggleLang()" aria-label="Toggle Language">
+    <span data-en="中文" data-zh="EN">中文</span>
+  </button>
+  <button class="ctrl-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+    <span data-en="☀ LIGHT" data-zh="☀ 明亮">☀ LIGHT</span>
+  </button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="lambda-bg" style="top:10%;left:-5%">λ</span>
+  <span class="lambda-bg" style="bottom:5%;right:-5%;font-size:200px">λ</span>
+  <div class="hero-content">
+    <div class="hero-lambda reveal">λ</div>
+    <h1 class="reveal reveal-delay-1">
+      <span class="hl" data-en="HALF-LIFE" data-zh="半衰期">HALF-LIFE</span>
+    </h1>
+    <div class="hev-line reveal reveal-delay-1"></div>
+    <p class="hero-sub reveal reveal-delay-2" data-en="BLACK MESA RESEARCH FACILITY // CLASSIFIED" data-zh="黑山研究设施 // 机密文件">BLACK MESA RESEARCH FACILITY // CLASSIFIED</p>
+    <p class="hero-tagline reveal reveal-delay-2" data-en="Step into the HEV suit of Dr. Gordon Freeman. From the depths of Black Mesa to the streets of City 17, the fight for humanity's survival has only just begun." data-zh="穿上戈登·弗里曼博士的HEV防护服。从黑山深处到第17城的街道，人类的生存之战才刚刚开始。">Step into the HEV suit of Dr. Gordon Freeman. From the depths of Black Mesa to the streets of City 17, the fight for humanity's survival has only just begun.</p>
+    <div class="warning-bar reveal reveal-delay-3" style="max-width:400px;margin:0 auto"></div>
+  </div>
+  <div class="scroll-hint" data-en="▼ SCROLL TO ACCESS ▼" data-zh="▼ 向下滚动 ▼">▼ SCROLL TO ACCESS ▼</div>
+</section>
+
+<!-- BLACK MESA -->
+<section class="blackmesa-section warning-border">
+  <div class="container">
+    <div class="blackmesa-grid">
+      <div class="blackmesa-logo reveal">
+        <div class="bm-circle">
+          <div class="bm-inner">λ</div>
+        </div>
+        <div class="bm-label" data-en="Black Mesa Research Facility" data-zh="黑山研究设施">Black Mesa Research Facility</div>
+      </div>
+      <div class="blackmesa-info">
+        <h2 class="section-title reveal" data-en="Black Mesa" data-zh="黑山事件">Black Mesa</h2>
+        <p class="section-subtitle reveal" data-en="THE RESONANCE CASCADE" data-zh="共振级联事件">THE RESONANCE CASCADE</p>
+        <p class="section-text reveal" data-en="Black Mesa Research Facility — a top-secret government laboratory hidden deep within the New Mexico desert. On May 16, 200-, a routine experiment in the Anomalous Materials department went catastrophically wrong. The resulting Resonance Cascade tore open a dimensional rift, unleashing alien creatures from the border world Xen." data-zh="黑山研究设施——一座隐藏在新墨西哥沙漠深处的绝密政府实验室。200-年5月16日，异常材料部门的一次常规实验发生了灾难性故障。由此产生的共振级联撕开了一道次元裂缝，释放出了来自边界世界Xen的外星生物。">Black Mesa Research Facility — a top-secret government laboratory hidden deep within the New Mexico desert. On May 16, 200-, a routine experiment in the Anomalous Materials department went catastrophically wrong. The resulting Resonance Cascade tore open a dimensional rift, unleashing alien creatures from the border world Xen.</p>
+        <p class="section-text reveal" data-en="Dr. Gordon Freeman, a theoretical physicist armed with only a crowbar and the prototype HEV Mark IV suit, fought through headcrabs, Vortigaunts, and military cover-up forces to reach the Lambda Complex — and ultimately, Xen itself." data-zh="理论物理学家戈登·弗里曼博士，仅凭一把撬棍和HEV Mark IV防护服原型，一路击退猎头蟹、弗提冈特和军方掩盖部队，抵达Lambda综合设施——并最终到达了Xen。">Dr. Gordon Freeman, a theoretical physicist armed with only a crowbar and the prototype HEV Mark IV suit, fought through headcrabs, Vortigaunts, and military cover-up forces to reach the Lambda Complex — and ultimately, Xen itself.</p>
+        <div class="facility-stats reveal">
+          <div class="stat-item">
+            <span class="stat-val" data-en="LEVEL 3" data-zh="3级">LEVEL 3</span>
+            <span class="stat-label" data-en="FACILITY DEPTH" data-zh="设施深度">FACILITY DEPTH</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val" data-en="2,700+" data-zh="2,700+">2,700+</span>
+            <span class="stat-label" data-en="PERSONNEL" data-zh="人员数量">PERSONNEL</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val" data-en="XEN" data-zh="XEN">XEN</span>
+            <span class="stat-label" data-en="BORDER WORLD" data-zh="边界世界">BORDER WORLD</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val" data-en="GG-3883" data-zh="GG-3883">GG-3883</span>
+            <span class="stat-label" data-en="SAMPLE ID" data-zh="样本编号">SAMPLE ID</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMBINE / CITY 17 -->
+<section class="combine-section">
+  <span class="lambda-float" style="top:20%;right:10%;font-size:180px">λ</span>
+  <div class="container">
+    <div class="combine-grid">
+      <div class="combine-info">
+        <h2 class="section-title reveal" style="color:var(--combine-blue)" data-en="City 17 // Combine Occupation" data-zh="第17城 // 联合军占领">City 17 // Combine Occupation</h2>
+        <p class="section-subtitle reveal" style="color:var(--combine-blue)" data-en="OUR BENEFACTORS" data-zh=""我们的恩人"">OUR BENEFACTORS</p>
+        <p class="section-text reveal" data-en="Twenty years after the Black Mesa Incident, the Combine — a vast interdimensional empire — conquered Earth in the Seven Hour War. Humanity was subjugated, relocated to urban centers like City 17, and placed under the puppet administration of former Black Mesa administrator Dr. Wallace Breen." data-zh="黑山事件二十年后，联合军——一个庞大的跨次元帝国——在七小时战争中征服了地球。人类被征服，被重新安置到第17城等城市中心，置于前黑山管理员华莱士·布林博士的傀儡政权之下。">Twenty years after the Black Mesa Incident, the Combine — a vast interdimensional empire — conquered Earth in the Seven Hour War. Humanity was subjugated, relocated to urban centers like City 17, and placed under the puppet administration of former Black Mesa administrator Dr. Wallace Breen.</p>
+        <p class="section-text reveal" data-en="The Resistance, led by figures like Eli Vance, Alyx Vance, and Barney Calhoun, fought from the shadows — until Gordon Freeman returned. Awakened by the enigmatic G-Man, Freeman became the symbol of the uprising: the Free Man, the One Free Man." data-zh="由伊莱·凡斯、爱莉克斯·凡斯和巴尼·卡尔霍恩等人领导的抵抗组织在暗中斗争——直到戈登·弗里曼归来。被神秘的G-Man唤醒，弗里曼成为了起义的象征：自由人。">The Resistance, led by figures like Eli Vance, Alyx Vance, and Barney Calhoun, fought from the shadows — until Gordon Freeman returned. Awakened by the enigmatic G-Man, Freeman became the symbol of the uprising: the Free Man, the One Free Man.</p>
+        <div class="city17-stats reveal">
+          <div class="c17-stat">
+            <div class="c17-val" data-en="7 HRS" data-zh="7小时">7 HRS</div>
+            <div class="c17-lbl" data-en="EARTH CONQUERED" data-zh="地球沦陷">EARTH CONQUERED</div>
+          </div>
+          <div class="c17-stat">
+            <div class="c17-val" data-en="~20 YRS" data-zh="~20年">~20 YRS</div>
+            <div class="c17-lbl" data-en="OCCUPATION" data-zh="占领时间">OCCUPATION</div>
+          </div>
+          <div class="c17-stat">
+            <div class="c17-val" data-en="BREEN" data-zh="布林">BREEN</div>
+            <div class="c17-lbl" data-en="EARTH ADMIN" data-zh="地球管理者">EARTH ADMIN</div>
+          </div>
+          <div class="c17-stat">
+            <div class="c17-val" data-en="CITADEL" data-zh="城堡">CITADEL</div>
+            <div class="c17-lbl" data-en="COMBINE HQ" data-zh="联合军总部">COMBINE HQ</div>
+          </div>
+        </div>
+      </div>
+      <div class="combine-emblem reveal">
+        <div class="combine-eye">
+          <div class="combine-eye-inner"></div>
+        </div>
+        <div class="combine-label" data-en="COMBINE OVERWATCH" data-zh="联合军监视网">COMBINE OVERWATCH</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WEAPONS / EQUIPMENT -->
+<section class="weapons-section warning-border warning-border-bottom">
+  <div class="container">
+    <h2 class="section-title reveal"><span class="lambda">λ</span> <span data-en="Arsenal & Equipment" data-zh="武器装备库">Arsenal & Equipment</span></h2>
+    <p class="section-subtitle reveal" data-en="STANDARD ISSUE // FIELD ACQUISITIONS" data-zh="标准配发 // 战场拾取">STANDARD ISSUE // FIELD ACQUISITIONS</p>
+    <div class="weapons-grid">
+
+      <!-- Card 1: Crowbar -->
+      <div class="weapon-card reveal">
+        <div class="weapon-card-header"></div>
+        <div class="weapon-card-body">
+          <span class="weapon-icon">🔧</span>
+          <div class="weapon-name" data-en="Crowbar" data-zh="撬棍">Crowbar</div>
+          <div class="weapon-type" data-en="MELEE WEAPON" data-zh="近战武器">MELEE WEAPON</div>
+          <p class="weapon-desc" data-en="The iconic weapon of Gordon Freeman. A simple tool turned legendary instrument of liberation. Every physicist's best friend." data-zh="戈登·弗里曼的标志性武器。一件简单的工具变成了传奇的解放利器。每位物理学家的好伙伴。">The iconic weapon of Gordon Freeman. A simple tool turned legendary instrument of liberation. Every physicist's best friend.</p>
+          <div class="weapon-bar-label"><span data-en="DAMAGE" data-zh="伤害">DAMAGE</span><span>65%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill dmg" style="width:65%"></div></div>
+          <div class="weapon-bar-label"><span data-en="RANGE" data-zh="射程">RANGE</span><span>15%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill rng" style="width:15%"></div></div>
+        </div>
+      </div>
+
+      <!-- Card 2: Gravity Gun -->
+      <div class="weapon-card reveal reveal-delay-1">
+        <div class="weapon-card-header"></div>
+        <div class="weapon-card-body">
+          <span class="weapon-icon">🔮</span>
+          <div class="weapon-name" data-en="Zero-Point Energy Field Manipulator" data-zh="零点能量场操控器">Zero-Point Energy Field Manipulator</div>
+          <div class="weapon-type" data-en="EXPERIMENTAL PHYSICS DEVICE" data-zh="实验物理装置">EXPERIMENTAL PHYSICS DEVICE</div>
+          <p class="weapon-desc" data-en="The Gravity Gun. Designed by Eli Vance and Dr. Kleiner. Manipulates gravitational fields to attract and repel objects. Supercharged by dark energy, it becomes devastatingly powerful." data-zh="重力枪。由伊莱·凡斯和克莱纳博士设计。操控引力场以吸引和排斥物体。被暗能量超级充能后，威力毁灭性地增强。">The Gravity Gun. Designed by Eli Vance and Dr. Kleiner. Manipulates gravitational fields to attract and repel objects. Supercharged by dark energy, it becomes devastatingly powerful.</p>
+          <div class="weapon-bar-label"><span data-en="DAMAGE" data-zh="伤害">DAMAGE</span><span>90%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill dmg" style="width:90%"></div></div>
+          <div class="weapon-bar-label"><span data-en="RANGE" data-zh="射程">RANGE</span><span>70%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill rng" style="width:70%"></div></div>
+        </div>
+      </div>
+
+      <!-- Card 3: .357 Magnum -->
+      <div class="weapon-card reveal reveal-delay-2">
+        <div class="weapon-card-header"></div>
+        <div class="weapon-card-body">
+          <span class="weapon-icon">🔫</span>
+          <div class="weapon-name" data-en=".357 Magnum" data-zh=".357马格南">.357 Magnum</div>
+          <div class="weapon-type" data-en="REVOLVER" data-zh="左轮手枪">REVOLVER</div>
+          <p class="weapon-desc" data-en="Colt Python revolver. High damage, pinpoint accuracy, limited ammo. A precision instrument for taking down Combine soldiers and headcrab zombies alike." data-zh="柯尔特蟒蛇左轮手枪。高伤害，精准射击，弹药有限。精密的武器，可有效打击联合军士兵和猎头蟹僵尸。">Colt Python revolver. High damage, pinpoint accuracy, limited ammo. A precision instrument for taking down Combine soldiers and headcrab zombies alike.</p>
+          <div class="weapon-bar-label"><span data-en="DAMAGE" data-zh="伤害">DAMAGE</span><span>85%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill dmg" style="width:85%"></div></div>
+          <div class="weapon-bar-label"><span data-en="ACCURACY" data-zh="精度">ACCURACY</span><span>92%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill acc" style="width:92%"></div></div>
+        </div>
+      </div>
+
+      <!-- Card 4: Crossbow -->
+      <div class="weapon-card reveal">
+        <div class="weapon-card-header"></div>
+        <div class="weapon-card-body">
+          <span class="weapon-icon">🏹</span>
+          <div class="weapon-name" data-en="Crossbow" data-zh="弩">Crossbow</div>
+          <div class="weapon-type" data-en="SNIPER WEAPON" data-zh="狙击武器">SNIPER WEAPON</div>
+          <p class="weapon-desc" data-en="Resistance-modified crossbow firing superheated rebar. Features a telescopic scope for long-range engagements. The bolts ignite on impact." data-zh="抵抗组织改装的弩，发射超高温钢筋。配备远程望远镜瞄准器。箭矢命中时会点燃。">Resistance-modified crossbow firing superheated rebar. Features a telescopic scope for long-range engagements. The bolts ignite on impact.</p>
+          <div class="weapon-bar-label"><span data-en="DAMAGE" data-zh="伤害">DAMAGE</span><span>95%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill dmg" style="width:95%"></div></div>
+          <div class="weapon-bar-label"><span data-en="RANGE" data-zh="射程">RANGE</span><span>98%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill rng" style="width:98%"></div></div>
+        </div>
+      </div>
+
+      <!-- Card 5: Pulse Rifle -->
+      <div class="weapon-card reveal reveal-delay-1">
+        <div class="weapon-card-header"></div>
+        <div class="weapon-card-body">
+          <span class="weapon-icon">⚡</span>
+          <div class="weapon-name" data-en="AR2 Overwatch Pulse Rifle" data-zh="AR2脉冲步枪">AR2 Overwatch Pulse Rifle</div>
+          <div class="weapon-type" data-en="COMBINE ASSAULT RIFLE" data-zh="联合军突击步枪">COMBINE ASSAULT RIFLE</div>
+          <p class="weapon-desc" data-en="Standard-issue Combine weapon firing dark energy pulses. Secondary fire launches a devastating Combine energy ball that disintegrates organic matter." data-zh="联合军标准制式武器，发射暗能量脉冲。副射击发射毁灭性的联合军能量球，可瞬间分解有机物质。">Standard-issue Combine weapon firing dark energy pulses. Secondary fire launches a devastating Combine energy ball that disintegrates organic matter.</p>
+          <div class="weapon-bar-label"><span data-en="DAMAGE" data-zh="伤害">DAMAGE</span><span>75%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill dmg" style="width:75%"></div></div>
+          <div class="weapon-bar-label"><span data-en="ACCURACY" data-zh="精度">ACCURACY</span><span>70%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill acc" style="width:70%"></div></div>
+        </div>
+      </div>
+
+      <!-- Card 6: Russells -->
+      <div class="weapon-card reveal reveal-delay-2">
+        <div class="weapon-card-header"></div>
+        <div class="weapon-card-body">
+          <span class="weapon-icon">🧤</span>
+          <div class="weapon-name" data-en="Russell's Gravity Gloves" data-zh="拉塞尔重力手套">Russell's Gravity Gloves</div>
+          <div class="weapon-type" data-en="VR INTERACTION DEVICE" data-zh="VR交互装置">VR INTERACTION DEVICE</div>
+          <p class="weapon-desc" data-en="The Russells — gravity gloves invented by Russell for Half-Life: Alyx. Flick your wrist to pull distant objects toward you. A revolution in VR interaction and scavenging." data-zh="拉塞尔手套——由拉塞尔为《半衰期：爱莉克斯》发明的重力手套。甩动手腕即可将远处物品拉向自己。VR交互和拾荒方式的革命。">The Russells — gravity gloves invented by Russell for Half-Life: Alyx. Flick your wrist to pull distant objects toward you. A revolution in VR interaction and scavenging.</p>
+          <div class="weapon-bar-label"><span data-en="UTILITY" data-zh="实用性">UTILITY</span><span>99%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill acc" style="width:99%"></div></div>
+          <div class="weapon-bar-label"><span data-en="RANGE" data-zh="射程">RANGE</span><span>55%</span></div>
+          <div class="weapon-bar"><div class="weapon-bar-fill rng" style="width:55%"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="timeline-section">
+  <div class="container">
+    <h2 class="section-title reveal" style="text-align:center;display:block">
+      <span class="lambda">λ</span> <span data-en="Timeline" data-zh="时间线">Timeline</span>
+    </h2>
+    <p class="section-subtitle reveal" style="text-align:center" data-en="FROM BLACK MESA TO CITY 17" data-zh="从黑山到第17城">FROM BLACK MESA TO CITY 17</p>
+
+    <div class="timeline">
+      <!-- HL1 -->
+      <div class="timeline-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-year" data-en="200-  //  HALF-LIFE" data-zh="200-年 // 半衰期">200-  //  HALF-LIFE</div>
+          <div class="tl-title" data-en="The Black Mesa Incident" data-zh="黑山事件">The Black Mesa Incident</div>
+          <p class="tl-text" data-en="Dr. Gordon Freeman triggers the Resonance Cascade during an experiment with Sample GG-3883. Alien creatures from Xen invade. Freeman fights through the facility, defeats the Nihilanth on Xen, and is placed in stasis by the G-Man." data-zh="戈登·弗里曼博士在GG-3883样本实验中触发共振级联。来自Xen的外星生物入侵。弗里曼一路突围穿越设施，在Xen击败了虚无之主，随后被G-Man置于停滞状态。">Dr. Gordon Freeman triggers the Resonance Cascade during an experiment with Sample GG-3883. Alien creatures from Xen invade. Freeman fights through the facility, defeats the Nihilanth on Xen, and is placed in stasis by the G-Man.</p>
+        </div>
+      </div>
+
+      <!-- Seven Hour War -->
+      <div class="timeline-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-year" data-en="200-  //  SEVEN HOUR WAR" data-zh="200-年 // 七小时战争">200-  //  SEVEN HOUR WAR</div>
+          <div class="tl-title" data-en="The Combine Invasion" data-zh="联合军入侵">The Combine Invasion</div>
+          <p class="tl-text" data-en="The portal storms caused by the Resonance Cascade attract the Combine. Earth falls in just seven hours. Dr. Breen negotiates humanity's surrender and becomes Earth Administrator. The Combine begins suppressing human reproduction and draining Earth's resources." data-zh="共振级联引发的传送门风暴引来了联合军。地球在短短七小时内沦陷。布林博士代表人类投降，成为地球管理者。联合军开始抑制人类繁殖并掠夺地球资源。">The portal storms caused by the Resonance Cascade attract the Combine. Earth falls in just seven hours. Dr. Breen negotiates humanity's surrender and becomes Earth Administrator. The Combine begins suppressing human reproduction and draining Earth's resources.</p>
+        </div>
+      </div>
+
+      <!-- HL: Alyx -->
+      <div class="timeline-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-year" data-en="~5 YEARS LATER  //  HALF-LIFE: ALYX" data-zh="~5年后 // 半衰期：爱莉克斯">~5 YEARS LATER  //  HALF-LIFE: ALYX</div>
+          <div class="tl-title" data-en="Alyx Vance & The Vault" data-zh="爱莉克斯·凡斯与穹顶">Alyx Vance & The Vault</div>
+          <p class="tl-text" data-en="A young Alyx Vance battles through the Quarantine Zone to rescue her father Eli from Combine forces. She discovers a Combine superweapon — the Vault — suspended above the city, only to find the G-Man imprisoned within. She frees him and strikes a fateful bargain." data-zh="年轻的爱莉克斯·凡斯穿越隔离区，从联合军手中营救父亲伊莱。她发现了一座悬浮在城市上空的联合军超级武器——穹顶——却发现G-Man被囚禁其中。她释放了他，并达成了一个命运攸关的交易。">A young Alyx Vance battles through the Quarantine Zone to rescue her father Eli from Combine forces. She discovers a Combine superweapon — the Vault — suspended above the city, only to find the G-Man imprisoned within. She frees him and strikes a fateful bargain.</p>
+        </div>
+      </div>
+
+      <!-- HL2 -->
+      <div class="timeline-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-year" data-en="~20 YEARS LATER  //  HALF-LIFE 2" data-zh="~20年后 // 半衰期2">~20 YEARS LATER  //  HALF-LIFE 2</div>
+          <div class="tl-title" data-en="Rise of the Resistance" data-zh="抵抗组织崛起">Rise of the Resistance</div>
+          <p class="tl-text" data-en="The G-Man delivers Freeman to City 17. Reuniting with allies — Alyx, Barney, Eli, Kleiner — Freeman sparks the City 17 uprising. Armed with the gravity gun, he storms the Citadel, confronts Breen, and destroys the dark energy reactor. The Resistance fights on." data-zh="G-Man将弗里曼送至第17城。与爱莉克斯、巴尼、伊莱、克莱纳等盟友重聚后，弗里曼点燃了第17城起义。手持重力枪，他攻入城堡，对峙布林，摧毁暗能量反应堆。抵抗组织继续战斗。">The G-Man delivers Freeman to City 17. Reuniting with allies — Alyx, Barney, Eli, Kleiner — Freeman sparks the City 17 uprising. Armed with the gravity gun, he storms the Citadel, confronts Breen, and destroys the dark energy reactor. The Resistance fights on.</p>
+        </div>
+      </div>
+
+      <!-- Episodes -->
+      <div class="timeline-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-year" data-en="AFTERMATH  //  EPISODES" data-zh="后续 // 章节">AFTERMATH  //  EPISODES</div>
+          <div class="tl-title" data-en="The Continuing Struggle" data-zh="持续的斗争">The Continuing Struggle</div>
+          <p class="tl-text" data-en="Freeman and Alyx escape the collapsing Citadel, battle through the outlands, and discover the Borealis — an Aperture Science research vessel lost in teleportation. The Combine launches a devastating counterattack. Eli Vance is killed by a Combine Advisor. The fight for Earth continues..." data-zh="弗里曼和爱莉克斯逃离坍塌的城堡，穿越荒野作战，并发现了光圈科技的研究船——北极星号。联合军发动毁灭性反击。伊莱·凡斯被联合军顾问杀害。地球的战斗仍在继续……">Freeman and Alyx escape the collapsing Citadel, battle through the outlands, and discover the Borealis — an Aperture Science research vessel lost in teleportation. The Combine launches a devastating counterattack. Eli Vance is killed by a Combine Advisor. The fight for Earth continues...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- G-MAN QUOTE -->
+<section class="quote-section warning-border">
+  <div class="container">
+    <div class="quote-icon reveal">"</div>
+    <blockquote class="quote-text reveal" data-en="Rise and shine, Mister Freeman. Rise and... shine. Not that I wish to imply you have been sleeping on the job. No one is more deserving of a rest, and all the effort in the world would have gone to waste until... well, let's just say your hour has come again." data-zh="起来吧，弗里曼先生。起来……迎接新的一天。我并不是暗示您一直在偷懒。没有人比您更值得休息，而世界上所有的努力都将付之东流，直到……嗯，我们就说您的时刻又到了。">Rise and shine, Mister Freeman. Rise and... shine. Not that I wish to imply you have been sleeping on the job. No one is more deserving of a rest, and all the effort in the world would have gone to waste until... well, let's just say your hour has come again.</blockquote>
+    <div class="quote-author reveal" data-en="The G-Man" data-zh="G-Man">The G-Man</div>
+  </div>
+</section>
+
+<!-- HEV SUIT STATUS PANEL -->
+<section class="hev-section">
+  <div class="container">
+    <h2 class="section-title reveal" style="text-align:center;display:block">
+      <span class="lambda">λ</span> <span data-en="HEV Suit Status" data-zh="HEV防护服状态">HEV Suit Status</span>
+    </h2>
+    <p class="section-subtitle reveal" style="text-align:center" data-en="HAZARDOUS ENVIRONMENT SUIT MARK V" data-zh="危险环境防护服 Mark V">HAZARDOUS ENVIRONMENT SUIT MARK V</p>
+
+    <div class="hev-panel reveal">
+      <div class="hev-panel-header">
+        <h3 data-en="H.E.V. MARK V" data-zh="H.E.V. Mark V型">H.E.V. MARK V</h3>
+        <span class="hev-ver">v5.0.4</span>
+      </div>
+      <div class="hev-panel-body">
+        <div class="hev-row">
+          <span class="hev-label" data-en="HEALTH" data-zh="生命值">HEALTH</span>
+          <div class="hev-bar-container"><div class="hev-bar-fill health"></div></div>
+          <span class="hev-val v-health">85</span>
+        </div>
+        <div class="hev-row">
+          <span class="hev-label" data-en="ARMOR" data-zh="护甲值">ARMOR</span>
+          <div class="hev-bar-container"><div class="hev-bar-fill armor"></div></div>
+          <span class="hev-val v-armor">70</span>
+        </div>
+        <div class="hev-row">
+          <span class="hev-label" data-en="AUX POWER" data-zh="辅助电力">AUX POWER</span>
+          <div class="hev-bar-container"><div class="hev-bar-fill aux"></div></div>
+          <span class="hev-val v-aux">95</span>
+        </div>
+        <div class="hev-row">
+          <span class="hev-label" data-en="AMMO" data-zh="弹药">AMMO</span>
+          <div class="hev-bar-container"><div class="hev-bar-fill ammo"></div></div>
+          <span class="hev-val v-ammo">60</span>
+        </div>
+        <div class="hev-alerts">
+          <div class="hev-alert" data-en="[ MORPHINE ADMINISTERED ]" data-zh="[ 已注射吗啡 ]">[ MORPHINE ADMINISTERED ]</div>
+          <div class="hev-alert" data-en="[ VITAL SIGNS: STABLE ]" data-zh="[ 生命体征：稳定 ]">[ VITAL SIGNS: STABLE ]</div>
+          <div class="hev-alert critical"><span class="blink" data-en="[ WARNING: HAZARDOUS RADIATION LEVELS ]" data-zh="[ 警告：危险辐射水平 ]">[ WARNING: HAZARDOUS RADIATION LEVELS ]</span></div>
+          <div class="hev-alert" data-en="[ ANTITOXIN DELIVERED ]" data-zh="[ 已注入抗毒素 ]">[ ANTITOXIN DELIVERED ]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <span class="lambda-float" style="top:0;left:5%;font-size:250px">λ</span>
+  <div class="container">
+    <div class="reveal">
+      <div class="hero-lambda" style="font-size:80px;margin-bottom:20px">λ</div>
+      <h2 class="cta-title" data-en="The Right Man in the Wrong Place" data-zh="在错误的地方出现的正确的人">The Right Man in the Wrong Place</h2>
+      <p class="cta-text" data-en="Can make all the difference in the world. Prepare for unforeseen consequences." data-zh="可以改变整个世界。准备好迎接无法预见的后果。">Can make all the difference in the world. Prepare for unforeseen consequences.</p>
+      <button class="cta-btn" data-en="ENTER THE LAMBDA COMPLEX" data-zh="进入LAMBDA综合设施">ENTER THE LAMBDA COMPLEX</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="warning-bar"></div>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <span class="lambda">λ</span> <span data-en="HALF-LIFE" data-zh="半衰期">HALF-LIFE</span>
+      </div>
+      <div class="footer-links">
+        <a href="#" data-en="Black Mesa" data-zh="黑山">Black Mesa</a>
+        <a href="#" data-en="City 17" data-zh="第17城">City 17</a>
+        <a href="#" data-en="Arsenal" data-zh="武器库">Arsenal</a>
+        <a href="#" data-en="Timeline" data-zh="时间线">Timeline</a>
+        <a href="#" data-en="HEV Suit" data-zh="HEV防护服">HEV Suit</a>
+      </div>
+    </div>
+    <p class="footer-copy" data-en="Fan tribute page. Half-Life is a trademark of Valve Corporation. λ" data-zh="粉丝致敬页面。半衰期是Valve公司的商标。λ">Fan tribute page. Half-Life is a trademark of Valve Corporation. λ</p>
+  </div>
+</footer>
+
+<script>
+/* ===== LANGUAGE TOGGLE ===== */
+let lang = 'en';
+function toggleLang() {
+  lang = lang === 'en' ? 'zh' : 'en';
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const text = el.getAttribute('data-' + lang);
+    if (text !== null) {
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.placeholder = text;
+      } else {
+        el.textContent = text;
+      }
+    }
+  });
+}
+
+/* ===== THEME TOGGLE ===== */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  const btn = document.querySelector('#themeToggle span');
+  if (isDark) {
+    btn.setAttribute('data-en', '☾ DARK');
+    btn.setAttribute('data-zh', '☾ 暗黑');
+    btn.textContent = lang === 'en' ? '☾ DARK' : '☾ 暗黑';
+  } else {
+    btn.setAttribute('data-en', '☀ LIGHT');
+    btn.setAttribute('data-zh', '☀ 明亮');
+    btn.textContent = lang === 'en' ? '☀ LIGHT' : '☀ 明亮';
+  }
+}
+
+/* ===== SCROLL REVEAL ===== */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ===== PARTICLE CANVAS ===== */
+(function() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+  const PARTICLE_COUNT = 60;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = -Math.random() * 0.6 - 0.2;
+      this.size = Math.random() * 2.5 + 0.5;
+      this.life = Math.random() * 200 + 100;
+      this.maxLife = this.life;
+      // Mix of orange sparks and blue combine particles
+      this.type = Math.random() > 0.3 ? 'orange' : 'blue';
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+      if (this.life <= 0 || this.x < -10 || this.x > w + 10 || this.y < -10 || this.y > h + 10) {
+        this.reset();
+        this.y = h + 5;
+      }
+    }
+    draw() {
+      const alpha = (this.life / this.maxLife) * 0.6;
+      if (this.type === 'orange') {
+        ctx.fillStyle = `rgba(255,109,0,${alpha})`;
+        ctx.shadowColor = 'rgba(255,109,0,0.4)';
+      } else {
+        ctx.fillStyle = `rgba(79,195,247,${alpha})`;
+        ctx.shadowColor = 'rgba(79,195,247,0.4)';
+      }
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(new Particle());
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* ===== HEV BAR ANIMATION ===== */
+(function() {
+  const hevPanel = document.querySelector('.hev-panel');
+  if (!hevPanel) return;
+  const vals = {
+    health: { el: hevPanel.querySelector('.v-health'), base: 85, min: 60, max: 100 },
+    armor: { el: hevPanel.querySelector('.v-armor'), base: 70, min: 40, max: 85 },
+    aux: { el: hevPanel.querySelector('.v-aux'), base: 95, min: 70, max: 100 },
+    ammo: { el: hevPanel.querySelector('.v-ammo'), base: 60, min: 20, max: 80 }
+  };
+
+  setInterval(() => {
+    Object.values(vals).forEach(v => {
+      const fluctuation = Math.floor((Math.random() - 0.5) * 6);
+      let newVal = parseInt(v.el.textContent) + fluctuation;
+      newVal = Math.max(v.min, Math.min(v.max, newVal));
+      v.el.textContent = newVal;
+    });
+  }, 3000);
+})();
+</script>
+</body>
+</html>

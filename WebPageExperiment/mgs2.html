@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metal Gear Solid 2: Sons of Liberty</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--steel-blue:#4a6080;--cold-gray:#2a3040;--midnight:#0a1020;
+--arsenal-blue:#0066cc;--codec-blue:#1a3a5c;--codec-border:#3a7aaa;
+--data-green:#00cc88;--raiden-light:#8ab4d8;--alert-red:#cc3333;
+--text-primary:#c8d8e8;--text-secondary:#8898a8;--text-accent:#66aadd;
+--bg-primary:#0a1020;--bg-secondary:#141e30;--bg-card:#1a2840;
+--glitch-cyan:#00ffee;--glitch-magenta:#ff00aa;
+}
+html.light{
+--text-primary:#1a2840;--text-secondary:#3a4860;--text-accent:#0055aa;
+--bg-primary:#c8d4e0;--bg-secondary:#b0bcc8;--bg-card:#d8e2ec;
+--codec-blue:#b0c8e0;--codec-border:#6090b0;
+}
+html{scroll-behavior:smooth}
+body{
+font-family:'Rajdhani',sans-serif;background:var(--bg-primary);
+color:var(--text-primary);overflow-x:hidden;line-height:1.6;
+}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--midnight)}
+::-webkit-scrollbar-thumb{background:var(--steel-blue);border-radius:3px}
+
+/* RAIN CANVAS */
+#rain-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.35}
+
+/* NAV */
+nav{
+position:fixed;top:0;left:0;width:100%;z-index:1000;
+background:rgba(10,16,32,0.92);backdrop-filter:blur(12px);
+border-bottom:1px solid rgba(58,122,170,0.3);
+padding:0 2rem;display:flex;align-items:center;justify-content:space-between;
+height:60px;font-family:'Share Tech Mono',monospace;
+}
+nav .logo{
+font-size:1.1rem;color:var(--text-accent);letter-spacing:2px;
+text-transform:uppercase;
+}
+nav .logo span{color:var(--data-green);font-weight:700}
+nav .nav-links{display:flex;gap:1.5rem;align-items:center}
+nav .nav-links a{
+color:var(--text-secondary);text-decoration:none;font-size:0.85rem;
+letter-spacing:1px;transition:color 0.3s;text-transform:uppercase;
+}
+nav .nav-links a:hover{color:var(--glitch-cyan)}
+.toggle-btn{
+background:none;border:1px solid var(--steel-blue);color:var(--text-accent);
+padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:0.75rem;
+cursor:pointer;transition:all 0.3s;letter-spacing:1px;
+}
+.toggle-btn:hover{background:var(--arsenal-blue);border-color:var(--arsenal-blue);color:#fff}
+
+/* CODEC PANEL */
+.codec-panel{
+background:linear-gradient(135deg,rgba(26,58,92,0.6),rgba(10,16,32,0.8));
+border:1px solid var(--codec-border);border-radius:2px;
+padding:2rem;position:relative;overflow:hidden;
+}
+.codec-panel::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(--codec-border),transparent);
+}
+.codec-panel::after{
+content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+background:linear-gradient(90deg,transparent,rgba(58,122,170,0.3),transparent);
+}
+
+/* SURVEILLANCE FRAME */
+.surveillance-frame{
+position:relative;
+}
+.surveillance-frame::before{
+content:'REC ●';position:absolute;top:10px;right:15px;
+font-family:'Share Tech Mono',monospace;font-size:0.7rem;
+color:var(--alert-red);z-index:5;animation:recBlink 1.5s infinite;
+letter-spacing:1px;
+}
+.surveillance-frame::after{
+content:'CAM-02 // BIG SHELL';position:absolute;bottom:10px;left:15px;
+font-family:'Share Tech Mono',monospace;font-size:0.65rem;
+color:var(--text-secondary);z-index:5;opacity:0.6;
+}
+@keyframes recBlink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* GLITCH EFFECT */
+.glitch-text{position:relative;display:inline-block}
+.glitch-text::before,.glitch-text::after{
+content:attr(data-text);position:absolute;top:0;left:0;
+width:100%;height:100%;
+}
+.glitch-text::before{
+color:var(--glitch-cyan);z-index:-1;
+animation:glitch1 3s infinite linear alternate-reverse;
+}
+.glitch-text::after{
+color:var(--glitch-magenta);z-index:-2;
+animation:glitch2 2s infinite linear alternate-reverse;
+}
+@keyframes glitch1{
+0%,95%{clip-path:inset(0 0 0 0);transform:translate(0)}
+96%{clip-path:inset(20% 0 60% 0);transform:translate(-3px,0)}
+97%{clip-path:inset(50% 0 20% 0);transform:translate(3px,0)}
+98%{clip-path:inset(70% 0 5% 0);transform:translate(-2px,0)}
+99%{clip-path:inset(10% 0 80% 0);transform:translate(2px,0)}
+100%{clip-path:inset(0 0 0 0);transform:translate(0)}
+}
+@keyframes glitch2{
+0%,93%{clip-path:inset(0 0 0 0);transform:translate(0)}
+94%{clip-path:inset(40% 0 30% 0);transform:translate(2px,0)}
+95%{clip-path:inset(10% 0 70% 0);transform:translate(-2px,0)}
+97%{clip-path:inset(60% 0 10% 0);transform:translate(3px,0)}
+99%{clip-path:inset(30% 0 50% 0);transform:translate(-1px,0)}
+100%{clip-path:inset(0 0 0 0);transform:translate(0)}
+}
+
+/* REDACTED / CORRUPTED TEXT */
+.redacted{
+background:var(--text-primary);color:var(--text-primary);
+padding:0 4px;transition:all 0.4s;cursor:pointer;
+position:relative;
+}
+.redacted:hover{
+background:transparent;color:var(--glitch-cyan);
+text-shadow:0 0 8px var(--glitch-cyan);
+}
+.corrupted{
+font-family:'Share Tech Mono',monospace;
+background:linear-gradient(90deg,var(--text-primary) 0%,transparent 2%,transparent 5%,var(--text-primary) 5.5%,var(--text-primary) 8%,transparent 8.5%,transparent 100%);
+-webkit-background-clip:text;background-clip:text;
+animation:corruptFlicker 4s infinite;
+}
+@keyframes corruptFlicker{
+0%,90%{opacity:1;transform:none}
+91%{opacity:0.8;transform:skewX(-2deg)}
+92%{opacity:1;transform:skewX(1deg)}
+93%{opacity:0.6;transform:none}
+94%,100%{opacity:1;transform:none}
+}
+
+/* DATA STREAM */
+.data-stream{
+position:absolute;font-family:'Share Tech Mono',monospace;
+font-size:0.6rem;color:var(--data-green);opacity:0.15;
+white-space:nowrap;pointer-events:none;
+writing-mode:vertical-rl;animation:dataFall 8s linear infinite;
+}
+@keyframes dataFall{
+0%{transform:translateY(-100%);opacity:0.15}
+100%{transform:translateY(100vh);opacity:0}
+}
+
+/* FISSION MAILED hover */
+.fission-mailed{position:relative;transition:all 0.3s}
+.fission-mailed:hover{
+filter:hue-rotate(40deg) saturate(1.5);
+}
+.fission-mailed:hover::after{
+content:'FISSION MAILED';position:absolute;top:50%;left:50%;
+transform:translate(-50%,-50%);font-family:'Share Tech Mono',monospace;
+font-size:1.5rem;color:var(--alert-red);letter-spacing:6px;
+text-shadow:0 0 20px rgba(204,51,51,0.8);z-index:10;
+animation:fissionPulse 0.5s ease-in-out;pointer-events:none;
+}
+@keyframes fissionPulse{
+0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}
+50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
+100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+
+/* SECTION STYLES */
+section{position:relative;z-index:2}
+.container{max-width:1100px;margin:0 auto;padding:0 1.5rem}
+
+/* HERO */
+#hero{
+min-height:100vh;display:flex;align-items:center;justify-content:center;
+position:relative;overflow:hidden;
+background:linear-gradient(180deg,var(--midnight) 0%,#0d1a2e 50%,var(--cold-gray) 100%);
+}
+#hero .manhattan-skyline{
+position:absolute;bottom:0;left:0;width:100%;height:200px;
+background:linear-gradient(0deg,rgba(10,16,32,0.9),transparent);
+z-index:1;
+}
+.hero-content{
+text-align:center;z-index:3;padding:2rem;
+}
+.hero-content .subtitle{
+font-family:'Share Tech Mono',monospace;font-size:0.85rem;
+color:var(--data-green);letter-spacing:4px;margin-bottom:1rem;
+text-transform:uppercase;
+}
+.hero-content h1{
+font-family:'Rajdhani',sans-serif;font-size:clamp(2.5rem,7vw,5rem);
+font-weight:900;line-height:1;margin-bottom:0.5rem;
+background:linear-gradient(180deg,var(--raiden-light),var(--steel-blue));
+-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-content .cn-title{
+font-family:'Noto Sans SC',sans-serif;font-size:clamp(1rem,3vw,1.6rem);
+color:var(--text-secondary);font-weight:300;margin-bottom:2rem;
+letter-spacing:6px;
+}
+.hero-content .tagline{
+font-family:'Share Tech Mono',monospace;font-size:0.9rem;
+color:var(--text-accent);letter-spacing:2px;
+}
+.hero-interference{
+position:absolute;top:0;left:0;width:100%;height:100%;
+pointer-events:none;z-index:2;
+background:repeating-linear-gradient(
+0deg,transparent,transparent 2px,rgba(0,102,204,0.03) 2px,rgba(0,102,204,0.03) 4px
+);
+animation:scanlines 0.1s linear infinite;
+}
+@keyframes scanlines{
+0%{background-position:0 0}
+100%{background-position:0 4px}
+}
+.scroll-indicator{
+position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+z-index:5;text-align:center;
+}
+.scroll-indicator span{
+font-family:'Share Tech Mono',monospace;font-size:0.7rem;
+color:var(--text-secondary);letter-spacing:3px;display:block;
+margin-bottom:8px;
+}
+.scroll-indicator .arrow{
+width:20px;height:20px;border-right:2px solid var(--text-secondary);
+border-bottom:2px solid var(--text-secondary);transform:rotate(45deg);
+margin:0 auto;animation:scrollBounce 2s infinite;
+}
+@keyframes scrollBounce{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translateY(8px)}}
+
+/* MANHATTAN SKYLINE SVG-like with CSS */
+.skyline-shapes{
+position:absolute;bottom:0;left:0;width:100%;height:180px;z-index:1;
+}
+.skyline-shapes .building{
+position:absolute;bottom:0;background:rgba(10,16,32,0.95);
+}
+
+/* SECTION HEADER */
+.section-header{
+margin-bottom:3rem;position:relative;
+}
+.section-header .section-tag{
+font-family:'Share Tech Mono',monospace;font-size:0.75rem;
+color:var(--data-green);letter-spacing:3px;text-transform:uppercase;
+margin-bottom:0.5rem;
+}
+.section-header h2{
+font-family:'Rajdhani',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);
+font-weight:700;color:var(--text-primary);line-height:1.2;
+}
+.section-header .divider{
+width:60px;height:2px;background:var(--arsenal-blue);margin-top:1rem;
+}
+
+/* CHAPTER SECTIONS */
+#tanker{
+padding:6rem 0;
+background:linear-gradient(180deg,var(--midnight),#0d1520,var(--midnight));
+position:relative;
+}
+#tanker::before{
+content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+background:url("data:image/svg+xml,%3Csvg width='4' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='1' fill='rgba(74,96,128,0.1)'/%3E%3C/svg%3E");
+pointer-events:none;
+}
+.chapter-grid{
+display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+}
+.chapter-card{
+padding:2rem;position:relative;overflow:hidden;
+}
+.chapter-card h3{
+font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:600;
+color:var(--text-accent);margin-bottom:1rem;
+}
+.chapter-card p{
+font-size:0.95rem;color:var(--text-secondary);line-height:1.8;
+}
+.chapter-label{
+font-family:'Share Tech Mono',monospace;font-size:0.65rem;
+color:var(--arsenal-blue);letter-spacing:2px;text-transform:uppercase;
+margin-bottom:0.5rem;display:block;
+}
+
+/* PLANT CHAPTER */
+#plant{
+padding:6rem 0;
+background:linear-gradient(180deg,var(--midnight),#0a1830,var(--midnight));
+}
+.plant-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;
+}
+.node-card{
+background:linear-gradient(135deg,rgba(26,58,92,0.4),rgba(10,16,32,0.6));
+border:1px solid rgba(58,122,170,0.2);padding:1.8rem;
+position:relative;overflow:hidden;transition:all 0.4s;
+}
+.node-card::before{
+content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+background:var(--arsenal-blue);transform:scaleY(0);
+transition:transform 0.4s;transform-origin:top;
+}
+.node-card:hover::before{transform:scaleY(1)}
+.node-card:hover{
+border-color:var(--arsenal-blue);
+box-shadow:0 0 30px rgba(0,102,204,0.15);
+}
+.node-card .node-id{
+font-family:'Share Tech Mono',monospace;font-size:0.65rem;
+color:var(--data-green);letter-spacing:2px;margin-bottom:0.8rem;
+}
+.node-card h3{
+font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:600;
+color:var(--text-primary);margin-bottom:0.8rem;
+}
+.node-card p{
+font-size:0.9rem;color:var(--text-secondary);line-height:1.7;
+}
+
+/* DEAD CELL - DOG TAG CARDS */
+#deadcell{
+padding:6rem 0;
+background:linear-gradient(180deg,var(--midnight),#101828,var(--midnight));
+}
+.dogtag-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;
+}
+.dogtag-card{
+background:linear-gradient(145deg,#1e2e44,#141e30);
+border:1px solid rgba(74,96,128,0.3);
+padding:0;overflow:hidden;transition:all 0.4s;
+position:relative;
+}
+.dogtag-card:hover{
+transform:translateY(-4px);
+box-shadow:0 8px 30px rgba(0,0,0,0.4);
+border-color:var(--steel-blue);
+}
+.dogtag-header{
+background:linear-gradient(135deg,var(--codec-blue),rgba(10,16,32,0.9));
+padding:1.2rem 1.5rem;border-bottom:2px solid var(--arsenal-blue);
+position:relative;
+}
+.dogtag-header::after{
+content:'';position:absolute;top:8px;right:12px;
+width:8px;height:8px;border-radius:50%;
+background:var(--alert-red);
+box-shadow:0 0 6px var(--alert-red);
+animation:recBlink 2s infinite;
+}
+.dogtag-header h3{
+font-family:'Rajdhani',sans-serif;font-size:1.3rem;
+font-weight:700;color:var(--raiden-light);margin-bottom:0.2rem;
+}
+.dogtag-header .codename{
+font-family:'Share Tech Mono',monospace;font-size:0.7rem;
+color:var(--data-green);letter-spacing:2px;
+}
+.dogtag-body{padding:1.5rem}
+.dogtag-body p{
+font-size:0.88rem;color:var(--text-secondary);line-height:1.7;
+}
+.dogtag-body .stat{
+font-family:'Share Tech Mono',monospace;font-size:0.72rem;
+color:var(--text-accent);margin-top:0.8rem;letter-spacing:1px;
+}
+
+/* ARSENAL GEAR */
+#arsenal{
+padding:6rem 0;
+background:linear-gradient(180deg,var(--midnight),#001a33,#000d1a,var(--midnight));
+position:relative;overflow:hidden;
+}
+.arsenal-content{
+display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;
+}
+.ai-terminal{
+background:rgba(0,20,40,0.8);border:1px solid var(--arsenal-blue);
+padding:1.5rem;font-family:'Share Tech Mono',monospace;
+position:relative;
+}
+.ai-terminal .terminal-header{
+font-size:0.7rem;color:var(--arsenal-blue);letter-spacing:2px;
+margin-bottom:1rem;padding-bottom:0.5rem;
+border-bottom:1px solid rgba(0,102,204,0.3);
+}
+.ai-terminal .terminal-line{
+font-size:0.78rem;color:var(--data-green);line-height:2;
+opacity:0.9;
+}
+.ai-terminal .terminal-line.error{color:var(--alert-red)}
+.ai-terminal .terminal-line.info{color:var(--text-accent)}
+.ai-terminal .cursor-blink{
+display:inline-block;width:8px;height:14px;
+background:var(--data-green);animation:cursorB 1s infinite;
+vertical-align:middle;margin-left:4px;
+}
+@keyframes cursorB{0%,100%{opacity:1}50%{opacity:0}}
+
+/* THEMES SECTION */
+#themes{
+padding:6rem 0;
+background:linear-gradient(180deg,var(--midnight),#0f1a28,var(--midnight));
+}
+.themes-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem;
+}
+.theme-card{
+padding:2rem;border-left:3px solid var(--arsenal-blue);
+background:linear-gradient(135deg,rgba(26,58,92,0.3),rgba(10,16,32,0.5));
+transition:all 0.4s;
+}
+.theme-card:hover{
+border-left-color:var(--glitch-cyan);
+background:linear-gradient(135deg,rgba(26,58,92,0.5),rgba(10,16,32,0.7));
+}
+.theme-card h3{
+font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:600;
+color:var(--text-accent);margin-bottom:0.8rem;
+}
+.theme-card p{
+font-size:0.9rem;color:var(--text-secondary);line-height:1.8;
+}
+
+/* QUOTE */
+#quote{
+padding:5rem 0;text-align:center;
+background:linear-gradient(180deg,var(--midnight),#081420,var(--midnight));
+position:relative;
+}
+.quote-text{
+font-family:'Rajdhani',sans-serif;font-size:clamp(1.3rem,3vw,2rem);
+font-weight:300;color:var(--raiden-light);font-style:italic;
+max-width:700px;margin:0 auto 1.5rem;line-height:1.6;
+position:relative;
+}
+.quote-text::before{content:'"';position:absolute;top:-20px;left:-20px;font-size:4rem;color:var(--arsenal-blue);opacity:0.3;font-style:normal}
+.quote-attr{
+font-family:'Share Tech Mono',monospace;font-size:0.8rem;
+color:var(--text-secondary);letter-spacing:2px;
+}
+
+/* FOOTER */
+footer{
+padding:3rem 0;text-align:center;
+background:var(--midnight);border-top:1px solid rgba(58,122,170,0.2);
+}
+footer p{
+font-family:'Share Tech Mono',monospace;font-size:0.75rem;
+color:var(--text-secondary);letter-spacing:1px;line-height:2;
+}
+footer .meta-text{
+font-size:0.65rem;color:var(--steel-blue);margin-top:1rem;
+font-style:italic;
+}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.25,0.46,0.45,0.94)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* MOBILE NAV */
+.nav-hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-hamburger span{display:block;width:22px;height:2px;background:var(--text-accent);margin:5px 0;transition:all 0.3s}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.chapter-grid,.arsenal-content{grid-template-columns:1fr}
+.dogtag-grid{grid-template-columns:1fr 1fr}
+nav .nav-links{
+display:none;position:absolute;top:60px;left:0;width:100%;
+background:rgba(10,16,32,0.98);flex-direction:column;
+padding:1.5rem;gap:1rem;border-bottom:1px solid var(--codec-border);
+}
+nav .nav-links.open{display:flex}
+.nav-hamburger{display:block}
+}
+@media(max-width:480px){
+.dogtag-grid{grid-template-columns:1fr}
+.container{padding:0 1rem}
+}
+
+/* LANG TOGGLE VISIBILITY */
+.zh{display:none}
+html[lang="zh"] .en{display:none}
+html[lang="zh"] .zh{display:inline}
+html[lang="zh"] .zh-block{display:block !important}
+html[lang="zh"] .en-block{display:none !important}
+html:not([lang="zh"]) .zh-block{display:none !important}
+html:not([lang="zh"]) .en-block{display:block !important}
+
+/* MATRIX DATA COLUMNS */
+.matrix-column{
+position:absolute;top:0;font-family:'Share Tech Mono',monospace;
+font-size:10px;color:var(--data-green);opacity:0.08;
+writing-mode:vertical-rl;letter-spacing:3px;
+animation:matrixFall 12s linear infinite;
+pointer-events:none;z-index:0;
+}
+@keyframes matrixFall{
+0%{transform:translateY(-100%)}
+100%{transform:translateY(100vh)}
+}
+
+/* GLITCH STRIP */
+.glitch-strip{
+height:2px;background:linear-gradient(90deg,
+transparent 0%,var(--glitch-cyan) 10%,transparent 15%,
+var(--glitch-magenta) 40%,transparent 45%,
+var(--arsenal-blue) 70%,transparent 75%
+);
+margin:3rem 0;opacity:0.4;
+animation:stripGlitch 6s infinite;
+}
+@keyframes stripGlitch{
+0%,90%{transform:scaleX(1);opacity:0.4}
+92%{transform:scaleX(0.5) translateX(-20%);opacity:0.8}
+94%{transform:scaleX(1.2) translateX(5%);opacity:0.2}
+96%{transform:scaleX(0.8) translateX(-10%);opacity:0.9}
+98%,100%{transform:scaleX(1);opacity:0.4}
+}
+</style>
+</head>
+<body>
+
+<canvas id="rain-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+<div class="logo">MGS<span>2</span> // <span class="en">SONS OF LIBERTY</span><span class="zh">自由之子</span></div>
+<button class="nav-hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+<span></span><span></span><span></span>
+</button>
+<div class="nav-links">
+<a href="#tanker"><span class="en">TANKER</span><span class="zh">油轮</span></a>
+<a href="#plant"><span class="en">PLANT</span><span class="zh">工厂</span></a>
+<a href="#deadcell"><span class="en">DEAD CELL</span><span class="zh">死亡细胞</span></a>
+<a href="#arsenal"><span class="en">ARSENAL</span><span class="zh">兵工厂</span></a>
+<a href="#themes"><span class="en">THEMES</span><span class="zh">主题</span></a>
+<button class="toggle-btn" onclick="toggleLang()" id="langBtn">中文</button>
+<button class="toggle-btn" onclick="toggleTheme()" id="themeBtn">LIGHT</button>
+</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+<div class="hero-interference"></div>
+<!-- Matrix data columns -->
+<div class="matrix-column" style="left:5%;animation-delay:0s;animation-duration:10s">01001101 01000111 01010011 00110010</div>
+<div class="matrix-column" style="left:15%;animation-delay:2s;animation-duration:14s">PATRIOT SYSTEM ACTIVE CONTROL NODE</div>
+<div class="matrix-column" style="left:25%;animation-delay:4s;animation-duration:11s">S3 PLAN INITIATED SELECTION PROTOCOL</div>
+<div class="matrix-column" style="left:55%;animation-delay:1s;animation-duration:13s">GW AI CORE ARSENAL GEAR ONLINE</div>
+<div class="matrix-column" style="left:75%;animation-delay:3s;animation-duration:9s">DEAD CELL THREAT LEVEL CRITICAL</div>
+<div class="matrix-column" style="left:90%;animation-delay:5s;animation-duration:12s">LA LI LU LE LO CIPHER ENGAGED</div>
+
+<div class="hero-content">
+<p class="subtitle corrupted">TACTICAL ESPIONAGE ACTION</p>
+<h1 class="glitch-text" data-text="METAL GEAR SOLID 2">METAL GEAR SOLID 2</h1>
+<p class="cn-title"><span class="en">SONS OF LIBERTY</span><span class="zh">自由之子</span></p>
+<p class="tagline">
+<span class="en">THE S3 PLAN &mdash; <span class="redacted">SELECTION FOR SOCIETAL SANITY</span></span>
+<span class="zh">S3计划 &mdash; <span class="redacted">社会理性选择</span></span>
+</p>
+</div>
+
+<!-- Skyline shapes -->
+<div class="skyline-shapes">
+<div class="building" style="left:2%;width:40px;height:80px"></div>
+<div class="building" style="left:6%;width:25px;height:120px"></div>
+<div class="building" style="left:10%;width:50px;height:90px"></div>
+<div class="building" style="left:16%;width:20px;height:160px"></div>
+<div class="building" style="left:19%;width:35px;height:100px"></div>
+<div class="building" style="left:24%;width:45px;height:70px"></div>
+<div class="building" style="left:30%;width:15px;height:140px"></div>
+<div class="building" style="left:33%;width:55px;height:85px"></div>
+<div class="building" style="left:40%;width:30px;height:110px"></div>
+<div class="building" style="left:45%;width:40px;height:60px"></div>
+<div class="building" style="left:50%;width:20px;height:130px"></div>
+<div class="building" style="left:54%;width:50px;height:95px"></div>
+<div class="building" style="left:60%;width:35px;height:75px"></div>
+<div class="building" style="left:65%;width:25px;height:150px"></div>
+<div class="building" style="left:69%;width:45px;height:88px"></div>
+<div class="building" style="left:75%;width:30px;height:105px"></div>
+<div class="building" style="left:80%;width:50px;height:70px"></div>
+<div class="building" style="left:86%;width:20px;height:125px"></div>
+<div class="building" style="left:90%;width:40px;height:80px"></div>
+<div class="building" style="left:95%;width:35px;height:95px"></div>
+</div>
+
+<div class="scroll-indicator">
+<span><span class="en">SCROLL DOWN</span><span class="zh">向下滚动</span></span>
+<div class="arrow"></div>
+</div>
+</section>
+
+<!-- TANKER CHAPTER -->
+<section id="tanker">
+<div class="container">
+<div class="section-header reveal">
+<span class="section-tag">CHAPTER 01 // <span class="en">TANKER</span><span class="zh">油轮篇</span></span>
+<h2 class="en">The Tanker Incident</h2>
+<h2 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">油轮事件</h2>
+<div class="divider"></div>
+</div>
+<div class="glitch-strip"></div>
+<div class="chapter-grid">
+<div class="chapter-card codec-panel surveillance-frame reveal">
+<span class="chapter-label"><span class="en">HUDSON RIVER // 2007</span><span class="zh">哈德逊河 // 2007</span></span>
+<h3 class="en">Solid Snake's Mission</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">固蛇的任务</h3>
+<div class="en-block">
+<p>Two years after Shadow Moses, Solid Snake and Otacon, operating as the NGO "Philanthropy," intercept intelligence about a new Metal Gear being transported aboard a tanker through the Hudson River. Snake infiltrates the vessel <span class="redacted">USS Discovery</span> during a storm, only to discover a Russian military faction led by Sergei Gurlukovich has the same target.</p>
+<p style="margin-top:1rem">The mission culminates in the revelation of Metal Gear RAY &mdash; an anti-Metal Gear weapon designed by the Marines. Revolver Ocelot, under the influence of <span class="corrupted">Liquid Snake's arm</span>, seizes RAY and sinks the tanker. Snake is framed for the incident.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>影子摩西事件两年后，固蛇和奥塔康以非政府组织"博爱"的名义，截获了一艘油轮通过哈德逊河运输新型Metal Gear的情报。暴风雨中，蛇潜入<span class="redacted">USS Discovery号</span>，却发现由古鲁科维奇率领的俄罗斯军事派系也盯上了同一目标。</p>
+<p style="margin-top:1rem">任务最终揭示了Metal Gear RAY——海军陆战队设计的反Metal Gear武器。受<span class="corrupted">液蛇之臂</span>影响的山猫夺取了RAY并击沉了油轮。蛇成为了替罪羊。</p>
+</div>
+</div>
+<div class="chapter-card codec-panel reveal" style="animation-delay:0.2s">
+<span class="chapter-label"><span class="en">AFTERMATH // COVER-UP</span><span class="zh">后续 // 掩盖真相</span></span>
+<h3 class="en">The Big Shell</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">大壳</h3>
+<div class="en-block">
+<p>Following the tanker sinking, a massive offshore decontamination facility &mdash; the "Big Shell" &mdash; was constructed over the wreck site, ostensibly to clean up the environmental disaster. The truth was far more sinister: the Big Shell was a cover for <span class="redacted">Arsenal Gear</span>, a mobile fortress housing the Patriots' AI system GW.</p>
+<p style="margin-top:1rem">The facility's hexagonal structure, connected by bridges over open water, would become the stage for the <span class="corrupted">S3 Plan</span> &mdash; an experiment in information control that would question the very nature of free will.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>油轮沉没后，一个大型离岸净化设施——"大壳"——在沉船地点上方建造，表面上是为了清理环境灾难。真相远比表面更加阴暗：大壳是<span class="redacted">兵工厂装备</span>的掩护，一座容纳爱国者AI系统GW的移动要塞。</p>
+<p style="margin-top:1rem">这座由桥梁连接、架设于水面之上的六角形设施，将成为<span class="corrupted">S3计划</span>的舞台——一场质疑自由意志本质的信息控制实验。</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- PLANT CHAPTER -->
+<section id="plant">
+<div class="container">
+<div class="section-header reveal">
+<span class="section-tag">CHAPTER 02 // <span class="en">PLANT</span><span class="zh">工厂篇</span></span>
+<h2 class="en">The Big Shell Incident</h2>
+<h2 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">大壳事件</h2>
+<div class="divider"></div>
+</div>
+<div class="glitch-strip"></div>
+<div class="plant-grid">
+<div class="node-card fission-mailed reveal">
+<div class="node-id">NODE 01 // <span class="en">INFILTRATION</span><span class="zh">渗透</span></div>
+<h3 class="en">Raiden's Insertion</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">雷电的潜入</h3>
+<div class="en-block">
+<p>FOXHOUND agent Raiden &mdash; real name Jack &mdash; is deployed to the Big Shell after the facility is seized by the terrorist group "Sons of Liberty," led by a man calling himself Solid Snake. Guided by his commanding officer, "Colonel Campbell," Raiden's mission mirrors Shadow Moses in disturbing ways. <em class="corrupted">This is by design.</em></p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>FOXHOUND特工雷电——真名杰克——在大壳被自称"自由之子"的恐怖组织占领后被派往该设施。在指挥官"坎贝尔上校"的指导下，雷电的任务以令人不安的方式映射着影子摩西事件。<em class="corrupted">这一切都是设计好的。</em></p>
+</div>
+</div>
+<div class="node-card reveal">
+<div class="node-id">NODE 02 // <span class="en">DECEPTION</span><span class="zh">欺骗</span></div>
+<h3 class="en">Layers of Lies</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">谎言的层层</h3>
+<div class="en-block">
+<p>Nothing at the Big Shell is as it seems. The "Colonel" is an AI construct. The hostage situation is orchestrated. Raiden's girlfriend Rose is used as emotional leverage. The entire mission is a <span class="redacted">controlled simulation</span> &mdash; the S3 Plan, designed to prove that any individual can be molded into a soldier through information control.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>大壳中没有什么是表面看起来的样子。"上校"是AI构造体。人质事件是精心策划的。雷电的女友罗丝被用作情感杠杆。整个任务是一场<span class="redacted">受控模拟</span>——S3计划，旨在证明任何个体都可以通过信息控制被塑造成士兵。</p>
+</div>
+</div>
+<div class="node-card reveal">
+<div class="node-id">NODE 03 // <span class="en">REVELATION</span><span class="zh">真相</span></div>
+<h3 class="en">The Real Snake</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">真正的蛇</h3>
+<div class="en-block">
+<p>The real Solid Snake has been operating undercover within the Big Shell as "Iroquois Pliskin." Together with Raiden, he works to uncover the truth behind the facility: Arsenal Gear lies beneath, carrying enough nuclear warheads to hold the world hostage, all controlled by the <span class="corrupted">La-Li-Lu-Le-Lo</span>.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>真正的固蛇一直以"伊洛魁·普利斯金"的身份在大壳内卧底行动。他与雷电一起揭开设施背后的真相：兵工厂装备就在下方，携带着足以威胁全世界的核弹头，全部由<span class="corrupted">La-Li-Lu-Le-Lo</span>控制。</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- DEAD CELL -->
+<section id="deadcell">
+<div class="container">
+<div class="section-header reveal">
+<span class="section-tag"><span class="en">THREAT ASSESSMENT // DEAD CELL</span><span class="zh">威胁评估 // 死亡细胞</span></span>
+<h2 class="en">Dead Cell Profiles</h2>
+<h2 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">死亡细胞档案</h2>
+<div class="divider"></div>
+</div>
+<div class="glitch-strip"></div>
+<div class="dogtag-grid">
+<!-- Fatman -->
+<div class="dogtag-card reveal">
+<div class="dogtag-header">
+<h3>FATMAN</h3>
+<span class="codename"><span class="en">BOMB DISPOSAL TURNED BOMBER</span><span class="zh">拆弹专家变身爆破手</span></span>
+</div>
+<div class="dogtag-body">
+<div class="en-block">
+<p>A prodigy of bomb disposal who became obsessed with destruction. Fatman rollerblades through the Big Shell planting C4, seeking to surpass his mentor Stillman and be remembered as the greatest bomber in history.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>一个痴迷于毁灭的拆弹天才。胖子穿着轮滑鞋在大壳中放置C4炸弹，试图超越他的导师斯蒂尔曼，成为历史上最伟大的爆破专家。</p>
+</div>
+<div class="stat">THREAT: EXPLOSIVES // STATUS: <span style="color:var(--alert-red)">ELIMINATED</span></div>
+</div>
+</div>
+<!-- Vamp -->
+<div class="dogtag-card reveal">
+<div class="dogtag-header">
+<h3>VAMP</h3>
+<span class="codename"><span class="en">IMMORTAL KNIFE FIGHTER</span><span class="zh">不死刀客</span></span>
+</div>
+<div class="dogtag-body">
+<div class="en-block">
+<p>A Romanian-born fighter with seemingly supernatural abilities &mdash; he appears to be immortal, walks on water, and moves with inhuman speed. Vamp's connection to Fortune drives his loyalty to Dead Cell. His "immortality" stems from <span class="redacted">nanomachine enhancement</span>.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>一个出生于罗马尼亚的战士，拥有看似超自然的能力——他似乎不死不灭，能在水面行走，以超人的速度移动。吸血鬼与幸运女的关系驱动着他对死亡细胞的忠诚。他的"不死"源于<span class="redacted">纳米机器增强</span>。</p>
+</div>
+<div class="stat">THREAT: CQC / KNIVES // STATUS: <span style="color:var(--alert-red)">PERSISTENT</span></div>
+</div>
+</div>
+<!-- Fortune -->
+<div class="dogtag-card reveal">
+<div class="dogtag-header">
+<h3>FORTUNE</h3>
+<span class="codename"><span class="en">LADY LUCK / QUEEN</span><span class="zh">幸运女 / 女王</span></span>
+</div>
+<div class="dogtag-body">
+<div class="en-block">
+<p>Helena Dolph Jackson, daughter of the Commandant killed during the tanker incident. Bullets curve away from her; explosives fail to detonate. She seeks death but cannot find it. Her "luck" is later revealed to be electromagnetic technology &mdash; though her final act suggests something <span class="corrupted">truly supernatural</span>.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>海伦娜·道尔夫·杰克逊，油轮事件中被杀的司令官之女。子弹在她身边偏转，炸药无法引爆。她寻求死亡却不可得。她的"幸运"后来被揭示为电磁技术——尽管她最后的举动暗示着某种<span class="corrupted">真正超自然</span>的力量。</p>
+</div>
+<div class="stat">THREAT: RAIL GUN // STATUS: <span style="color:var(--alert-red)">KIA</span></div>
+</div>
+</div>
+<!-- Solidus -->
+<div class="dogtag-card reveal">
+<div class="dogtag-header">
+<h3>SOLIDUS SNAKE</h3>
+<span class="codename"><span class="en">THIRD CLONE / GEORGE SEARS</span><span class="zh">第三克隆体 / 乔治·西尔斯</span></span>
+</div>
+<div class="dogtag-body">
+<div class="en-block">
+<p>The perfect balance between Solid and Liquid &mdash; the third son of Big Boss, former President of the United States. Solidus leads the Sons of Liberty not for terrorism, but to break free from the Patriots' control. He seeks the identities of the <span class="redacted">twelve members of the Wisemen's Committee</span>. His cause is arguably just; his methods are not.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>固蛇与液蛇之间的完美平衡——Big Boss的第三个儿子，前美国总统。索利达斯领导自由之子不是为了恐怖主义，而是为了摆脱爱国者的控制。他寻找<span class="redacted">贤者委员会十二名成员</span>的身份。他的事业或许正义，但他的手段并非如此。</p>
+</div>
+<div class="stat">THREAT: EXOSKELETON / SWORDS // STATUS: <span style="color:var(--alert-red)">ELIMINATED</span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ARSENAL GEAR & AI -->
+<section id="arsenal">
+<div class="container">
+<div class="section-header reveal">
+<span class="section-tag"><span class="en">SYSTEM CORE // GW</span><span class="zh">系统核心 // GW</span></span>
+<h2 class="en">Arsenal Gear & The Patriots AI</h2>
+<h2 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">兵工厂装备与爱国者AI</h2>
+<div class="divider"></div>
+</div>
+<div class="glitch-strip"></div>
+<div class="arsenal-content">
+<div class="reveal">
+<div class="codec-panel" style="margin-bottom:2rem">
+<h3 style="color:var(--text-accent);font-size:1.3rem;margin-bottom:1rem" class="en">Arsenal Gear</h3>
+<h3 style="color:var(--text-accent);font-size:1.3rem;margin-bottom:1rem;display:none;font-family:'Noto Sans SC',sans-serif" class="zh">兵工厂装备</h3>
+<div class="en-block">
+<p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.8">Arsenal Gear is a submersible mobile fortress hidden beneath the Big Shell. It carries a massive nuclear arsenal and an army of mass-produced Metal Gear RAY units. But its true weapon is <strong style="color:var(--raiden-light)">GW</strong> &mdash; an AI designed to control the flow of digital information across the world, filtering truth from fiction, shaping public opinion, and ensuring the Patriots' invisible rule continues unchallenged.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.8">兵工厂装备是隐藏在大壳之下的可潜水移动要塞。它携带着大量核武库和大规模生产的Metal Gear RAY部队。但它真正的武器是<strong style="color:var(--raiden-light)">GW</strong>——一个旨在控制全球数字信息流动的AI，过滤真假，塑造舆论，确保爱国者的隐形统治不受挑战。</p>
+</div>
+</div>
+<div class="codec-panel">
+<h3 style="color:var(--text-accent);font-size:1.3rem;margin-bottom:1rem" class="en">The S3 Plan</h3>
+<h3 style="color:var(--text-accent);font-size:1.3rem;margin-bottom:1rem;display:none;font-family:'Noto Sans SC',sans-serif" class="zh">S3计划</h3>
+<div class="en-block">
+<p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.8">The "Solid Snake Simulation" &mdash; or "Selection for Societal Sanity" &mdash; is the true purpose behind the Big Shell incident. The Patriots engineered the entire scenario to replicate Shadow Moses, proving that context and information control can manufacture any outcome. <em style="color:var(--glitch-cyan)">Raiden was never meant to be a hero. He was meant to be proof of concept.</em></p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.8">"固蛇模拟"——或"社会理性选择"——是大壳事件背后的真正目的。爱国者设计了整个场景来复制影子摩西，证明语境和信息控制可以制造任何结果。<em style="color:var(--glitch-cyan)">雷电从来就不应该成为英雄。他只是一个概念验证。</em></p>
+</div>
+</div>
+</div>
+<div class="reveal" style="animation-delay:0.2s">
+<div class="ai-terminal">
+<div class="terminal-header">GW_CORE // PATRIOTS AI SYSTEM v2.1</div>
+<div class="terminal-line">SYSTEM STATUS: <span style="color:var(--data-green)">ACTIVE</span></div>
+<div class="terminal-line info">> Initializing S3 protocol...</div>
+<div class="terminal-line">> Subject RAIDEN: response nominal</div>
+<div class="terminal-line">> Shadow Moses variables mapped</div>
+<div class="terminal-line">> Information context: CONTROLLED</div>
+<div class="terminal-line error">> WARNING: Emma Emmerich virus detected</div>
+<div class="terminal-line error">> GW integrity: COMPROMISED</div>
+<div class="terminal-line info">> Rerouting to backup nodes...</div>
+<div class="terminal-line">> Colonel AI: DEGRADING</div>
+<div class="terminal-line error">> "I need scissors! 61!"</div>
+<div class="terminal-line">> "Raiden, turn the game console off."</div>
+<div class="terminal-line info">> "Don't worry, it's a game. It's a game</div>
+<div class="terminal-line info">&nbsp;&nbsp; just like usual."</div>
+<div class="terminal-line" style="margin-top:0.5rem">> TRUTH STATUS: <span class="corrupted">UNDEFINED</span><span class="cursor-blink"></span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- THEMES -->
+<section id="themes">
+<div class="container">
+<div class="section-header reveal">
+<span class="section-tag"><span class="en">ANALYSIS // META</span><span class="zh">分析 // 元叙事</span></span>
+<h2 class="en">Themes: Information, Memes, Identity</h2>
+<h2 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">主题：信息、模因、身份</h2>
+<div class="divider"></div>
+</div>
+<div class="glitch-strip"></div>
+<div class="themes-grid">
+<div class="theme-card reveal">
+<h3 class="en">Information Control</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">信息控制</h3>
+<div class="en-block">
+<p>MGS2 predicted the post-truth era two decades early. The Patriots' goal is not censorship but <strong>curation</strong> &mdash; deciding which truths survive and which are buried. In a world drowning in data, whoever controls the filter controls reality. <span class="redacted">The digital age made this inevitable.</span></p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>MGS2比后真相时代早了二十年。爱国者的目标不是审查而是<strong>策展</strong>——决定哪些真相存续，哪些被掩埋。在数据泛滥的世界中，控制过滤器的人控制现实。<span class="redacted">数字时代使这一切不可避免。</span></p>
+</div>
+</div>
+<div class="theme-card reveal">
+<h3 class="en">Memes & Legacy</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">模因与遗产</h3>
+<div class="en-block">
+<p>Not internet memes &mdash; Richard Dawkins' original concept: cultural units of information that pass between people, shaping society. Genes carry biological legacy; memes carry cultural legacy. The Patriots seek to control which <em>memes</em> &mdash; which ideas, values, truths &mdash; survive into the future. <em class="corrupted">What you leave behind is not what is engraved in stone, but what is woven into the lives of others.</em></p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>不是互联网梗——而是理查德·道金斯的原始概念：在人与人之间传递、塑造社会的文化信息单元。基因承载生物遗产；模因承载文化遗产。爱国者试图控制哪些<em>模因</em>——哪些思想、价值观、真相——能够延续到未来。<em class="corrupted">你留下的不是刻在石头上的东西，而是编织进他人生活中的东西。</em></p>
+</div>
+</div>
+<div class="theme-card reveal">
+<h3 class="en">Identity & Free Will</h3>
+<h3 class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">身份与自由意志</h3>
+<div class="en-block">
+<p>Are you who you choose to be, or who you are told to be? Raiden is literally <em>constructed</em> as a character &mdash; his mission, his codec support, even his girlfriend are part of the simulation. The game asks: <span style="color:var(--glitch-cyan);font-family:'Share Tech Mono',monospace;font-size:0.85rem">if your choices are predetermined by the information you receive, are they truly your choices?</span> And then it turns to you, the player, and asks the same question.</p>
+</div>
+<div class="zh-block" style="display:none;font-family:'Noto Sans SC',sans-serif">
+<p>你是你选择成为的人，还是被告知成为的人？雷电作为角色被字面意义上地<em>构建</em>——他的任务、通讯支持，甚至他的女友都是模拟的一部分。游戏问道：<span style="color:var(--glitch-cyan);font-family:'Share Tech Mono',monospace;font-size:0.85rem">如果你的选择是由你接收的信息预设的，那它们真的是你的选择吗？</span>然后它转向你，玩家，问同样的问题。</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- QUOTE -->
+<section id="quote">
+<div class="container reveal">
+<div class="quote-text">
+<span class="en">We're all pawns, controlled by something greater: Memes. The DNA of the soul. They shape our will. They are the culture &mdash; they are everything we pass on.</span>
+<span class="zh" style="font-family:'Noto Sans SC',sans-serif">我们都是棋子，被更伟大的东西控制着：模因。灵魂的DNA。它们塑造我们的意志。它们就是文化——就是我们传承的一切。</span>
+</div>
+<p class="quote-attr">&mdash; SOLID SNAKE</p>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+<p class="en">METAL GEAR SOLID 2: SONS OF LIBERTY // KONAMI 2001</p>
+<p class="zh" style="display:none;font-family:'Noto Sans SC',sans-serif">合金装备2：自由之子 // KONAMI 2001</p>
+<p style="margin-top:0.5rem">
+<span class="en">A Hideo Kojima Game</span>
+<span class="zh" style="font-family:'Noto Sans SC',sans-serif">小岛秀夫作品</span>
+</p>
+<p class="meta-text corrupted">
+<span class="en">"Did you say... nerd?" &mdash; Were you the player, or were you played?</span>
+<span class="zh" style="font-family:'Noto Sans SC',sans-serif">"你说的是……书呆子？" &mdash; 你是玩家，还是被玩弄的人？</span>
+</p>
+<p class="meta-text" style="margin-top:0.5rem;opacity:0.4">
+<span class="en">Turn the game console off right now.</span>
+<span class="zh" style="font-family:'Noto Sans SC',sans-serif">现在就关掉游戏机。</span>
+</p>
+</div>
+</footer>
+
+<script>
+// === RAIN CANVAS ===
+const canvas = document.getElementById('rain-canvas');
+const ctx = canvas.getContext('2d');
+let drops = [];
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function initDrops() {
+  drops = [];
+  const count = Math.floor(window.innerWidth / 4);
+  for (let i = 0; i < count; i++) {
+    drops.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      len: Math.random() * 18 + 8,
+      speed: Math.random() * 6 + 4,
+      opacity: Math.random() * 0.3 + 0.1,
+      width: Math.random() * 1.2 + 0.3
+    });
+  }
+}
+initDrops();
+
+function drawRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drops.forEach(d => {
+    ctx.beginPath();
+    ctx.moveTo(d.x, d.y);
+    ctx.lineTo(d.x + 0.5, d.y + d.len);
+    ctx.strokeStyle = `rgba(120,160,200,${d.opacity})`;
+    ctx.lineWidth = d.width;
+    ctx.stroke();
+    d.y += d.speed;
+    if (d.y > canvas.height) {
+      d.y = -d.len;
+      d.x = Math.random() * canvas.width;
+    }
+  });
+  requestAnimationFrame(drawRain);
+}
+drawRain();
+
+// === SCROLL REVEAL ===
+const revealEls = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => revealObserver.observe(el));
+
+// === LANGUAGE TOGGLE ===
+function toggleLang() {
+  const html = document.documentElement;
+  const btn = document.getElementById('langBtn');
+  if (html.getAttribute('lang') === 'zh') {
+    html.setAttribute('lang', 'en');
+    btn.textContent = '中文';
+    // show en, hide zh
+    document.querySelectorAll('.zh').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.en').forEach(el => el.style.display = '');
+    document.querySelectorAll('.zh-block').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.en-block').forEach(el => el.style.display = '');
+    // section h2 toggles
+    document.querySelectorAll('h2.zh, h3.zh').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('h2.en, h3.en').forEach(el => el.style.display = '');
+  } else {
+    html.setAttribute('lang', 'zh');
+    btn.textContent = 'EN';
+    document.querySelectorAll('.en').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.zh').forEach(el => el.style.display = '');
+    document.querySelectorAll('.zh-block').forEach(el => el.style.display = '');
+    document.querySelectorAll('.en-block').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('h2.zh, h3.zh').forEach(el => el.style.display = '');
+    document.querySelectorAll('h2.en, h3.en').forEach(el => el.style.display = 'none');
+  }
+}
+
+// === THEME TOGGLE ===
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  html.classList.toggle('light');
+  btn.textContent = html.classList.contains('light') ? 'DARK' : 'LIGHT';
+}
+
+// === CLOSE MOBILE NAV ON LINK CLICK ===
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

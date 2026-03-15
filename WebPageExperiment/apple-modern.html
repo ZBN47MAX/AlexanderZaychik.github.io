@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuraVerse 灵境</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #fbfbfd;
+  --bg-secondary: #f5f5f7;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #86868b;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --card-bg: rgba(255,255,255,0.72);
+  --card-border: rgba(0,0,0,0.06);
+  --nav-bg: rgba(251,251,253,0.72);
+  --pill-bg: rgba(0,0,0,0.06);
+  --pill-text: #1d1d1f;
+  --divider: rgba(0,0,0,0.08);
+  --spec-bg: #ffffff;
+  --footer-bg: #f5f5f7;
+  --quote-border: #d2d2d7;
+}
+
+[data-theme="dark"] {
+  --bg: #1d1d1f;
+  --bg-secondary: #2d2d2f;
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #86868b;
+  --card-bg: rgba(44,44,46,0.72);
+  --card-border: rgba(255,255,255,0.08);
+  --nav-bg: rgba(29,29,31,0.72);
+  --pill-bg: rgba(255,255,255,0.1);
+  --pill-text: #f5f5f7;
+  --divider: rgba(255,255,255,0.1);
+  --spec-bg: #2c2c2e;
+  --footer-bg: #141414;
+  --quote-border: #48484a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.5;
+  transition: background 0.5s ease, color 0.5s ease;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Navbar ── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nav-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--divider);
+  transition: background 0.5s ease;
+}
+
+.navbar-inner {
+  width: 100%;
+  max-width: 1024px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.navbar-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  font-weight: 400;
+}
+
+.navbar-links a:hover {
+  color: var(--text-primary);
+}
+
+/* ── Controls (top-right pills) ── */
+.controls {
+  position: fixed;
+  top: 64px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 980px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 0.5px solid var(--divider);
+  transition: all 0.3s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.control-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+/* ── Sections ── */
+section {
+  padding: 100px 24px;
+}
+
+.container {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: 52px;
+}
+
+.hero-overline {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.hero-title {
+  font-size: clamp(56px, 10vw, 96px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--accent), #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 300;
+  color: var(--text-secondary);
+  max-width: 680px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.hero-tag {
+  display: inline-block;
+  margin-top: 40px;
+  padding: 8px 20px;
+  border-radius: 980px;
+  background: var(--pill-bg);
+  color: var(--text-tertiary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ── Product Cards ── */
+.product-section {
+  background: var(--bg);
+}
+
+.section-headline {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.section-subheadline {
+  font-size: 19px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 64px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.feature-card {
+  position: relative;
+  border-radius: 20px;
+  padding: 48px 36px;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  color: #fff;
+  transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+
+.feature-card:hover {
+  transform: scale(1.02);
+}
+
+.feature-card--purple {
+  background: linear-gradient(165deg, #7c3aed, #3b82f6);
+}
+
+.feature-card--blue {
+  background: linear-gradient(165deg, #2563eb, #06b6d4);
+}
+
+.feature-card--warm {
+  background: linear-gradient(165deg, #f97316, #ec4899);
+}
+
+.feature-card__icon {
+  font-size: 44px;
+  margin-bottom: 20px;
+}
+
+.feature-card__title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  line-height: 1.15;
+}
+
+.feature-card__desc {
+  font-size: 16px;
+  font-weight: 300;
+  opacity: 0.88;
+  line-height: 1.5;
+}
+
+/* ── Specs Grid ── */
+.specs-section {
+  background: var(--bg-secondary);
+  transition: background 0.5s ease;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.spec-item {
+  background: var(--spec-bg);
+  border-radius: 16px;
+  padding: 32px 28px;
+  transition: background 0.5s ease, transform 0.3s ease;
+}
+
+.spec-item:hover {
+  transform: translateY(-4px);
+}
+
+.spec-value {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--accent);
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.spec-label {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+/* ── Features List ── */
+.features-section {
+  background: var(--bg);
+}
+
+.features-list {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 0.5px solid var(--divider);
+}
+
+.feature-row:last-child {
+  border-bottom: none;
+}
+
+.feature-row__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--pill-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  transition: background 0.5s ease;
+}
+
+.feature-row__text {
+  flex: 1;
+}
+
+.feature-row__title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.feature-row__desc {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+
+/* ── Quote ── */
+.quote-section {
+  background: var(--bg-secondary);
+  transition: background 0.5s ease;
+}
+
+.quote-block {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.quote-text {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.quote-attr {
+  font-size: 15px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* ── CTA ── */
+.cta-section {
+  background: var(--bg);
+  text-align: center;
+}
+
+.cta-title {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.cta-sub {
+  font-size: 19px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+}
+
+.cta-btn {
+  display: inline-block;
+  padding: 16px 36px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 500;
+  border-radius: 980px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  letter-spacing: -0.01em;
+}
+
+.cta-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.04);
+  box-shadow: 0 4px 24px rgba(0,113,227,0.3);
+}
+
+/* ── Footer ── */
+.footer {
+  background: var(--footer-bg);
+  padding: 48px 24px;
+  text-align: center;
+  transition: background 0.5s ease;
+  border-top: 0.5px solid var(--divider);
+}
+
+.footer-text {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.footer-links {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: var(--accent);
+}
+
+/* ── Scroll Reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Responsive ── */
+@media (max-width: 734px) {
+  .navbar-links {
+    display: none;
+  }
+
+  section {
+    padding: 72px 20px;
+  }
+
+  .hero {
+    min-height: 85vh;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-card {
+    min-height: 340px;
+    padding: 36px 28px;
+  }
+
+  .specs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .controls {
+    top: 60px;
+    right: 12px;
+  }
+
+  .control-btn {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .specs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-brand">
+      <span data-en="AuraVerse" data-zh="灵境">AuraVerse</span>
+    </div>
+    <ul class="navbar-links">
+      <li><a href="#product" data-en="Product" data-zh="产品">Product</a></li>
+      <li><a href="#specs" data-en="Specs" data-zh="规格">Specs</a></li>
+      <li><a href="#features" data-en="Features" data-zh="功能">Features</a></li>
+      <li><a href="#cta" data-en="Order" data-zh="订购">Order</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="control-btn" id="langToggle" onclick="toggleLang()">中文</button>
+  <button class="control-btn" id="themeToggle" onclick="toggleTheme()">
+    <span data-en="Dark" data-zh="深色">Dark</span>
+  </button>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="reveal">
+    <p class="hero-overline" data-en="Introducing" data-zh="全新发布">Introducing</p>
+    <h1 class="hero-title" data-en="AuraVerse" data-zh="灵境">AuraVerse</h1>
+    <p class="hero-subtitle" data-en="The world fades. A new dimension unfolds. Spatial computing, reimagined for the way you think, create, and connect." data-zh="现实渐隐，新维度徐徐展开。空间计算，为你的思考、创造与连接而重新构想。">The world fades. A new dimension unfolds. Spatial computing, reimagined for the way you think, create, and connect.</p>
+    <span class="hero-tag" data-en="Available Spring 2026" data-zh="2026 年春季发售">Available Spring 2026</span>
+  </div>
+</section>
+
+<!-- Product Cards -->
+<section class="product-section" id="product">
+  <div class="container">
+    <h2 class="section-headline reveal" data-en="Three breakthroughs. One device." data-zh="三大突破，一台设备。">Three breakthroughs. One device.</h2>
+    <p class="section-subheadline reveal" data-en="Every detail designed to disappear — so only the experience remains." data-zh="每一个细节都旨在隐去——只留下纯粹的体验。">Every detail designed to disappear — so only the experience remains.</p>
+    <div class="cards-grid">
+      <div class="feature-card feature-card--purple reveal">
+        <div class="feature-card__icon">◇</div>
+        <h3 class="feature-card__title" data-en="Infinite Canvas" data-zh="无界画布">Infinite Canvas</h3>
+        <p class="feature-card__desc" data-en="Your workspace expands beyond the frame. Place apps, memories, and ideas anywhere in space — with pixel-perfect clarity at every angle." data-zh="你的工作空间延伸至画框之外。将应用、记忆与灵感放置于空间的任何角落——每个角度都保持像素级清晰。">Your workspace expands beyond the frame. Place apps, memories, and ideas anywhere in space — with pixel-perfect clarity at every angle.</p>
+      </div>
+      <div class="feature-card feature-card--blue reveal">
+        <div class="feature-card__icon">⟡</div>
+        <h3 class="feature-card__title" data-en="Neural Sense" data-zh="神经感知">Neural Sense</h3>
+        <p class="feature-card__desc" data-en="A new input paradigm. AuraVerse reads your intent through micro-gestures, gaze, and voice — no controllers, no compromise." data-zh="全新交互范式。灵境通过微手势、注视与语音读取你的意图——无需手柄，毫不妥协。">A new input paradigm. AuraVerse reads your intent through micro-gestures, gaze, and voice — no controllers, no compromise.</p>
+      </div>
+      <div class="feature-card feature-card--warm reveal">
+        <div class="feature-card__icon">◎</div>
+        <h3 class="feature-card__title" data-en="Presence Engine" data-zh="临境引擎">Presence Engine</h3>
+        <p class="feature-card__desc" data-en="Feel together, even apart. Photorealistic avatars powered by real-time volumetric capture make every conversation feel face-to-face." data-zh="即使相隔万里，也能感受彼此。由实时体积捕捉驱动的逼真化身，让每一次对话都如同面对面。">Feel together, even apart. Photorealistic avatars powered by real-time volumetric capture make every conversation feel face-to-face.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Specs -->
+<section class="specs-section" id="specs">
+  <div class="container">
+    <h2 class="section-headline reveal" data-en="By the numbers." data-zh="以数字说话。">By the numbers.</h2>
+    <p class="section-subheadline reveal" data-en="Engineered to set new standards." data-zh="以工程之力，重新定义标准。">Engineered to set new standards.</p>
+    <div class="specs-grid">
+      <div class="spec-item reveal">
+        <div class="spec-value">48M</div>
+        <div class="spec-label" data-en="Pixels across both displays" data-zh="双屏总像素">Pixels across both displays</div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">120°</div>
+        <div class="spec-label" data-en="Field of view" data-zh="视场角">Field of view</div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">8h</div>
+        <div class="spec-label" data-en="All-day battery life" data-zh="全天候电池续航">All-day battery life</div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">350g</div>
+        <div class="spec-label" data-en="Featherlight titanium frame" data-zh="极致轻盈钛金属框架">Featherlight titanium frame</div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">5nm</div>
+        <div class="spec-label" data-en="AX chip, custom silicon" data-zh="AX 芯片，定制芯片架构">AX chip, custom silicon</div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">12</div>
+        <div class="spec-label" data-en="Sensors and cameras" data-zh="传感器与摄像头">Sensors and cameras</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features List -->
+<section class="features-section" id="features">
+  <div class="container">
+    <h2 class="section-headline reveal" data-en="Designed for everything." data-zh="为万物而设计。">Designed for everything.</h2>
+    <p class="section-subheadline reveal" data-en="From cinematic entertainment to focused productivity." data-zh="从沉浸式娱乐到专注生产力。">From cinematic entertainment to focused productivity.</p>
+    <div class="features-list">
+      <div class="feature-row reveal">
+        <div class="feature-row__icon">🎬</div>
+        <div class="feature-row__text">
+          <div class="feature-row__title" data-en="Immersive Cinema" data-zh="沉浸影院">Immersive Cinema</div>
+          <div class="feature-row__desc" data-en="A 100-foot screen that travels with you. Spatial Audio places every sound exactly where it belongs." data-zh="一块随身携带的百英尺巨幕。空间音频将每一个声音精准放置。">A 100-foot screen that travels with you. Spatial Audio places every sound exactly where it belongs.</div>
+        </div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="feature-row__icon">🎨</div>
+        <div class="feature-row__text">
+          <div class="feature-row__title" data-en="Creative Studio" data-zh="创意工坊">Creative Studio</div>
+          <div class="feature-row__desc" data-en="Sculpt in 3D, paint in space, prototype in real-time. Your imagination is the only constraint." data-zh="三维雕塑、空间绘画、实时原型设计。你的想象力是唯一的限制。">Sculpt in 3D, paint in space, prototype in real-time. Your imagination is the only constraint.</div>
+        </div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="feature-row__icon">💼</div>
+        <div class="feature-row__text">
+          <div class="feature-row__title" data-en="Workspace" data-zh="工作空间">Workspace</div>
+          <div class="feature-row__desc" data-en="Multiple 4K displays arranged around you. Seamless Mac integration. Focus like never before." data-zh="多块 4K 显示屏环绕四周。与 Mac 无缝集成。前所未有的专注体验。">Multiple 4K displays arranged around you. Seamless Mac integration. Focus like never before.</div>
+        </div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="feature-row__icon">🌐</div>
+        <div class="feature-row__text">
+          <div class="feature-row__title" data-en="Shared Spaces" data-zh="共享空间">Shared Spaces</div>
+          <div class="feature-row__desc" data-en="Invite others into your world. Collaborate on a 3D model or simply watch a movie together across continents." data-zh="邀请他人进入你的世界。跨越大陆，共同协作三维模型或一起观影。">Invite others into your world. Collaborate on a 3D model or simply watch a movie together across continents.</div>
+        </div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="feature-row__icon">🔒</div>
+        <div class="feature-row__text">
+          <div class="feature-row__title" data-en="Privacy First" data-zh="隐私为先">Privacy First</div>
+          <div class="feature-row__desc" data-en="Optic ID authenticates with the uniqueness of your iris. All processing happens on-device." data-zh="Optic ID 通过虹膜的独特性进行身份验证。所有处理均在设备端完成。">Optic ID authenticates with the uniqueness of your iris. All processing happens on-device.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quote -->
+<section class="quote-section">
+  <div class="container">
+    <div class="quote-block reveal">
+      <p class="quote-text" data-en=""AuraVerse doesn't replace reality — it reveals the layers that were always there, waiting to be seen."" data-zh=""灵境并非取代现实——它揭示了那些一直存在、等待被发现的维度。"">"AuraVerse doesn't replace reality — it reveals the layers that were always there, waiting to be seen."</p>
+      <p class="quote-attr" data-en="— Spatial Design Team" data-zh="— 空间设计团队">— Spatial Design Team</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="container">
+    <div class="reveal">
+      <h2 class="cta-title" data-en="Step into the new dimension." data-zh="踏入新维度。">Step into the new dimension.</h2>
+      <p class="cta-sub" data-en="Starting at $3,499. Free engraving. Free delivery." data-zh="起售价 ¥24,999。免费镌刻。免费配送。">Starting at $3,499. Free engraving. Free delivery.</p>
+      <button class="cta-btn" data-en="Pre-order AuraVerse" data-zh="预购灵境">Pre-order AuraVerse</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p class="footer-text" data-en="AuraVerse is a conceptual product created for demonstration purposes. All specifications, features, and pricing are fictional." data-zh="灵境是为展示目的而创建的概念产品。所有规格、功能和定价均为虚构。">AuraVerse is a conceptual product created for demonstration purposes. All specifications, features, and pricing are fictional.</p>
+  <div class="footer-links">
+    <a href="#" data-en="Privacy Policy" data-zh="隐私政策">Privacy Policy</a>
+    <a href="#" data-en="Terms of Use" data-zh="使用条款">Terms of Use</a>
+    <a href="#" data-en="Support" data-zh="技术支持">Support</a>
+    <a href="#" data-en="Contact" data-zh="联系我们">Contact</a>
+  </div>
+</footer>
+
+<script>
+// ── Language Toggle ──
+let currentLang = 'en';
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = el.getAttribute('data-' + currentLang);
+  });
+  document.getElementById('langToggle').textContent = currentLang === 'en' ? '中文' : 'EN';
+}
+
+// ── Theme Toggle ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  const btn = document.getElementById('themeToggle').querySelector('[data-en]');
+  if (isDark) {
+    btn.setAttribute('data-en', 'Dark');
+    btn.setAttribute('data-zh', '深色');
+  } else {
+    btn.setAttribute('data-en', 'Light');
+    btn.setAttribute('data-zh', '浅色');
+  }
+  btn.textContent = btn.getAttribute('data-' + currentLang);
+}
+
+// ── Scroll Reveal ──
+function revealOnScroll() {
+  const reveals = document.querySelectorAll('.reveal');
+  const windowHeight = window.innerHeight;
+  reveals.forEach(el => {
+    const top = el.getBoundingClientRect().top;
+    if (top < windowHeight - 80) {
+      el.classList.add('visible');
+    }
+  });
+}
+
+window.addEventListener('scroll', revealOnScroll, { passive: true });
+window.addEventListener('load', revealOnScroll);
+</script>
+
+</body>
+</html>

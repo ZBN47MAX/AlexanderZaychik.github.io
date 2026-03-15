@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全境封锁2 | THE DIVISION 2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg: #08090c;
+    --bg2: #0e1014;
+    --bg3: #161a20;
+    --text: #cdd2da;
+    --text-dim: #555b66;
+    --accent: #ff6f00;
+    --accent2: #e05a00;
+    --accent-glow: rgba(255, 111, 0, 0.12);
+    --shd: #ff6f00;
+    --shd-dim: rgba(255, 111, 0, 0.08);
+    --holo: rgba(255, 140, 40, 0.06);
+    --holo-border: rgba(255, 140, 40, 0.15);
+    --holo-bright: rgba(255, 140, 40, 0.25);
+    --holo-text: rgba(255, 160, 60, 0.9);
+    --holo-scanline: rgba(255, 140, 40, 0.03);
+    --danger: #e03030;
+    --safe: #40a840;
+    --warn: #dda020;
+    --blue: #2080c0;
+    --surface: rgba(255, 255, 255, 0.025);
+    --border: rgba(255, 255, 255, 0.05);
+    --shadow: 0 8px 40px rgba(0,0,0,0.7);
+    --font-zh: 'Noto Sans SC', sans-serif;
+    --font-en: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] {
+    --bg: #e2ddd3;
+    --bg2: #d8d3c8;
+    --bg3: #ccc7bb;
+    --text: #1a1915;
+    --text-dim: #6e6a60;
+    --accent: #c45500;
+    --accent2: #a84800;
+    --accent-glow: rgba(196, 85, 0, 0.1);
+    --shd: #c45500;
+    --shd-dim: rgba(196, 85, 0, 0.06);
+    --holo: rgba(196, 100, 30, 0.06);
+    --holo-border: rgba(196, 100, 30, 0.2);
+    --holo-bright: rgba(196, 100, 30, 0.15);
+    --holo-text: rgba(160, 70, 10, 0.85);
+    --holo-scanline: rgba(196, 100, 30, 0.03);
+    --danger: #b02020;
+    --safe: #2a7a2a;
+    --warn: #b08010;
+    --blue: #1a6090;
+    --surface: rgba(0, 0, 0, 0.035);
+    --border: rgba(0, 0, 0, 0.07);
+    --shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-zh);
+    line-height: 1.8;
+    transition: background var(--transition), color var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ===== Holographic overlay ===== */
+  .holo-grid-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(0deg, transparent 49.5%, var(--holo-scanline) 49.5%, var(--holo-scanline) 50.5%, transparent 50.5%),
+      linear-gradient(90deg, transparent 49.5%, var(--holo-scanline) 49.5%, var(--holo-scanline) 50.5%, transparent 50.5%);
+    background-size: 100% 4px, 4px 100%;
+    opacity: 0.5;
+  }
+
+  .holo-flicker {
+    position: fixed; inset: 0; z-index: 9998;
+    pointer-events: none;
+    animation: flicker 8s ease-in-out infinite;
+  }
+  @keyframes flicker {
+    0%, 93%, 95%, 97%, 100% { opacity: 0; }
+    94% { opacity: 0.02; background: var(--accent); }
+    96% { opacity: 0.01; background: var(--accent); }
+  }
+
+  .scanline-sweep {
+    position: fixed;
+    left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--holo-bright), transparent);
+    z-index: 9997;
+    pointer-events: none;
+    animation: sweep 6s linear infinite;
+    opacity: 0.4;
+  }
+  @keyframes sweep {
+    0% { top: -3px; }
+    100% { top: 100vh; }
+  }
+
+  /* ===== Particle Canvas ===== */
+  #particle-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  [data-theme="light"] #particle-canvas { opacity: 0.2; }
+
+  /* ===== Holographic Panel Component ===== */
+  .holo-panel {
+    background: var(--holo);
+    border: 1px solid var(--holo-border);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+  }
+  .holo-panel::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      var(--holo-scanline) 2px,
+      var(--holo-scanline) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+  .holo-panel::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse, var(--holo-bright) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .holo-panel:hover::after { opacity: 1; }
+
+  .holo-corner {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-color: var(--accent);
+    border-style: solid;
+    border-width: 0;
+    opacity: 0.6;
+    z-index: 2;
+  }
+  .holo-corner.tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .holo-corner.tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .holo-corner.bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .holo-corner.br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+
+  /* ===== SHD Watch HUD ===== */
+  .shd-watch {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: 80px; height: 80px;
+    z-index: 50;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+  .shd-watch:hover { opacity: 0.7; }
+  .shd-watch-ring {
+    position: absolute; inset: 0;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    animation: shd-spin 30s linear infinite;
+  }
+  .shd-watch-ring::before {
+    content: '';
+    position: absolute; inset: 8px;
+    border: 1px dashed var(--holo-border);
+    border-radius: 50%;
+  }
+  .shd-watch-core {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 16px var(--accent), 0 0 32px var(--accent-glow);
+    animation: core-pulse 2s ease-in-out infinite;
+  }
+  @keyframes shd-spin { to { transform: rotate(360deg); } }
+  @keyframes core-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(0.7); opacity: 0.6; }
+  }
+
+  /* ===== HUD crosshair deco ===== */
+  .hud-crosshair {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px; height: 40px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.06;
+  }
+  .hud-crosshair::before, .hud-crosshair::after {
+    content: '';
+    position: absolute;
+    background: var(--accent);
+  }
+  .hud-crosshair::before { top: 0; left: 50%; width: 1px; height: 100%; transform: translateX(-50%); }
+  .hud-crosshair::after { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
+
+  /* ===== Controls ===== */
+  .controls {
+    position: fixed;
+    top: 20px; right: 20px;
+    z-index: 100;
+    display: flex; gap: 10px;
+  }
+  .ctrl-btn {
+    background: var(--holo);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--holo-border);
+    color: var(--holo-text);
+    width: 42px; height: 42px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .ctrl-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--holo-scanline) 2px, var(--holo-scanline) 4px);
+    pointer-events: none;
+  }
+  .ctrl-btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow), inset 0 0 20px var(--holo);
+    color: var(--accent);
+  }
+
+  /* ===== Nav ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 90;
+    padding: 16px 36px;
+    display: flex; align-items: center; gap: 32px;
+    backdrop-filter: blur(16px);
+    background: linear-gradient(to bottom, var(--bg), transparent);
+    border-bottom: 1px solid var(--holo-border);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .logo-shd {
+    width: 30px; height: 30px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+  .logo-shd::before {
+    content: '';
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+  }
+  .nav-links a:hover {
+    color: var(--accent);
+    border-color: var(--holo-border);
+    background: var(--holo);
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 80px;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 60% 40%, var(--holo-bright) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 70%, rgba(32, 128, 192, 0.05) 0%, transparent 40%);
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 720px;
+  }
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-tag::before { content: '◆'; font-size: 8px; }
+  .hero h1 {
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: clamp(40px, 7vw, 92px);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+  .hero h1 .sub-brand {
+    display: block;
+    font-size: 0.2em;
+    letter-spacing: 12px;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .hero h1 .numeral {
+    color: var(--accent);
+    text-shadow: 0 0 30px var(--accent-glow);
+  }
+  .hero-sub {
+    margin-top: 24px;
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 520px;
+    line-height: 1.9;
+  }
+
+  /* Hero holographic info box */
+  .hero-holo-box {
+    margin-top: 40px;
+    padding: 24px 28px;
+    max-width: 480px;
+  }
+  .hero-holo-box .holo-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--holo-border);
+    position: relative;
+    z-index: 2;
+  }
+  .hero-holo-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    position: relative;
+    z-index: 2;
+  }
+  .hero-holo-row .label { color: var(--text-dim); letter-spacing: 2px; }
+  .hero-holo-row .value { color: var(--holo-text); }
+  .hero-holo-row .value.danger { color: var(--danger); }
+  .hero-holo-row .value.safe { color: var(--safe); }
+  .hero-holo-row .value.warn { color: var(--warn); }
+
+  /* ===== Sections ===== */
+  section {
+    position: relative; z-index: 1;
+    padding: 100px 80px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before { content: '◆'; font-size: 6px; }
+  .section-title {
+    font-size: clamp(26px, 3.5vw, 44px);
+    font-weight: 300;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 580px;
+    margin-bottom: 56px;
+    font-size: 14px;
+  }
+
+  /* ===== Holographic Cards ===== */
+  .holo-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .holo-card {
+    padding: 36px 28px;
+    transition: all 0.4s;
+  }
+  .holo-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 40px var(--accent-glow), inset 0 0 60px var(--holo);
+    transform: translateY(-2px);
+  }
+  .holo-card .card-id {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+    opacity: 0.6;
+    position: relative;
+    z-index: 2;
+  }
+  .holo-card h3 {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2;
+  }
+  .holo-card p {
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.8;
+    position: relative;
+    z-index: 2;
+  }
+  .holo-card .holo-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border: 1px solid;
+    position: relative;
+    z-index: 2;
+    background: var(--holo);
+  }
+  .holo-status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+  .s-active { color: var(--safe); border-color: var(--safe); }
+  .s-alert { color: var(--danger); border-color: var(--danger); }
+  .s-warn { color: var(--warn); border-color: var(--warn); }
+  .s-info { color: var(--accent); border-color: var(--accent); }
+
+  /* ===== Stats bar ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin: 60px 0;
+  }
+  .stat-cell {
+    padding: 32px 20px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .stat-cell:hover {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 40px var(--holo);
+  }
+  .stat-num {
+    font-family: var(--font-mono);
+    font-size: 34px;
+    color: var(--accent);
+    line-height: 1;
+    text-shadow: 0 0 20px var(--accent-glow);
+    position: relative;
+    z-index: 2;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ===== DC Map ===== */
+  .dc-map {
+    padding: 48px;
+  }
+  .dc-map .map-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .landmark-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+  }
+  .landmark {
+    border: 1px dashed var(--holo-border);
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+    background: var(--holo);
+    position: relative;
+  }
+  .landmark:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    background: var(--holo-bright);
+  }
+  .landmark-name {
+    font-family: var(--font-en);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .landmark-type {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .landmark-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  /* ===== Specializations ===== */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .spec-card {
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.4s;
+  }
+  .spec-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 40px var(--accent-glow);
+    transform: translateY(-3px);
+  }
+  .spec-icon {
+    font-size: 36px;
+    margin-bottom: 16px;
+    display: block;
+    position: relative;
+    z-index: 2;
+  }
+  .spec-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .spec-card p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    position: relative;
+    z-index: 2;
+  }
+  .spec-weapon {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ===== ISAC Terminal ===== */
+  .isac-terminal {
+    padding: 32px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 2.2;
+  }
+  .terminal-header {
+    color: var(--accent);
+    letter-spacing: 4px;
+    font-size: 11px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--holo-border);
+    position: relative;
+    z-index: 2;
+  }
+  .t-line {
+    color: var(--text-dim);
+    position: relative;
+    z-index: 2;
+  }
+  .t-line .ts { color: var(--accent); opacity: 0.5; margin-right: 12px; }
+  .t-line .ok { color: var(--safe); }
+  .t-line .warn { color: var(--warn); }
+  .t-line .err { color: var(--danger); }
+  .cursor-blink {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--accent);
+    animation: cursor 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 4px;
+    position: relative;
+    z-index: 2;
+  }
+  @keyframes cursor { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+  /* ===== Quote ===== */
+  .quote-section {
+    text-align: center;
+    padding: 100px 40px;
+    position: relative;
+  }
+  .quote-shd-emblem {
+    width: 70px; height: 70px;
+    margin: 0 auto 28px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow);
+  }
+  .quote-shd-emblem::before {
+    content: '';
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .quote-shd-emblem::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border: 1px dashed var(--holo-border);
+    border-radius: 50%;
+    animation: shd-spin 20s linear infinite;
+  }
+
+  blockquote {
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 300;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .quote-src {
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+  }
+
+  /* ===== CTA ===== */
+  .cta-section { text-align: center; padding: 100px 40px; }
+  .cta-btn {
+    display: inline-block;
+    font-family: var(--font-en);
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    padding: 16px 52px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+    pointer-events: none;
+  }
+  .cta-btn:hover {
+    box-shadow: 0 0 30px var(--accent-glow), 0 0 60px var(--accent-glow);
+    filter: brightness(1.1);
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    border-top: 1px solid var(--holo-border);
+    padding: 32px 40px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    font-family: var(--font-mono);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s, transform 0.7s;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    nav { padding: 14px 16px; gap: 12px; }
+    .nav-links { display: none; }
+    .hero { padding: 0 20px; }
+    section { padding: 60px 20px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .spec-grid { grid-template-columns: 1fr; }
+    .landmark-grid { grid-template-columns: 1fr; }
+    .controls { top: 14px; right: 14px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="holo-grid-overlay"></div>
+<div class="holo-flicker"></div>
+<div class="scanline-sweep"></div>
+<div class="hud-crosshair"></div>
+
+<div class="shd-watch">
+  <div class="shd-watch-ring"></div>
+  <div class="shd-watch-core"></div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="lang-toggle" title="EN / 中文">文</button>
+  <button class="ctrl-btn" id="theme-toggle" title="Light / Dark">☀</button>
+</div>
+
+<nav>
+  <div class="logo">
+    <div class="logo-shd"></div>
+    SHD // DC
+  </div>
+  <ul class="nav-links">
+    <li><a href="#briefing" data-zh="简报" data-en="Briefing">简报</a></li>
+    <li><a href="#systems" data-zh="系统" data-en="Systems">系统</a></li>
+    <li><a href="#dc-map" data-zh="华盛顿" data-en="D.C.">华盛顿</a></li>
+    <li><a href="#specs" data-zh="专精" data-en="Specs">专精</a></li>
+    <li><a href="#comms" data-zh="通讯" data-en="Comms">通讯</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag" data-zh="SHD 紧急指令 // 华盛顿特区" data-en="SHD DIRECTIVE // WASHINGTON D.C.">SHD 紧急指令 // 华盛顿特区</div>
+    <h1>
+      <span class="sub-brand">TOM CLANCY'S</span>
+      THE DIVISION<br><span class="numeral">2</span>
+    </h1>
+    <p class="hero-sub" data-zh="七个月后，美元流感从纽约蔓延至全国。华盛顿特区——美国的心脏——正在陷落。SHD特工被紧急召回首都，这一次，你要保卫的不只是一座城市，而是一个国家最后的希望。" data-en="Seven months later, the Green Poison has spread from New York across the nation. Washington D.C. — the heart of America — is falling. SHD agents are urgently recalled to the capital. This time, you're defending not just a city, but a nation's last hope.">七个月后，美元流感从纽约蔓延至全国。华盛顿特区——美国的心脏——正在陷落。SHD特工被紧急召回首都，这一次，你要保卫的不只是一座城市，而是一个国家最后的希望。</p>
+
+    <div class="hero-holo-box holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="holo-header" data-zh="◆ 实时态势感知" data-en="◆ REAL-TIME SITUATIONAL AWARENESS">◆ 实时态势感知</div>
+      <div class="hero-holo-row">
+        <span class="label" data-zh="任务区域" data-en="AO">任务区域</span>
+        <span class="value" data-zh="华盛顿特区" data-en="WASHINGTON D.C.">华盛顿特区</span>
+      </div>
+      <div class="hero-holo-row">
+        <span class="label" data-zh="威胁等级" data-en="THREAT LVL">威胁等级</span>
+        <span class="value danger">CRITICAL</span>
+      </div>
+      <div class="hero-holo-row">
+        <span class="label" data-zh="SHD 网络" data-en="SHD NET">SHD 网络</span>
+        <span class="value warn" data-zh="部分在线" data-en="PARTIAL">部分在线</span>
+      </div>
+      <div class="hero-holo-row">
+        <span class="label" data-zh="ISAC 状态" data-en="ISAC STATUS">ISAC 状态</span>
+        <span class="value safe">ONLINE</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Briefing -->
+<section id="briefing">
+  <div class="reveal">
+    <div class="section-label" data-zh="简报 // 华盛顿危机" data-en="BRIEFING // D.C. CRISIS">简报 // 华盛顿危机</div>
+    <h2 class="section-title" data-zh="首都沦陷：华盛顿特区战况" data-en="Capital Under Siege: The D.C. Situation">首都沦陷：华盛顿特区战况</h2>
+    <p class="section-desc" data-zh="瘟疫蔓延七个月后，华盛顿特区的局势已经失控。联合部队（JTF）几近瓦解，多个敌对势力正在争夺对城市地标的控制权。SHD特工必须重建秩序，恢复政府职能，并揭开幕后黑手的阴谋。" data-en="Seven months after the pandemic, Washington D.C. has spiraled out of control. The Joint Task Force is near collapse, and hostile factions are fighting for control of the city's landmarks. SHD agents must restore order, rebuild government functions, and uncover the conspiracy behind it all.">瘟疫蔓延七个月后，华盛顿特区的局势已经失控。联合部队（JTF）几近瓦解，多个敌对势力正在争夺对城市地标的控制权。SHD特工必须重建秩序，恢复政府职能，并揭开幕后黑手的阴谋。</p>
+  </div>
+
+  <div class="stats-row reveal">
+    <div class="stat-cell holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <div class="stat-num">DAY 214</div>
+      <div class="stat-label" data-zh="疫情爆发后" data-en="POST-OUTBREAK">疫情爆发后</div>
+    </div>
+    <div class="stat-cell holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <div class="stat-num">62K</div>
+      <div class="stat-label" data-zh="活跃特工" data-en="ACTIVE AGENTS">活跃特工</div>
+    </div>
+    <div class="stat-cell holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <div class="stat-num">41%</div>
+      <div class="stat-label" data-zh="区域已解放" data-en="ZONES LIBERATED">区域已解放</div>
+    </div>
+    <div class="stat-cell holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <div class="stat-num">GS 515</div>
+      <div class="stat-label" data-zh="装备评分上限" data-en="MAX GEAR SCORE">装备评分上限</div>
+    </div>
+  </div>
+</section>
+
+<!-- Systems -->
+<section id="systems">
+  <div class="reveal">
+    <div class="section-label" data-zh="系统 // 新机制" data-en="SYSTEMS // NEW MECHANICS">系统 // 新机制</div>
+    <h2 class="section-title" data-zh="全境封锁2 核心系统" data-en="Division 2 Core Systems">全境封锁2 核心系统</h2>
+    <p class="section-desc" data-zh="全新的系统机制为特工提供了更深度的战术选择和角色构建。" data-en="New system mechanics provide agents with deeper tactical choices and character builds.">全新的系统机制为特工提供了更深度的战术选择和角色构建。</p>
+  </div>
+
+  <div class="holo-cards reveal">
+    <div class="holo-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="card-id">SYS-001</div>
+      <h3 data-zh="定居点系统" data-en="Settlements">定居点系统</h3>
+      <p data-zh="定居点取代了前作的行动基地，它们是由平民建立的社区。通过完成任务，特工可以帮助定居点升级，解锁新的NPC、项目和资源。" data-en="Settlements replace the previous Base of Operations. They are communities built by civilians. By completing missions, agents help upgrade settlements, unlocking new NPCs, projects, and resources.">定居点取代了前作的行动基地，它们是由平民建立的社区。通过完成任务，特工可以帮助定居点升级，解锁新的NPC、项目和资源。</p>
+      <span class="holo-status s-active">ACTIVE</span>
+    </div>
+    <div class="holo-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="card-id">SYS-002</div>
+      <h3 data-zh="控制点争夺" data-en="Control Points">控制点争夺</h3>
+      <p data-zh="遍布华盛顿的控制点由敌对势力把持。特工可以攻占这些据点，但敌人会定期反攻。控制点会根据世界难度动态调整防御等级。" data-en="Control Points scattered across D.C. are held by hostile factions. Agents can capture these positions, but enemies will periodically counterattack. Control Points dynamically adjust defense levels based on world difficulty.">遍布华盛顿的控制点由敌对势力把持。特工可以攻占这些据点，但敌人会定期反攻。控制点会根据世界难度动态调整防御等级。</p>
+      <span class="holo-status s-warn">CONTESTED</span>
+    </div>
+    <div class="holo-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="card-id">SYS-003</div>
+      <h3 data-zh="暗区 (重新设计)" data-en="Dark Zone (Redesigned)">暗区 (重新设计)</h3>
+      <p data-zh="华盛顿拥有三个独立暗区，每个都有独特的地形和规则。被占领的暗区有时会进入"入侵"状态——黑牙佣兵团会接管该区域，战斗规则彻底改变。" data-en="D.C. features three distinct Dark Zones, each with unique terrain and rules. Occupied Dark Zones sometimes enter 'Invaded' state — Black Tusk mercenaries take over, completely changing combat rules.">华盛顿拥有三个独立暗区，每个都有独特的地形和规则。被占领的暗区有时会进入"入侵"状态——黑牙佣兵团会接管该区域，战斗规则彻底改变。</p>
+      <span class="holo-status s-alert">HIGH RISK</span>
+    </div>
+    <div class="holo-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="card-id">SYS-004</div>
+      <h3 data-zh="突袭 (8人副本)" data-en="Raids (8-Player)">突袭 (8人副本)</h3>
+      <p data-zh="全境封锁2首次引入8人突袭副本。"暗时之锐"突袭需要高度协调的团队配合，是游戏中最具挑战性的PvE内容。" data-en="Division 2 introduces 8-player raids for the first time. 'Operation Dark Hours' demands highly coordinated teamwork, representing the most challenging PvE content in the game.">全境封锁2首次引入8人突袭副本。"暗时之锐"突袭需要高度协调的团队配合，是游戏中最具挑战性的PvE内容。</p>
+      <span class="holo-status s-info">AVAILABLE</span>
+    </div>
+    <div class="holo-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="card-id">SYS-005</div>
+      <h3 data-zh="装备套装 2.0" data-en="Gear Sets 2.0">装备套装 2.0</h3>
+      <p data-zh="全新的装备系统允许更灵活的Build搭配。品牌套装、异域装备和装备套装三层体系，让每个特工都能打造独特的战斗风格。" data-en="The new gear system allows more flexible builds. Three tiers — Brand Sets, Exotics, and Gear Sets — enable every agent to craft a unique combat style.">全新的装备系统允许更灵活的Build搭配。品牌套装、异域装备和装备套装三层体系，让每个特工都能打造独特的战斗风格。</p>
+      <span class="holo-status s-active">ONLINE</span>
+    </div>
+    <div class="holo-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+      <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+      <div class="card-id">SYS-006</div>
+      <h3 data-zh="全局事件与赛季" data-en="Global Events & Seasons">全局事件与赛季</h3>
+      <p data-zh="赛季系统为游戏带来持续的新内容，包括全局事件、赛季曼哈特任务和独家奖励。每个赛季都围绕一个叛变特工的追捕展开。" data-en="The seasonal system delivers continuous new content, including global events, seasonal manhunt missions, and exclusive rewards. Each season revolves around hunting down a rogue agent.">赛季系统为游戏带来持续的新内容，包括全局事件、赛季曼哈特任务和独家奖励。每个赛季都围绕一个叛变特工的追捕展开。</p>
+      <span class="holo-status s-info">SEASONAL</span>
+    </div>
+  </div>
+</section>
+
+<!-- DC Map -->
+<section id="dc-map">
+  <div class="reveal">
+    <div class="section-label" data-zh="区域 // 华盛顿特区" data-en="ZONES // WASHINGTON D.C.">区域 // 华盛顿特区</div>
+    <h2 class="section-title" data-zh="华盛顿特区行动地图" data-en="Washington D.C. Operations Map">华盛顿特区行动地图</h2>
+    <p class="section-desc" data-zh="首都的标志性地标如今已沦为战场。每一座建筑都讲述着文明崩塌的故事。" data-en="The capital's iconic landmarks have become battlefields. Every building tells a story of civilization's collapse.">首都的标志性地标如今已沦为战场。每一座建筑都讲述着文明崩塌的故事。</p>
+  </div>
+
+  <div class="dc-map holo-panel reveal">
+    <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+    <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+    <div class="map-title" data-zh="◆ 华盛顿特区 // 关键地标" data-en="◆ WASHINGTON D.C. // KEY LANDMARKS">◆ 华盛顿特区 // 关键地标</div>
+    <div class="landmark-grid">
+      <div class="landmark">
+        <div class="landmark-name" data-zh="白宫" data-en="The White House">白宫</div>
+        <div class="landmark-type" data-zh="行动基地" data-en="BASE OF OPS">行动基地</div>
+        <div class="landmark-status" style="color:var(--safe)" data-zh="■ 已解放" data-en="■ LIBERATED">■ 已解放</div>
+      </div>
+      <div class="landmark">
+        <div class="landmark-name" data-zh="国会大厦" data-en="Capitol Building">国会大厦</div>
+        <div class="landmark-type" data-zh="据点任务" data-en="STRONGHOLD">据点任务</div>
+        <div class="landmark-status" style="color:var(--danger)" data-zh="■ 敌军占领" data-en="■ HOSTILE">■ 敌军占领</div>
+      </div>
+      <div class="landmark">
+        <div class="landmark-name" data-zh="航空航天博物馆" data-en="Air & Space Museum">航空航天博物馆</div>
+        <div class="landmark-type" data-zh="主线任务" data-en="MAIN MISSION">主线任务</div>
+        <div class="landmark-status" style="color:var(--warn)" data-zh="■ 交战中" data-en="■ CONTESTED">■ 交战中</div>
+      </div>
+      <div class="landmark">
+        <div class="landmark-name" data-zh="林肯纪念堂" data-en="Lincoln Memorial">林肯纪念堂</div>
+        <div class="landmark-type" data-zh="主线任务" data-en="MAIN MISSION">主线任务</div>
+        <div class="landmark-status" style="color:var(--danger)" data-zh="■ 敌军占领" data-en="■ HOSTILE">■ 敌军占领</div>
+      </div>
+      <div class="landmark">
+        <div class="landmark-name" data-zh="五角大楼" data-en="The Pentagon">五角大楼</div>
+        <div class="landmark-type" data-zh="DLC 区域" data-en="DLC ZONE">DLC 区域</div>
+        <div class="landmark-status" style="color:var(--danger)" data-zh="■ 黑牙控制" data-en="■ BLACK TUSK">■ 黑牙控制</div>
+      </div>
+      <div class="landmark">
+        <div class="landmark-name" data-zh="暗区南" data-en="DZ South">暗区南</div>
+        <div class="landmark-type" data-zh="暗区" data-en="DARK ZONE">暗区</div>
+        <div class="landmark-status" style="color:var(--danger)" data-zh="■ 极高威胁" data-en="■ CRITICAL">■ 极高威胁</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Specializations -->
+<section id="specs">
+  <div class="reveal">
+    <div class="section-label" data-zh="专精 // 终局内容" data-en="SPECIALIZATIONS // ENDGAME">专精 // 终局内容</div>
+    <h2 class="section-title" data-zh="特工专精系统" data-en="Agent Specializations">特工专精系统</h2>
+    <p class="section-desc" data-zh="到达满级后，特工可以选择专精路线，解锁独有的签名武器和技能树。" data-en="Upon reaching max level, agents can choose a specialization, unlocking unique signature weapons and skill trees.">到达满级后，特工可以选择专精路线，解锁独有的签名武器和技能树。</p>
+  </div>
+
+  <div class="spec-grid reveal">
+    <div class="spec-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <span class="spec-icon">🎯</span>
+      <h3 data-zh="神射手" data-en="Sharpshooter">神射手</h3>
+      <p data-zh="精准打击专家，擅长远距离消灭高价值目标。" data-en="Precision strike specialist, excelling at eliminating high-value targets at long range.">精准打击专家，擅长远距离消灭高价值目标。</p>
+      <div class="spec-weapon">.50 CAL RIFLE</div>
+    </div>
+    <div class="spec-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <span class="spec-icon">💥</span>
+      <h3 data-zh="爆破专家" data-en="Demolitionist">爆破专家</h3>
+      <p data-zh="区域毁灭者，用爆炸物清理成群的敌人。" data-en="Area denial expert, using explosives to clear groups of enemies.">区域毁灭者，用爆炸物清理成群的敌人。</p>
+      <div class="spec-weapon">M32A1 GRENADE LAUNCHER</div>
+    </div>
+    <div class="spec-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <span class="spec-icon">🛡</span>
+      <h3 data-zh="求生专家" data-en="Survivalist">求生专家</h3>
+      <p data-zh="野外生存大师，擅长控制和支援队友。" data-en="Wilderness survival master, specializing in crowd control and team support.">野外生存大师，擅长控制和支援队友。</p>
+      <div class="spec-weapon">PRECISION CROSSBOW</div>
+    </div>
+    <div class="spec-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <span class="spec-icon">🔫</span>
+      <h3 data-zh="火力手" data-en="Gunner">火力手</h3>
+      <p data-zh="重火力压制专家，持续输出是战场上的噩梦。" data-en="Heavy firepower suppression expert, sustained output is a nightmare on the battlefield.">重火力压制专家，持续输出是战场上的噩梦。</p>
+      <div class="spec-weapon">MINIGUN</div>
+    </div>
+    <div class="spec-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <span class="spec-icon">⚡</span>
+      <h3 data-zh="技师" data-en="Technician">技师</h3>
+      <p data-zh="科技战术家，利用高科技装备支配战场。" data-en="Tech tactician, dominating the battlefield with advanced equipment.">科技战术家，利用高科技装备支配战场。</p>
+      <div class="spec-weapon">P-017 MISSILE LAUNCHER</div>
+    </div>
+    <div class="spec-card holo-panel">
+      <div class="holo-corner tl"></div><div class="holo-corner br"></div>
+      <span class="spec-icon">🔥</span>
+      <h3 data-zh="纵火专家" data-en="Firewall">纵火专家</h3>
+      <p data-zh="近距离焚烧一切，在火焰中锻造前进之路。" data-en="Burns everything at close range, forging a path forward through flames.">近距离焚烧一切，在火焰中锻造前进之路。</p>
+      <div class="spec-weapon">K8-JetStream FLAMETHROWER</div>
+    </div>
+  </div>
+</section>
+
+<!-- ISAC Terminal -->
+<section>
+  <div class="reveal">
+    <div class="section-label" data-zh="系统 // ISAC 终端" data-en="SYSTEM // ISAC TERMINAL">系统 // ISAC 终端</div>
+    <h2 class="section-title" data-zh="ISAC 系统终端" data-en="ISAC System Terminal">ISAC 系统终端</h2>
+  </div>
+  <div class="isac-terminal holo-panel reveal">
+    <div class="holo-corner tl"></div><div class="holo-corner tr"></div>
+    <div class="holo-corner bl"></div><div class="holo-corner br"></div>
+    <div class="terminal-header">ISAC v5.2 // WASHINGTON D.C. NODE</div>
+    <div class="t-line"><span class="ts">07:42:18</span> <span data-zh="SHD 网络同步完成。华盛顿节点：在线" data-en="SHD network sync complete. D.C. node: ONLINE">SHD 网络同步完成。华盛顿节点：在线</span></div>
+    <div class="t-line"><span class="ts">07:43:05</span> <span class="warn" data-zh="[警告] 黑牙佣兵团在国会大厦区域集结，预计入侵即将开始" data-en="[WARNING] Black Tusk forces massing near Capitol Building. Invasion imminent.">[警告] 黑牙佣兵团在国会大厦区域集结，预计入侵即将开始</span></div>
+    <div class="t-line"><span class="ts">07:44:31</span> <span class="ok" data-zh="[完成] 白宫定居点物资运输任务已完成" data-en="[COMPLETE] White House settlement supply run finished">[完成] 白宫定居点物资运输任务已完成</span></div>
+    <div class="t-line"><span class="ts">07:46:12</span> <span class="err" data-zh="[紧急] 暗区南检测到叛变特工活动。信号标识：KEENER 网络残余" data-en="[CRITICAL] Rogue agent activity detected in DZ South. Signature: KEENER network remnant">[紧急] 暗区南检测到叛变特工活动。信号标识：KEENER 网络残余</span></div>
+    <div class="t-line"><span class="ts">07:48:09</span> <span data-zh="控制点"国家广场"已成功夺回。驻守JTF部队已到位" data-en="Control point 'National Mall' recaptured. JTF garrison deployed.">控制点"国家广场"已成功夺回。驻守JTF部队已到位</span></div>
+    <div class="t-line"><span class="ts">07:49:44</span> <span class="warn" data-zh="[警告] 鬣狗帮在东部定居点附近发起突袭" data-en="[WARNING] Hyena gang launching raid near Eastern settlement">[警告] 鬣狗帮在东部定居点附近发起突袭</span></div>
+    <div class="t-line"><span class="ts">07:51:20</span> <span class="ok" data-zh="[完成] 新赛季任务已解锁。目标：追捕叛变特工 SHADE" data-en="[COMPLETE] New seasonal manhunt unlocked. Target: Rogue Agent SHADE">[完成] 新赛季任务已解锁。目标：追捕叛变特工 SHADE</span></div>
+    <div class="t-line"><span class="ts">07:52:55</span> <span data-zh="等待下一条指令..." data-en="Awaiting next directive...">等待下一条指令...</span><span class="cursor-blink"></span></div>
+  </div>
+</section>
+
+<!-- Quote -->
+<section class="quote-section reveal">
+  <div class="quote-shd-emblem"></div>
+  <blockquote data-zh="我们不是士兵，不是警察，也不是政客。我们是你的邻居、你的同事、你的朋友。当一切崩塌时，我们就是那堵墙——最后的防线。" data-en="We're not soldiers. Not cops. Not politicians. We're your neighbors, your coworkers, your friends. When everything falls apart, we are the wall — the last line of defense.">我们不是士兵，不是警察，也不是政客。我们是你的邻居、你的同事、你的朋友。当一切崩塌时，我们就是那堵墙——最后的防线。</blockquote>
+  <div class="quote-src">— SHD FIELD MANUAL // CHAPTER 1</div>
+</section>
+
+<!-- CTA -->
+<section id="comms" class="cta-section">
+  <div class="reveal">
+    <div class="section-label" style="justify-content:center;" data-zh="◆ 征召 // 保卫首都" data-en="◆ RECRUIT // DEFEND THE CAPITAL">◆ 征召 // 保卫首都</div>
+    <h2 class="section-title" style="text-align:center;" data-zh="华盛顿需要你" data-en="Washington Needs You">华盛顿需要你</h2>
+    <p class="section-desc" style="text-align:center; margin: 14px auto 36px;" data-zh="首都在燃烧。加入SHD，成为保卫这个国家最后希望的特工。" data-en="The capital is burning. Join the SHD. Become the agent who defends this nation's last hope.">首都在燃烧。加入SHD，成为保卫这个国家最后希望的特工。</p>
+    <button class="cta-btn" data-zh="激活特工身份" data-en="ACTIVATE AGENT">激活特工身份</button>
+  </div>
+</section>
+
+<footer>
+  <p>STRATEGIC HOMELAND DIVISION // <span data-zh="华盛顿特区行动司令部" data-en="D.C. OPERATIONS COMMAND">华盛顿特区行动司令部</span> // ISAC v5.2</p>
+</footer>
+
+<script>
+// ===== Floating particles =====
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function initParticles() {
+  particles = [];
+  const count = Math.floor(window.innerWidth / 12);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.3,
+      speedX: (Math.random() - 0.5) * 0.4,
+      speedY: (Math.random() - 0.5) * 0.3 - 0.1,
+      opacity: Math.random() * 0.4 + 0.1,
+      pulse: Math.random() * Math.PI * 2
+    });
+  }
+}
+initParticles();
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const t = Date.now() * 0.001;
+
+  particles.forEach(p => {
+    const flicker = Math.sin(t + p.pulse) * 0.2 + 0.8;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = isDark
+      ? `rgba(255, 140, 40, ${p.opacity * flicker})`
+      : `rgba(180, 90, 20, ${p.opacity * flicker * 0.5})`;
+    ctx.fill();
+
+    // glow
+    if (p.r > 1) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+      ctx.fillStyle = isDark
+        ? `rgba(255, 140, 40, ${p.opacity * flicker * 0.1})`
+        : `rgba(180, 90, 20, ${p.opacity * flicker * 0.03})`;
+      ctx.fill();
+    }
+
+    p.x += p.speedX;
+    p.y += p.speedY;
+    if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+    if (p.x < -10) p.x = canvas.width + 10;
+    if (p.x > canvas.width + 10) p.x = -10;
+  });
+
+  // draw some connection lines between close particles
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = isDark
+          ? `rgba(255, 140, 40, ${0.06 * (1 - dist / 100)})`
+          : `rgba(180, 90, 20, ${0.03 * (1 - dist / 100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ===== Theme =====
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  this.textContent = isDark ? '☾' : '☀';
+});
+
+// ===== Language =====
+document.getElementById('lang-toggle').addEventListener('click', function() {
+  const html = document.documentElement;
+  const isZh = html.getAttribute('data-lang') === 'zh';
+  const newLang = isZh ? 'en' : 'zh';
+  html.setAttribute('data-lang', newLang);
+  html.setAttribute('lang', newLang === 'zh' ? 'zh-CN' : 'en');
+  this.textContent = isZh ? '中' : '文';
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    el.textContent = el.getAttribute(`data-${newLang}`);
+  });
+});
+
+// ===== Scroll Reveal =====
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

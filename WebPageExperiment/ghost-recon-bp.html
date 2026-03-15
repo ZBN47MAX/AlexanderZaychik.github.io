@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Recon Breakpoint | Auroa Island</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ====== RESET & ROOT ====== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0a1210;--bg-mid:#0e1a16;--bg-panel:#111f1a;
+  --mil-green:#2a4a3a;--mil-green-light:#3a6a4a;
+  --blood-red:#cc2020;--blood-dark:#8a1515;
+  --fog:#6a7a7a;--fog-light:#8a9a9a;
+  --steel:#3a4a5a;--steel-light:#5a6a7a;
+  --nv-green:#00ff41;--nv-dim:#00aa2a;
+  --text-primary:#c8d0c8;--text-secondary:#7a8a7a;
+  --text-bright:#e0e8e0;
+  --warmth:#d4842a;--warmth-glow:#ff9a3a;
+  --font-display:'Rajdhani',sans-serif;
+  --font-body:'Noto Sans SC',sans-serif;
+  --font-mono:'Space Mono',monospace;
+}
+[data-theme="light"]{
+  --bg-deep:#d8ddd8;--bg-mid:#c8d0c8;--bg-panel:#b8c4b8;
+  --text-primary:#1a2a1a;--text-secondary:#3a4a3a;
+  --text-bright:#0a1a0a;
+  --mil-green:#4a7a5a;--mil-green-light:#5a9a6a;
+  --fog:#5a6a6a;--fog-light:#4a5a5a;
+  --steel:#6a7a8a;--steel-light:#8a9aaa;
+  --bg-panel:#c0ccc0;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:var(--font-body);
+  background:var(--bg-deep);
+  color:var(--text-primary);
+  overflow-x:hidden;
+  line-height:1.6;
+  transition:background .5s,color .5s;
+}
+a{color:var(--nv-green);text-decoration:none}
+a:hover{color:var(--warmth)}
+
+/* ====== SCROLLBAR ====== */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--mil-green);border-radius:3px}
+
+/* ====== CANVAS ====== */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ====== CONTOUR PATTERN OVERLAY ====== */
+.contour-bg{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.06;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%,transparent 0deg,transparent 89deg,var(--mil-green) 89deg,var(--mil-green) 91deg,transparent 91deg) 0 0/400px 400px,
+    repeating-radial-gradient(circle at 30% 40%,transparent 0px,transparent 58px,rgba(42,74,58,.3) 59px,rgba(42,74,58,.3) 60px,transparent 61px) 0 0/200px 200px,
+    repeating-radial-gradient(circle at 70% 60%,transparent 0px,transparent 78px,rgba(42,74,58,.2) 79px,rgba(42,74,58,.2) 80px,transparent 81px) 0 0/300px 300px,
+    repeating-radial-gradient(circle at 50% 50%,transparent 0px,transparent 38px,rgba(42,74,58,.25) 39px,rgba(42,74,58,.25) 40px,transparent 41px) 0 0/150px 150px;
+}
+
+/* ====== NAV ====== */
+.top-nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 30px;
+  background:rgba(10,18,16,.92);
+  border-bottom:1px solid rgba(42,74,58,.4);
+  backdrop-filter:blur(10px);
+}
+.nav-brand{
+  font-family:var(--font-display);font-size:1.2rem;font-weight:700;
+  color:var(--text-bright);letter-spacing:3px;text-transform:uppercase;
+}
+.nav-brand span.skull{color:var(--blood-red);font-size:1.4rem;margin-right:6px}
+.nav-controls{display:flex;gap:10px;align-items:center}
+.nav-btn{
+  background:rgba(42,74,58,.3);border:1px solid var(--mil-green);
+  color:var(--text-primary);padding:6px 14px;cursor:pointer;
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:1px;
+  text-transform:uppercase;transition:all .3s;
+}
+.nav-btn:hover{background:var(--mil-green);color:var(--bg-deep)}
+.nav-links{display:flex;gap:18px;align-items:center}
+.nav-links a{
+  font-family:var(--font-display);font-size:.85rem;
+  color:var(--text-secondary);letter-spacing:2px;text-transform:uppercase;
+  transition:color .3s;position:relative;
+}
+.nav-links a:hover{color:var(--nv-green)}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;
+  background:var(--nv-green);transition:width .3s;
+}
+.nav-links a:hover::after{width:100%}
+
+/* ====== MAIN CONTENT ====== */
+main{position:relative;z-index:1}
+
+/* ====== HERO ====== */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:120px 20px 60px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 80%,rgba(212,132,42,.08) 0%,transparent 60%),
+    radial-gradient(ellipse at 50% 30%,rgba(204,32,32,.05) 0%,transparent 50%);
+  pointer-events:none;
+}
+.hero-status{
+  font-family:var(--font-mono);font-size:.7rem;color:var(--blood-red);
+  letter-spacing:4px;text-transform:uppercase;margin-bottom:20px;
+  animation:blink-status 2s infinite;
+}
+@keyframes blink-status{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(3rem,8vw,7rem);
+  font-weight:900;line-height:.9;letter-spacing:6px;
+  text-transform:uppercase;color:var(--text-bright);
+  text-shadow:0 0 40px rgba(0,255,65,.15);
+  margin-bottom:10px;
+}
+.hero h1 .red{color:var(--blood-red)}
+.hero h1 .cracked{
+  position:relative;display:inline-block;
+}
+.hero h1 .cracked::after{
+  content:'';position:absolute;top:20%;left:45%;
+  width:60px;height:80px;
+  background:linear-gradient(135deg,transparent 40%,rgba(204,32,32,.4) 40%,rgba(204,32,32,.4) 42%,transparent 42%,transparent 55%,rgba(204,32,32,.3) 55%,rgba(204,32,32,.3) 57%,transparent 57%);
+  pointer-events:none;
+}
+.hero-subtitle{
+  font-family:var(--font-display);font-size:clamp(1rem,2.5vw,1.6rem);
+  color:var(--fog);letter-spacing:8px;text-transform:uppercase;
+  font-weight:300;margin-bottom:30px;
+}
+.hero-survival-bar{
+  display:flex;gap:20px;justify-content:center;flex-wrap:wrap;
+  margin-bottom:40px;
+}
+.survival-stat{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:.65rem;
+  color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;
+}
+.survival-stat .bar-outer{
+  width:80px;height:6px;background:rgba(42,74,58,.3);
+  border:1px solid rgba(42,74,58,.5);position:relative;overflow:hidden;
+}
+.survival-stat .bar-inner{height:100%;transition:width 1.5s ease}
+.bar-health .bar-inner{background:linear-gradient(90deg,var(--blood-red),#ff4040);width:35%}
+.bar-stamina .bar-inner{background:linear-gradient(90deg,var(--nv-green),#40ff80);width:60%}
+.bar-hydration .bar-inner{background:linear-gradient(90deg,#2080cc,#40a0ff);width:45%}
+.bar-injury .bar-inner{background:linear-gradient(90deg,var(--warmth),var(--warmth-glow));width:80%}
+.hero-desc{
+  max-width:600px;color:var(--fog);font-size:.95rem;line-height:1.8;
+  margin-bottom:40px;
+}
+.hero-cta-group{display:flex;gap:15px;flex-wrap:wrap;justify-content:center}
+.btn-primary{
+  font-family:var(--font-display);font-size:1rem;font-weight:600;
+  padding:14px 40px;background:var(--blood-red);color:#fff;
+  border:none;cursor:pointer;letter-spacing:3px;text-transform:uppercase;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+  transition:all .3s;
+}
+.btn-primary:hover{background:#ee3030;transform:translateY(-2px);box-shadow:0 6px 30px rgba(204,32,32,.4)}
+.btn-secondary{
+  font-family:var(--font-display);font-size:1rem;font-weight:600;
+  padding:14px 40px;background:transparent;color:var(--nv-green);
+  border:1px solid var(--mil-green);cursor:pointer;letter-spacing:3px;text-transform:uppercase;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+  transition:all .3s;
+}
+.btn-secondary:hover{background:rgba(0,255,65,.1);border-color:var(--nv-green)}
+
+/* ====== SCROLL INDICATOR ====== */
+.scroll-indicator{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  animation:float-down 2s ease-in-out infinite;
+}
+.scroll-indicator span{font-family:var(--font-mono);font-size:.6rem;color:var(--fog);letter-spacing:3px;text-transform:uppercase}
+.scroll-chevrons{display:flex;flex-direction:column;align-items:center;gap:2px}
+.scroll-chevrons i{width:12px;height:12px;border-right:2px solid var(--mil-green);border-bottom:2px solid var(--mil-green);transform:rotate(45deg);opacity:.5}
+.scroll-chevrons i:nth-child(2){opacity:.8}
+.scroll-chevrons i:nth-child(3){opacity:1}
+@keyframes float-down{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ====== SECTIONS ====== */
+section{padding:100px 20px;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-tag{
+  font-family:var(--font-mono);font-size:.65rem;
+  color:var(--nv-green);letter-spacing:4px;text-transform:uppercase;
+  margin-bottom:10px;display:flex;align-items:center;gap:10px;
+}
+.section-tag::before{content:'//';color:var(--mil-green)}
+.section-title{
+  font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);
+  font-weight:700;text-transform:uppercase;letter-spacing:4px;
+  color:var(--text-bright);margin-bottom:30px;line-height:1.1;
+}
+.section-title .accent{color:var(--blood-red)}
+
+/* ====== REVEAL ANIMATION ====== */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.reveal.revealed{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.15s}
+.reveal-delay-2{transition-delay:.3s}
+.reveal-delay-3{transition-delay:.45s}
+
+/* ====== AUROA SECTION ====== */
+.auroa-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;
+  align-items:start;margin-top:40px;
+}
+.auroa-map{
+  position:relative;padding:30px;
+  border:1px solid var(--mil-green);
+  background:
+    repeating-radial-gradient(circle at 50% 50%,transparent 0px,transparent 28px,rgba(42,74,58,.15) 29px,rgba(42,74,58,.15) 30px,transparent 31px),
+    repeating-radial-gradient(circle at 30% 30%,transparent 0px,transparent 48px,rgba(42,74,58,.1) 49px,rgba(42,74,58,.1) 50px,transparent 51px),
+    var(--bg-panel);
+  min-height:300px;display:flex;flex-direction:column;justify-content:center;
+}
+.auroa-map .coord{
+  font-family:var(--font-mono);font-size:.6rem;color:var(--nv-green);
+  position:absolute;opacity:.6;
+}
+.auroa-map .coord-tl{top:10px;left:10px}
+.auroa-map .coord-tr{top:10px;right:10px}
+.auroa-map .coord-bl{bottom:10px;left:10px}
+.auroa-map .coord-br{bottom:10px;right:10px}
+.auroa-map h3{
+  font-family:var(--font-display);font-size:1.8rem;color:var(--text-bright);
+  text-transform:uppercase;letter-spacing:3px;margin-bottom:15px;
+}
+.auroa-map p{color:var(--fog);font-size:.9rem;line-height:1.8}
+.auroa-stats{display:flex;flex-direction:column;gap:20px}
+.auroa-stat-card{
+  padding:20px;background:var(--bg-panel);
+  border-left:3px solid var(--mil-green);
+  transition:border-color .3s,transform .3s;
+}
+.auroa-stat-card:hover{border-color:var(--nv-green);transform:translateX(5px)}
+.auroa-stat-card h4{
+  font-family:var(--font-display);font-size:1.1rem;
+  color:var(--text-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;
+}
+.auroa-stat-card p{color:var(--fog);font-size:.85rem;line-height:1.7}
+
+/* ====== WOLVES SECTION ====== */
+.wolves-section{
+  background:linear-gradient(180deg,var(--bg-deep) 0%,rgba(138,21,21,.08) 50%,var(--bg-deep) 100%);
+}
+.wolves-skull{
+  text-align:center;margin-bottom:40px;
+}
+.wolves-skull svg{width:100px;height:100px}
+.wolves-header{text-align:center;margin-bottom:50px}
+.wolves-profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px}
+.wolf-card{
+  position:relative;padding:30px;
+  background:var(--bg-panel);
+  border:1px solid rgba(204,32,32,.2);
+  overflow:hidden;transition:all .4s;
+}
+.wolf-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+  background:linear-gradient(90deg,transparent,var(--blood-red),transparent);
+}
+.wolf-card::after{
+  content:'';position:absolute;top:0;right:0;
+  width:60px;height:60px;
+  background:linear-gradient(225deg,rgba(204,32,32,.15) 0%,transparent 60%);
+  pointer-events:none;
+}
+.wolf-card:hover{border-color:var(--blood-red);transform:translateY(-4px);box-shadow:0 10px 40px rgba(204,32,32,.15)}
+.wolf-card .rank{
+  font-family:var(--font-mono);font-size:.6rem;
+  color:var(--blood-red);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;
+}
+.wolf-card h3{
+  font-family:var(--font-display);font-size:1.5rem;
+  color:var(--text-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;
+}
+.wolf-card p{color:var(--fog);font-size:.85rem;line-height:1.7}
+
+/* ====== FRACTURED PANEL ====== */
+.fractured{position:relative}
+.fractured::before{
+  content:'';position:absolute;top:-1px;left:20%;width:30%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--blood-red) 30%,var(--blood-red) 70%,transparent);
+  filter:blur(0.5px);z-index:2;
+}
+.fractured::after{
+  content:'';position:absolute;
+  top:0;left:30%;width:1px;height:40px;
+  background:linear-gradient(180deg,var(--blood-red),transparent);
+  z-index:2;
+}
+.crack-effect{
+  position:relative;
+}
+.crack-effect::before{
+  content:'';position:absolute;top:10%;left:0;
+  width:100%;height:80%;
+  background:
+    linear-gradient(155deg,transparent 48%,rgba(204,32,32,.12) 48%,rgba(204,32,32,.12) 49%,transparent 49%) 0 0/100% 100% no-repeat,
+    linear-gradient(165deg,transparent 52%,rgba(204,32,32,.08) 52%,rgba(204,32,32,.08) 53%,transparent 53%) 0 0/100% 100% no-repeat;
+  pointer-events:none;z-index:1;
+}
+
+/* ====== DRONES SECTION ====== */
+.drones-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:25px;
+  margin-top:40px;
+}
+.drone-card{
+  padding:25px;background:var(--bg-panel);
+  border:1px solid var(--steel);
+  position:relative;overflow:hidden;
+  transition:all .4s;
+}
+.drone-card:hover{border-color:var(--nv-green);transform:translateY(-3px)}
+.drone-card .drone-icon{
+  width:60px;height:60px;margin-bottom:15px;position:relative;
+}
+.drone-card .drone-icon svg{width:100%;height:100%}
+.drone-card .threat-level{
+  font-family:var(--font-mono);font-size:.6rem;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;
+}
+.threat-low{color:var(--nv-green)}
+.threat-med{color:var(--warmth)}
+.threat-high{color:var(--blood-red)}
+.threat-extreme{color:#ff2020;text-shadow:0 0 10px rgba(255,32,32,.5)}
+.drone-card h3{
+  font-family:var(--font-display);font-size:1.3rem;
+  color:var(--text-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;
+}
+.drone-card p{color:var(--fog);font-size:.82rem;line-height:1.7}
+.drone-card .scan-line{
+  position:absolute;top:0;left:-100%;width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--nv-green),transparent);
+  animation:drone-scan 3s linear infinite;
+}
+@keyframes drone-scan{0%{left:-100%}100%{left:100%}}
+
+/* ====== SURVIVAL SECTION ====== */
+.survival-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:40px;
+}
+.survival-card{
+  padding:25px;background:var(--bg-panel);
+  border:1px solid rgba(42,74,58,.3);
+  position:relative;transition:all .4s;
+}
+.survival-card:hover{border-color:var(--warmth);transform:translateY(-3px)}
+.survival-card .icon-area{
+  width:50px;height:50px;margin-bottom:15px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--mil-green);color:var(--nv-green);
+  font-size:1.5rem;
+}
+.survival-card h3{
+  font-family:var(--font-display);font-size:1.2rem;
+  color:var(--text-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;
+}
+.survival-card p{color:var(--fog);font-size:.85rem;line-height:1.7}
+.survival-card .warmth-indicator{
+  width:100%;height:3px;margin-top:15px;
+  background:linear-gradient(90deg,var(--warmth) 0%,var(--warmth-glow) 60%,transparent 100%);
+  opacity:.5;
+}
+
+/* ====== HEALTH BAR UI ====== */
+.health-ui{
+  display:flex;gap:15px;flex-wrap:wrap;margin:30px 0;
+  padding:20px;background:rgba(10,18,16,.8);border:1px solid rgba(42,74,58,.3);
+}
+.health-segment{flex:1;min-width:120px}
+.health-segment .label{
+  font-family:var(--font-mono);font-size:.6rem;
+  color:var(--text-secondary);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:6px;display:flex;justify-content:space-between;
+}
+.health-segment .hbar{
+  width:100%;height:8px;background:rgba(42,74,58,.2);
+  border:1px solid rgba(42,74,58,.4);position:relative;overflow:hidden;
+}
+.health-segment .hbar-fill{
+  height:100%;transition:width 2s ease;
+}
+.hbar-red .hbar-fill{background:linear-gradient(90deg,#aa1010,var(--blood-red));width:30%}
+.hbar-green .hbar-fill{background:linear-gradient(90deg,#108a10,var(--nv-green));width:70%}
+.hbar-blue .hbar-fill{background:linear-gradient(90deg,#1040aa,#2080ff);width:55%}
+.hbar-orange .hbar-fill{background:linear-gradient(90deg,#8a5a10,var(--warmth));width:85%}
+
+/* ====== CLASSES SECTION ====== */
+.classes-section{
+  background:linear-gradient(180deg,var(--bg-deep) 0%,rgba(42,74,58,.05) 50%,var(--bg-deep) 100%);
+}
+.classes-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:25px;
+  margin-top:40px;
+}
+.class-card{
+  padding:30px;background:var(--bg-panel);
+  border:1px solid rgba(42,74,58,.3);
+  position:relative;overflow:hidden;
+  transition:all .4s;cursor:default;
+}
+.class-card::before{
+  content:'';position:absolute;top:0;left:0;
+  width:4px;height:100%;transition:background .3s;
+}
+.class-card:nth-child(1)::before{background:var(--blood-red)}
+.class-card:nth-child(2)::before{background:var(--nv-green)}
+.class-card:nth-child(3)::before{background:#8040cc}
+.class-card:nth-child(4)::before{background:var(--warmth)}
+.class-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.class-card .class-icon{
+  font-size:2rem;margin-bottom:15px;display:block;
+}
+.class-card h3{
+  font-family:var(--font-display);font-size:1.4rem;
+  color:var(--text-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;
+}
+.class-card .class-role{
+  font-family:var(--font-mono);font-size:.6rem;
+  color:var(--nv-green);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;
+}
+.class-card p{color:var(--fog);font-size:.85rem;line-height:1.7}
+.class-card .stat-bars{margin-top:15px;display:flex;flex-direction:column;gap:6px}
+.class-card .stat-bar-row{display:flex;align-items:center;gap:8px}
+.class-card .stat-label{
+  font-family:var(--font-mono);font-size:.55rem;
+  color:var(--text-secondary);width:50px;text-transform:uppercase;letter-spacing:1px;
+}
+.class-card .stat-track{flex:1;height:4px;background:rgba(42,74,58,.2)}
+.class-card .stat-fill{height:100%}
+
+/* ====== QUOTE SECTION ====== */
+.quote-section{
+  text-align:center;padding:80px 20px;
+  background:linear-gradient(180deg,var(--bg-deep),rgba(204,32,32,.06),var(--bg-deep));
+  position:relative;
+}
+.quote-section::before{
+  content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(90deg,transparent 49.5%,rgba(204,32,32,.08) 49.5%,rgba(204,32,32,.08) 50.5%,transparent 50.5%);
+  pointer-events:none;
+}
+.quote-mark{
+  font-family:var(--font-display);font-size:6rem;
+  color:var(--blood-red);opacity:.3;line-height:1;margin-bottom:-20px;
+}
+.quote-text{
+  font-family:var(--font-display);font-size:clamp(1.5rem,4vw,3rem);
+  color:var(--text-bright);font-weight:300;letter-spacing:3px;
+  max-width:800px;margin:0 auto 20px;line-height:1.4;
+}
+.quote-attr{
+  font-family:var(--font-mono);font-size:.7rem;
+  color:var(--blood-red);letter-spacing:3px;text-transform:uppercase;
+}
+
+/* ====== CTA SECTION ====== */
+.cta-section{text-align:center;padding:100px 20px}
+.cta-section h2{
+  font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);
+  font-weight:700;text-transform:uppercase;letter-spacing:4px;
+  color:var(--text-bright);margin-bottom:20px;
+}
+.cta-section p{
+  color:var(--fog);font-size:1rem;max-width:500px;margin:0 auto 40px;line-height:1.7;
+}
+
+/* ====== FOOTER ====== */
+footer{
+  padding:40px 20px;border-top:1px solid rgba(42,74,58,.3);
+  text-align:center;
+}
+footer .footer-grid{
+  max-width:900px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:30px;
+  text-align:left;margin-bottom:30px;
+}
+footer h4{
+  font-family:var(--font-display);font-size:.9rem;
+  color:var(--text-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;
+}
+footer ul{list-style:none}
+footer li{
+  font-size:.8rem;color:var(--fog);margin-bottom:6px;
+  font-family:var(--font-mono);
+}
+footer .footer-bottom{
+  font-family:var(--font-mono);font-size:.65rem;
+  color:var(--text-secondary);letter-spacing:2px;
+  padding-top:20px;border-top:1px solid rgba(42,74,58,.2);
+}
+footer .footer-bottom .skull-sm{color:var(--blood-red)}
+
+/* ====== GLITCH TEXT ====== */
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{
+  content:attr(data-text);position:absolute;top:0;left:0;
+  width:100%;height:100%;overflow:hidden;
+}
+.glitch::before{
+  color:var(--nv-green);z-index:-1;
+  animation:glitch-1 3s infinite linear alternate-reverse;
+}
+.glitch::after{
+  color:var(--blood-red);z-index:-2;
+  animation:glitch-2 2s infinite linear alternate-reverse;
+}
+@keyframes glitch-1{
+  0%,95%{clip-path:inset(0)}
+  96%{clip-path:inset(20% 0 60% 0);transform:translateX(-3px)}
+  97%{clip-path:inset(50% 0 20% 0);transform:translateX(3px)}
+  98%{clip-path:inset(10% 0 70% 0);transform:translateX(-2px)}
+  100%{clip-path:inset(0);transform:translateX(0)}
+}
+@keyframes glitch-2{
+  0%,93%{clip-path:inset(0)}
+  94%{clip-path:inset(60% 0 10% 0);transform:translateX(4px)}
+  96%{clip-path:inset(30% 0 40% 0);transform:translateX(-4px)}
+  98%{clip-path:inset(80% 0 5% 0);transform:translateX(2px)}
+  100%{clip-path:inset(0);transform:translateX(0)}
+}
+
+/* ====== NOISE OVERLAY ====== */
+.noise-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:9999;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+
+/* ====== MOBILE MENU ====== */
+.mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.mobile-toggle span{display:block;width:22px;height:2px;background:var(--text-primary);margin:5px 0;transition:all .3s}
+
+/* ====== RESPONSIVE ====== */
+@media(max-width:900px){
+  .auroa-grid{grid-template-columns:1fr}
+  .survival-grid{grid-template-columns:1fr 1fr}
+  .footer-grid{grid-template-columns:1fr !important}
+  .nav-links{display:none}
+  .mobile-toggle{display:block}
+  .nav-links.active{
+    display:flex;flex-direction:column;
+    position:absolute;top:100%;left:0;right:0;
+    background:rgba(10,18,16,.95);padding:20px;
+    border-bottom:1px solid var(--mil-green);
+  }
+}
+@media(max-width:600px){
+  .survival-grid{grid-template-columns:1fr}
+  .classes-grid{grid-template-columns:1fr}
+  .drones-grid{grid-template-columns:1fr 1fr}
+  .hero h1{letter-spacing:2px}
+  .hero-survival-bar{flex-direction:column;align-items:center}
+  .health-ui{flex-direction:column}
+}
+@media(max-width:400px){
+  .drones-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Noise overlay -->
+<div class="noise-overlay"></div>
+
+<!-- Contour background -->
+<div class="contour-bg"></div>
+
+<!-- Background canvas -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- Navigation -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    <span class="skull">&#9760;</span>
+    <span data-en="GHOST RECON" data-zh="幽灵行动">GHOST RECON</span>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a href="#auroa" data-en="Auroa" data-zh="极光岛">Auroa</a>
+    <a href="#wolves" data-en="Wolves" data-zh="狼群">Wolves</a>
+    <a href="#drones" data-en="Drones" data-zh="无人机">Drones</a>
+    <a href="#survival" data-en="Survival" data-zh="生存">Survival</a>
+    <a href="#classes" data-en="Classes" data-zh="职业">Classes</a>
+  </div>
+  <div class="nav-controls">
+    <button class="nav-btn" id="langToggle" onclick="toggleLang()">中/EN</button>
+    <button class="nav-btn" id="themeToggle" onclick="toggleTheme()">&#9790;</button>
+    <button class="mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main>
+
+<!-- ====== HERO ====== -->
+<section class="hero" id="hero">
+  <div class="hero-status" data-en="// EMERGENCY BEACON ACTIVE &mdash; SIGNAL COMPROMISED" data-zh="// 紧急信标已激活 &mdash; 信号受损">// EMERGENCY BEACON ACTIVE &mdash; SIGNAL COMPROMISED</div>
+  <h1>
+    <span class="cracked glitch" data-text="BREAK">BREAK</span><span class="red">POINT</span>
+  </h1>
+  <div class="hero-subtitle" data-en="Wounded. Hunted. Behind Enemy Lines." data-zh="负伤。被猎。深入敌后。">Wounded. Hunted. Behind Enemy Lines.</div>
+
+  <div class="hero-survival-bar">
+    <div class="survival-stat">
+      <span data-en="HEALTH" data-zh="生命">HEALTH</span>
+      <div class="bar-outer bar-health"><div class="bar-inner"></div></div>
+      <span>35%</span>
+    </div>
+    <div class="survival-stat">
+      <span data-en="STAMINA" data-zh="体力">STAMINA</span>
+      <div class="bar-outer bar-stamina"><div class="bar-inner"></div></div>
+      <span>60%</span>
+    </div>
+    <div class="survival-stat">
+      <span data-en="HYDRATION" data-zh="水分">HYDRATION</span>
+      <div class="bar-outer bar-hydration"><div class="bar-inner"></div></div>
+      <span>45%</span>
+    </div>
+    <div class="survival-stat">
+      <span data-en="INJURY" data-zh="伤势">INJURY</span>
+      <div class="bar-outer bar-injury"><div class="bar-inner"></div></div>
+      <span>SEVERE</span>
+    </div>
+  </div>
+
+  <p class="hero-desc" data-en="Operation Greenstone has gone dark. Helicopters downed over the Pacific. Nomad awakens alone on Auroa — wounded, cut off from command, surrounded by the Wolves. No extraction. No backup. Survive." data-zh="绿石行动已失联。直升机在太平洋上空被击落。游牧者在极光岛上独自醒来——负伤、与指挥部失联、被狼群包围。无法撤离。没有后援。活下去。">Operation Greenstone has gone dark. Helicopters downed over the Pacific. Nomad awakens alone on Auroa &mdash; wounded, cut off from command, surrounded by the Wolves. No extraction. No backup. Survive.</p>
+
+  <div class="hero-cta-group">
+    <button class="btn-primary" data-en="SURVIVE AUROA" data-zh="在极光岛生存">SURVIVE AUROA</button>
+    <button class="btn-secondary" data-en="INTEL BRIEFING" data-zh="情报简报">INTEL BRIEFING</button>
+  </div>
+
+  <div class="scroll-indicator">
+    <span data-en="SCROLL" data-zh="滚动">SCROLL</span>
+    <div class="scroll-chevrons"><i></i><i></i><i></i></div>
+  </div>
+</section>
+
+<!-- ====== AUROA ISLAND ====== -->
+<section id="auroa">
+  <div class="section-inner">
+    <div class="section-tag reveal" data-en="LOCATION INTEL" data-zh="位置情报">LOCATION INTEL</div>
+    <h2 class="section-title reveal"><span data-en="Auroa" data-zh="极光">Auroa</span> <span class="accent" data-en="Island" data-zh="岛">Island</span></h2>
+
+    <div class="auroa-grid">
+      <div class="auroa-map reveal crack-effect">
+        <span class="coord coord-tl">N 10&deg;28'</span>
+        <span class="coord coord-tr">W 123&deg;44'</span>
+        <span class="coord coord-bl">ELEV: 0-2400m</span>
+        <span class="coord coord-br">AREA: 781 km&sup2;</span>
+        <h3 data-en="Archipelago Overview" data-zh="群岛概况">Archipelago Overview</h3>
+        <p data-en="Auroa is a fictional South Pacific archipelago purchased by Skell Technology CEO Jace Skell. Once a tech utopia designed to advance humanitarian drone technology, the island has been seized by the Wolves — a rogue faction of former Ghosts led by Lt. Col. Cole D. Walker. All communications have been severed. Civilian population trapped. The island's diverse terrain spans volcanic peaks, dense rainforests, frozen fjords, and arid salt flats." data-zh="极光岛是一个虚构的南太平洋群岛，由斯凯尔科技公司CEO杰斯·斯凯尔购买。这座曾是推进人道主义无人机技术的科技乌托邦，已被狼群——一支由前幽灵特种部队中校科尔·D·沃克领导的叛变势力——所占领。所有通讯已被切断。平民被困。岛上多样的地形涵盖火山峰、茂密的雨林、冰冻峡湾和干旱盐滩。">Auroa is a fictional South Pacific archipelago purchased by Skell Technology CEO Jace Skell. Once a tech utopia designed to advance humanitarian drone technology, the island has been seized by the Wolves &mdash; a rogue faction of former Ghosts led by Lt. Col. Cole D. Walker. All communications have been severed. Civilian population trapped. The island's diverse terrain spans volcanic peaks, dense rainforests, frozen fjords, and arid salt flats.</p>
+      </div>
+      <div class="auroa-stats">
+        <div class="auroa-stat-card reveal reveal-delay-1">
+          <h4 data-en="&#9650; Skell Technology HQ" data-zh="&#9650; 斯凯尔科技总部">&#9650; Skell Technology HQ</h4>
+          <p data-en="The glass and steel nerve center of Jace Skell's drone empire. Now a Wolves command post controlling the island's autonomous defense network." data-zh="杰斯·斯凯尔无人机帝国的玻璃与钢铁神经中枢。现已成为狼群指挥所，控制着岛上的自主防御网络。">The glass and steel nerve center of Jace Skell's drone empire. Now a Wolves command post controlling the island's autonomous defense network.</p>
+        </div>
+        <div class="auroa-stat-card reveal reveal-delay-2">
+          <h4 data-en="&#9650; Erewhon Cave" data-zh="&#9650; 埃尔温洞穴">&#9650; Erewhon Cave</h4>
+          <p data-en="Hidden deep in the mountains, this natural cave system serves as the Homesteaders' last refuge — a base for the resistance and your only safe haven on Auroa." data-zh="深藏于山脉之中，这个天然洞穴系统是家园守护者们最后的避难所——抵抗组织的基地，也是你在极光岛上唯一的安全港湾。">Hidden deep in the mountains, this natural cave system serves as the Homesteaders' last refuge &mdash; a base for the resistance and your only safe haven on Auroa.</p>
+        </div>
+        <div class="auroa-stat-card reveal reveal-delay-3">
+          <h4 data-en="&#9650; Restricted Zone" data-zh="&#9650; 禁区">&#9650; Restricted Zone</h4>
+          <p data-en="Sector 3 — designated no-go area. Highest drone concentration on the island. Azrael surveillance drones on permanent patrol. Only the most skilled Ghosts venture here." data-zh="第三区——指定禁入区域。岛上无人机密度最高的地区。死神侦察无人机永久巡逻。只有最精锐的幽灵特工才敢进入。">Sector 3 &mdash; designated no-go area. Highest drone concentration on the island. Azrael surveillance drones on permanent patrol. Only the most skilled Ghosts venture here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== WOLVES ====== -->
+<section class="wolves-section" id="wolves">
+  <div class="section-inner">
+    <div class="wolves-header">
+      <div class="wolves-skull reveal">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 5 L25 25 L15 50 L20 75 L35 90 L45 85 L50 90 L55 85 L65 90 L80 75 L85 50 L75 25 Z" stroke="#cc2020" stroke-width="2" fill="none"/>
+          <path d="M35 40 L30 50 L40 55 L45 45 Z" fill="#cc2020" opacity=".6"/>
+          <path d="M65 40 L70 50 L60 55 L55 45 Z" fill="#cc2020" opacity=".6"/>
+          <path d="M45 60 L50 75 L55 60" stroke="#cc2020" stroke-width="1.5" fill="none"/>
+          <line x1="40" y1="78" x2="60" y2="78" stroke="#cc2020" stroke-width="1"/>
+          <line x1="42" y1="82" x2="58" y2="82" stroke="#cc2020" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="section-tag reveal" data-en="ENEMY FACTION" data-zh="敌方阵营">ENEMY FACTION</div>
+      <h2 class="section-title reveal" data-en="The Wolves" data-zh="狼群"><span class="accent" data-en="The Wolves" data-zh="狼群">The Wolves</span></h2>
+      <p class="reveal" style="color:var(--fog);max-width:600px;margin:0 auto;font-size:.9rem;line-height:1.8" data-en="Former Ghost operatives turned rogue. The Wolves are a paramilitary force that has seized control of Auroa, wielding Skell Technology's drone arsenal against their former brothers-in-arms." data-zh="前幽灵特工叛变。狼群是一支准军事力量，已夺取极光岛的控制权，利用斯凯尔科技的无人机武器库对抗曾经的战友。">Former Ghost operatives turned rogue. The Wolves are a paramilitary force that has seized control of Auroa, wielding Skell Technology's drone arsenal against their former brothers-in-arms.</p>
+    </div>
+
+    <div class="wolves-profiles">
+      <div class="wolf-card fractured reveal">
+        <div class="rank" data-en="COMMANDING OFFICER" data-zh="指挥官">COMMANDING OFFICER</div>
+        <h3>Cole D. Walker</h3>
+        <p data-en="Lt. Colonel. Former Ghost team leader and brother-in-arms to Nomad. Walker became disillusioned with the government's use of soldiers as expendable assets. He seized Auroa to build an army beyond any nation's control — the Wolves. Brilliant tactician, ruthless leader, and the most dangerous enemy the Ghosts have ever faced." data-zh="中校。前幽灵特种部队队长，游牧者的战友。沃克对政府将士兵当作消耗品的做法感到幻灭。他夺取极光岛，建立了一支不受任何国家控制的军队——狼群。卓越的战术家、无情的领导者，也是幽灵部队面对过的最危险的敌人。">Lt. Colonel. Former Ghost team leader and brother-in-arms to Nomad. Walker became disillusioned with the government's use of soldiers as expendable assets. He seized Auroa to build an army beyond any nation's control &mdash; the Wolves. Brilliant tactician, ruthless leader, and the most dangerous enemy the Ghosts have ever faced.</p>
+      </div>
+      <div class="wolf-card fractured reveal reveal-delay-1">
+        <div class="rank" data-en="WOLF LIEUTENANT" data-zh="狼群副官">WOLF LIEUTENANT</div>
+        <h3 data-en="Josiah Hill" data-zh="乔赛亚·希尔">Josiah Hill</h3>
+        <p data-en="Walker's most loyal enforcer. Former Delta Force operator who followed Walker without question. Oversees the Wolves' ground operations and maintains brutal discipline within the ranks. Controls Auroa's eastern provinces with an iron fist." data-zh="沃克最忠诚的执行者。前三角洲部队成员，无条件追随沃克。负责监管狼群的地面行动，以残酷的纪律维持队伍秩序。以铁腕控制着极光岛东部省份。">Walker's most loyal enforcer. Former Delta Force operator who followed Walker without question. Oversees the Wolves' ground operations and maintains brutal discipline within the ranks. Controls Auroa's eastern provinces with an iron fist.</p>
+      </div>
+      <div class="wolf-card fractured reveal reveal-delay-2">
+        <div class="rank" data-en="WOLF LIEUTENANT" data-zh="狼群副官">WOLF LIEUTENANT</div>
+        <h3 data-en="Rosebud" data-zh="玫瑰花蕾">Rosebud</h3>
+        <p data-en="The Wolves' intelligence officer. Expert in electronic warfare and surveillance systems. She controls Auroa's drone network and communications blackout. Former NSA analyst who was recruited by Walker for her ability to weaponize information and technology against any target." data-zh="狼群的情报官员。电子战和监控系统专家。她控制着极光岛的无人机网络和通讯封锁。前国安局分析师，因其将信息和技术武器化的能力而被沃克招募。">The Wolves' intelligence officer. Expert in electronic warfare and surveillance systems. She controls Auroa's drone network and communications blackout. Former NSA analyst who was recruited by Walker for her ability to weaponize information and technology against any target.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== DRONE THREATS ====== -->
+<section id="drones">
+  <div class="section-inner">
+    <div class="section-tag reveal" data-en="THREAT ASSESSMENT" data-zh="威胁评估">THREAT ASSESSMENT</div>
+    <h2 class="section-title reveal"><span data-en="Drone" data-zh="无人机">Drone</span> <span class="accent" data-en="Threats" data-zh="威胁">Threats</span></h2>
+    <p class="reveal" style="color:var(--fog);max-width:650px;font-size:.9rem;line-height:1.8;margin-bottom:10px" data-en="Skell Technology's autonomous weapons have been repurposed by the Wolves. These drones patrol Auroa's skies and terrain, forming an inescapable surveillance and combat network." data-zh="斯凯尔科技的自主武器已被狼群改造。这些无人机巡逻着极光岛的天空和地面，形成了一张无处可逃的监控与作战网络。">Skell Technology's autonomous weapons have been repurposed by the Wolves. These drones patrol Auroa's skies and terrain, forming an inescapable surveillance and combat network.</p>
+
+    <!-- Health UI -->
+    <div class="health-ui reveal">
+      <div class="health-segment">
+        <div class="label"><span data-en="THREAT LEVEL" data-zh="威胁等级">THREAT LEVEL</span><span>CRITICAL</span></div>
+        <div class="hbar hbar-red"><div class="hbar-fill"></div></div>
+      </div>
+      <div class="health-segment">
+        <div class="label"><span data-en="STEALTH WINDOW" data-zh="隐身窗口">STEALTH WINDOW</span><span>NARROW</span></div>
+        <div class="hbar hbar-green"><div class="hbar-fill"></div></div>
+      </div>
+      <div class="health-segment">
+        <div class="label"><span data-en="EMP CHARGES" data-zh="电磁脉冲弹">EMP CHARGES</span><span>3/8</span></div>
+        <div class="hbar hbar-blue"><div class="hbar-fill"></div></div>
+      </div>
+      <div class="health-segment">
+        <div class="label"><span data-en="ALERT STATUS" data-zh="警戒状态">ALERT STATUS</span><span>HIGH</span></div>
+        <div class="hbar hbar-orange"><div class="hbar-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="drones-grid">
+      <div class="drone-card reveal">
+        <div class="scan-line"></div>
+        <div class="drone-icon">
+          <svg viewBox="0 0 60 60" fill="none"><path d="M30 10 L10 30 L20 35 L30 25 L40 35 L50 30 Z" stroke="#00ff41" stroke-width="1.5" fill="rgba(0,255,65,.1)"/><circle cx="30" cy="28" r="3" fill="#00ff41" opacity=".6"/><path d="M20 38 L30 50 L40 38" stroke="#00ff41" stroke-width="1" opacity=".4"/></svg>
+        </div>
+        <div class="threat-level threat-med" data-en="THREAT: MEDIUM" data-zh="威胁：中等">THREAT: MEDIUM</div>
+        <h3 data-en="Azrael" data-zh="死神">Azrael</h3>
+        <p data-en="High-altitude surveillance drone. Patrols set routes across Auroa, scanning for heat signatures. If detected, it calls in Wolves reinforcements immediately. Go prone, use terrain cover, or time your movements between sweeps." data-zh="高空侦察无人机。在极光岛上沿固定路线巡逻，扫描热信号。一旦发现目标，立即呼叫狼群增援。趴下、利用地形掩护，或在扫描间隙行动。">High-altitude surveillance drone. Patrols set routes across Auroa, scanning for heat signatures. If detected, it calls in Wolves reinforcements immediately. Go prone, use terrain cover, or time your movements between sweeps.</p>
+      </div>
+      <div class="drone-card reveal reveal-delay-1">
+        <div class="scan-line" style="animation-delay:-.8s"></div>
+        <div class="drone-icon">
+          <svg viewBox="0 0 60 60" fill="none"><rect x="15" y="20" width="30" height="20" rx="2" stroke="#cc2020" stroke-width="1.5" fill="rgba(204,32,32,.1)"/><path d="M10 30 L15 25 M10 30 L15 35" stroke="#cc2020" stroke-width="1.5"/><path d="M50 30 L45 25 M50 30 L45 35" stroke="#cc2020" stroke-width="1.5"/><circle cx="30" cy="30" r="4" stroke="#cc2020" stroke-width="1" fill="rgba(204,32,32,.3)"/><line x1="22" y1="30" x2="26" y2="30" stroke="#cc2020" stroke-width="1"/><line x1="34" y1="30" x2="38" y2="30" stroke="#cc2020" stroke-width="1"/></svg>
+        </div>
+        <div class="threat-level threat-high" data-en="THREAT: HIGH" data-zh="威胁：高">THREAT: HIGH</div>
+        <h3 data-en="Aamon" data-zh="阿蒙">Aamon</h3>
+        <p data-en="Ground-based tank drone. Heavily armored quadrupedal platform with mounted chain gun. Patrols key installations. Requires EMP grenades or sustained fire on weak points. Fighting one head-on without preparation is suicide." data-zh="地面坦克无人机。重装甲四足平台，搭载链式机枪。在关键设施周围巡逻。需要使用电磁脉冲手雷或对弱点持续射击。没有准备就正面硬刚无异于自杀。">Ground-based tank drone. Heavily armored quadrupedal platform with mounted chain gun. Patrols key installations. Requires EMP grenades or sustained fire on weak points. Fighting one head-on without preparation is suicide.</p>
+      </div>
+      <div class="drone-card reveal reveal-delay-2">
+        <div class="scan-line" style="animation-delay:-1.5s"></div>
+        <div class="drone-icon">
+          <svg viewBox="0 0 60 60" fill="none"><path d="M30 15 L15 35 L25 35 L25 45 L35 45 L35 35 L45 35 Z" stroke="#ff9a3a" stroke-width="1.5" fill="rgba(255,154,58,.1)"/><circle cx="30" cy="28" r="2" fill="#ff9a3a"/><path d="M22 38 L30 50 L38 38" stroke="#ff9a3a" stroke-width="1" opacity=".5"/></svg>
+        </div>
+        <div class="threat-level threat-med" data-en="THREAT: MEDIUM" data-zh="威胁：中等">THREAT: MEDIUM</div>
+        <h3 data-en="Murmur" data-zh="低语者">Murmur</h3>
+        <p data-en="Small rotary attack drone deployed in swarms. Individually weak but overwhelming in numbers. They strafe with light weapons fire and can flush targets from cover. Area-denial weapons and shotguns are most effective against swarms." data-zh="小型旋翼攻击无人机，以集群方式部署。单个较弱但数量多时令人难以招架。它们用轻武器进行扫射，能把目标从掩体中逼出。区域封锁武器和霰弹枪对集群最有效。">Small rotary attack drone deployed in swarms. Individually weak but overwhelming in numbers. They strafe with light weapons fire and can flush targets from cover. Area-denial weapons and shotguns are most effective against swarms.</p>
+      </div>
+      <div class="drone-card reveal reveal-delay-3">
+        <div class="scan-line" style="animation-delay:-2.2s"></div>
+        <div class="drone-icon">
+          <svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="30" rx="20" ry="10" stroke="#ff2020" stroke-width="1.5" fill="rgba(255,32,32,.08)"/><path d="M15 25 L30 10 L45 25" stroke="#ff2020" stroke-width="1.5"/><path d="M15 35 L30 50 L45 35" stroke="#ff2020" stroke-width="1.5"/><circle cx="30" cy="30" r="5" stroke="#ff2020" stroke-width="1.5" fill="rgba(255,32,32,.2)"/><circle cx="30" cy="30" r="2" fill="#ff2020"/></svg>
+        </div>
+        <div class="threat-level threat-extreme" data-en="THREAT: EXTREME" data-zh="威胁：极端">THREAT: EXTREME</div>
+        <h3 data-en="Behemoth" data-zh="巨兽">Behemoth</h3>
+        <p data-en="The apex predator of Skell's arsenal. Massive autonomous tank with missile launchers, anti-personnel guns, and near-impenetrable armor. Requires coordinated team tactics, precise weak-point targeting, and heavy ordnance. Each Behemoth guards a critical sector of Auroa." data-zh="斯凯尔武器库中的顶级掠食者。巨型自主坦克，配备导弹发射器、防步兵武器和几乎无法穿透的装甲。需要协调的团队战术、精确的弱点打击和重型武器。每台巨兽守卫着极光岛的一个关键区域。">The apex predator of Skell's arsenal. Massive autonomous tank with missile launchers, anti-personnel guns, and near-impenetrable armor. Requires coordinated team tactics, precise weak-point targeting, and heavy ordnance. Each Behemoth guards a critical sector of Auroa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SURVIVAL ====== -->
+<section id="survival">
+  <div class="section-inner">
+    <div class="section-tag reveal" data-en="FIELD MANUAL" data-zh="战地手册">FIELD MANUAL</div>
+    <h2 class="section-title reveal"><span data-en="Survival" data-zh="生存">Survival</span> <span class="accent" data-en="Systems" data-zh="系统">Systems</span></h2>
+
+    <div class="survival-grid">
+      <div class="survival-card reveal">
+        <div class="icon-area">&#9764;</div>
+        <h3 data-en="Injury System" data-zh="伤势系统">Injury System</h3>
+        <p data-en="Wounds are persistent and debilitating. Gunshots, falls, and explosions cause specific injuries — limping, reduced aim stability, stamina drain. Field bandages provide temporary relief; only a bivouac or syringe kit can fully heal. Manage your injuries or die trying." data-zh="伤势是持续且令人虚弱的。枪伤、坠落和爆炸会造成特定的伤害——跛行、瞄准稳定性降低、体力消耗加速。战地绷带只能提供暂时缓解；只有营地或注射器套件才能完全治愈。管理好你的伤势，否则就是送死。">Wounds are persistent and debilitating. Gunshots, falls, and explosions cause specific injuries &mdash; limping, reduced aim stability, stamina drain. Field bandages provide temporary relief; only a bivouac or syringe kit can fully heal. Manage your injuries or die trying.</p>
+        <div class="warmth-indicator"></div>
+      </div>
+      <div class="survival-card reveal reveal-delay-1">
+        <div class="icon-area">&#9762;</div>
+        <h3 data-en="Bivouac" data-zh="露营地">Bivouac</h3>
+        <p data-en="Scattered across Auroa, bivouacs are hidden campsites where Ghosts can rest, heal, craft items, change class, and prepare for the next operation. The campfire provides warmth and recovery — a brief respite from the cold brutality of the island. Choose your preparations wisely before heading out." data-zh="散布在极光岛各处的营地是隐蔽的露营点，幽灵特工可以在此休息、治愈、制作物品、更换职业，并为下一次行动做准备。篝火提供温暖和恢复——在岛上冰冷残酷的环境中短暂喘息。出发前明智地选择你的准备工作。">Scattered across Auroa, bivouacs are hidden campsites where Ghosts can rest, heal, craft items, change class, and prepare for the next operation. The campfire provides warmth and recovery &mdash; a brief respite from the cold brutality of the island. Choose your preparations wisely before heading out.</p>
+        <div class="warmth-indicator"></div>
+      </div>
+      <div class="survival-card reveal reveal-delay-2">
+        <div class="icon-area">&#9881;</div>
+        <h3 data-en="Crafting" data-zh="制作">Crafting</h3>
+        <p data-en="Gather resources from the environment — plants for rations, metal for weapon parts, chemicals for explosives. Craft bandages, rations, water bottles, and sync shot drones in the field. Resource management is the difference between a successful mission and a body left in the jungle." data-zh="从环境中收集资源——植物用于口粮，金属用于武器零件，化学品用于炸药。在野外制作绷带、口粮、水壶和同步射击无人机。资源管理决定了任务成功还是尸体被留在丛林中。">Gather resources from the environment &mdash; plants for rations, metal for weapon parts, chemicals for explosives. Craft bandages, rations, water bottles, and sync shot drones in the field. Resource management is the difference between a successful mission and a body left in the jungle.</p>
+        <div class="warmth-indicator"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== GHOST CLASSES ====== -->
+<section class="classes-section" id="classes">
+  <div class="section-inner">
+    <div class="section-tag reveal" data-en="OPERATIVE ROLES" data-zh="特工角色">OPERATIVE ROLES</div>
+    <h2 class="section-title reveal"><span data-en="Ghost" data-zh="幽灵">Ghost</span> <span class="accent" data-en="Classes" data-zh="职业">Classes</span></h2>
+
+    <div class="classes-grid">
+      <div class="class-card reveal">
+        <span class="class-icon">&#9876;</span>
+        <h3 data-en="Assault" data-zh="突击兵">Assault</h3>
+        <div class="class-role" data-en="FRONTLINE COMBATANT" data-zh="前线战斗员">FRONTLINE COMBATANT</div>
+        <p data-en="The tip of the spear. Assault operators specialize in aggressive engagement — sustained damage output, damage resistance, and gas grenade deployment. True Grit ability provides temporary health regeneration during intense firefights." data-zh="矛尖。突击兵专精于侵略性交战——持续输出伤害、伤害抵抗和毒气手雷部署。坚韧不拔技能在激烈交火中提供临时生命恢复。">The tip of the spear. Assault operators specialize in aggressive engagement &mdash; sustained damage output, damage resistance, and gas grenade deployment. True Grit ability provides temporary health regeneration during intense firefights.</p>
+        <div class="stat-bars">
+          <div class="stat-bar-row"><span class="stat-label">ATK</span><div class="stat-track"><div class="stat-fill" style="width:90%;background:var(--blood-red)"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">DEF</span><div class="stat-track"><div class="stat-fill" style="width:80%;background:var(--blood-red)"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">STL</span><div class="stat-track"><div class="stat-fill" style="width:30%;background:var(--blood-red)"></div></div></div>
+        </div>
+      </div>
+      <div class="class-card reveal reveal-delay-1">
+        <span class="class-icon">&#9678;</span>
+        <h3 data-en="Sharpshooter" data-zh="神枪手">Sharpshooter</h3>
+        <div class="class-role" data-en="PRECISION MARKSMAN" data-zh="精确射手">PRECISION MARKSMAN</div>
+        <p data-en="Patience is a weapon. Sharpshooters excel at long-range elimination with enhanced breath control, armor-piercing rounds, and the Digital Scope ability for thermal detection. One shot, one kill — from positions enemies never see." data-zh="耐心是一种武器。神枪手擅长远程消灭目标，拥有增强的屏息控制、穿甲弹和数字瞄准镜热感应能力。一枪一命——从敌人永远看不到的位置。">Patience is a weapon. Sharpshooters excel at long-range elimination with enhanced breath control, armor-piercing rounds, and the Digital Scope ability for thermal detection. One shot, one kill &mdash; from positions enemies never see.</p>
+        <div class="stat-bars">
+          <div class="stat-bar-row"><span class="stat-label">ATK</span><div class="stat-track"><div class="stat-fill" style="width:95%;background:var(--nv-green)"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">DEF</span><div class="stat-track"><div class="stat-fill" style="width:40%;background:var(--nv-green)"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">STL</span><div class="stat-track"><div class="stat-fill" style="width:70%;background:var(--nv-green)"></div></div></div>
+        </div>
+      </div>
+      <div class="class-card reveal reveal-delay-2">
+        <span class="class-icon">&#9670;</span>
+        <h3 data-en="Panther" data-zh="黑豹">Panther</h3>
+        <div class="class-role" data-en="STEALTH SPECIALIST" data-zh="潜行专家">STEALTH SPECIALIST</div>
+        <p data-en="Invisible and lethal. Panthers dominate through stealth — suppressor damage retention, Cloak & Run smoke deployment, and reduced detection range. They eliminate targets silently and vanish before the alarm is raised. The perfect Ghost." data-zh="隐形且致命。黑豹通过潜行统治战场——消音器伤害保持、烟雾弹部署和降低被发现距离。他们无声地消灭目标，在警报响起之前消失。完美的幽灵。">Invisible and lethal. Panthers dominate through stealth &mdash; suppressor damage retention, Cloak &amp; Run smoke deployment, and reduced detection range. They eliminate targets silently and vanish before the alarm is raised. The perfect Ghost.</p>
+        <div class="stat-bars">
+          <div class="stat-bar-row"><span class="stat-label">ATK</span><div class="stat-track"><div class="stat-fill" style="width:60%;background:#8040cc"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">DEF</span><div class="stat-track"><div class="stat-fill" style="width:35%;background:#8040cc"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">STL</span><div class="stat-track"><div class="stat-fill" style="width:95%;background:#8040cc"></div></div></div>
+        </div>
+      </div>
+      <div class="class-card reveal reveal-delay-3">
+        <span class="class-icon">&#9769;</span>
+        <h3 data-en="Field Medic" data-zh="战地医生">Field Medic</h3>
+        <div class="class-role" data-en="COMBAT SUPPORT" data-zh="战斗支援">COMBAT SUPPORT</div>
+        <p data-en="No one gets left behind. Field Medics keep the team alive with healing drones, faster revive times, and the Medic Kit ability that deploys a healing zone. In a world where injuries are crippling, the Medic is the difference between mission success and total squad wipe." data-zh="不抛弃任何人。战地医生通过治疗无人机、更快的复活时间和部署治疗区域的医疗包技能来维持团队生存。在伤势令人虚弱的世界里，医生是任务成功和全队覆灭的分水岭。">No one gets left behind. Field Medics keep the team alive with healing drones, faster revive times, and the Medic Kit ability that deploys a healing zone. In a world where injuries are crippling, the Medic is the difference between mission success and total squad wipe.</p>
+        <div class="stat-bars">
+          <div class="stat-bar-row"><span class="stat-label">ATK</span><div class="stat-track"><div class="stat-fill" style="width:45%;background:var(--warmth)"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">DEF</span><div class="stat-track"><div class="stat-fill" style="width:70%;background:var(--warmth)"></div></div></div>
+          <div class="stat-bar-row"><span class="stat-label">STL</span><div class="stat-track"><div class="stat-fill" style="width:50%;background:var(--warmth)"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== QUOTE ====== -->
+<section class="quote-section">
+  <div class="section-inner reveal">
+    <div class="quote-mark">&ldquo;</div>
+    <p class="quote-text" data-en="We were brothers once." data-zh="我们曾是兄弟。">We were brothers once.</p>
+    <div class="quote-attr" data-en="&mdash; Cole D. Walker" data-zh="&mdash; 科尔·D·沃克">&mdash; Cole D. Walker</div>
+  </div>
+</section>
+
+<!-- ====== CTA ====== -->
+<section class="cta-section">
+  <div class="section-inner reveal">
+    <h2 data-en="Become the Ghost" data-zh="成为幽灵">Become the <span class="accent">Ghost</span></h2>
+    <p data-en="Auroa is waiting. Gather your squad, choose your class, and fight back against the Wolves. No one else is coming. It's up to you." data-zh="极光岛在等待。集结你的小队，选择你的职业，对抗狼群。没有人会来救你。一切取决于你。">Auroa is waiting. Gather your squad, choose your class, and fight back against the Wolves. No one else is coming. It's up to you.</p>
+    <div class="hero-cta-group">
+      <button class="btn-primary" data-en="DEPLOY NOW" data-zh="立即部署">DEPLOY NOW</button>
+      <button class="btn-secondary" data-en="GHOST BRIEFING" data-zh="幽灵简报">GHOST BRIEFING</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ====== FOOTER ====== -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <h4 data-en="Ghost Recon" data-zh="幽灵行动">Ghost Recon</h4>
+      <ul>
+        <li data-en="Breakpoint (2019)" data-zh="断点 (2019)">Breakpoint (2019)</li>
+        <li data-en="Ubisoft Paris" data-zh="育碧巴黎">Ubisoft Paris</li>
+        <li data-en="Tom Clancy's Series" data-zh="汤姆·克兰西系列">Tom Clancy's Series</li>
+        <li data-en="Open World Tactical Shooter" data-zh="开放世界战术射击">Open World Tactical Shooter</li>
+      </ul>
+    </div>
+    <div>
+      <h4 data-en="Operations" data-zh="行动">Operations</h4>
+      <ul>
+        <li data-en="Op. Greenstone" data-zh="绿石行动">Op. Greenstone</li>
+        <li data-en="Auroa Archipelago" data-zh="极光群岛">Auroa Archipelago</li>
+        <li data-en="Deep State DLC" data-zh="深层国家 DLC">Deep State DLC</li>
+        <li data-en="Motherland Update" data-zh="祖国更新">Motherland Update</li>
+      </ul>
+    </div>
+    <div>
+      <h4 data-en="Intel" data-zh="情报">Intel</h4>
+      <ul>
+        <li data-en="Co-op 1-4 Players" data-zh="1-4人合作">Co-op 1-4 Players</li>
+        <li data-en="PvP Ghost War" data-zh="幽灵战争 PvP">PvP Ghost War</li>
+        <li data-en="Raid: Project Titan" data-zh="突袭：泰坦计划">Raid: Project Titan</li>
+        <li data-en="AI Teammates" data-zh="AI队友">AI Teammates</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="skull-sm">&#9760;</span>
+    <span data-en=" GHOST RECON BREAKPOINT &mdash; FAN TRIBUTE PAGE &mdash; NOT AFFILIATED WITH UBISOFT " data-zh=" 幽灵行动：断点 &mdash; 粉丝致敬页面 &mdash; 与育碧无关 "> GHOST RECON BREAKPOINT &mdash; FAN TRIBUTE PAGE &mdash; NOT AFFILIATED WITH UBISOFT </span>
+    <span class="skull-sm">&#9760;</span>
+  </div>
+</footer>
+
+<script>
+// ====== LANGUAGE TOGGLE ======
+function toggleLang(){
+  const html=document.documentElement;
+  const cur=html.getAttribute('data-lang');
+  const next=cur==='en'?'zh':'en';
+  html.setAttribute('data-lang',next);
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const txt=el.getAttribute('data-'+next);
+    if(txt){
+      if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')el.placeholder=txt;
+      else el.innerHTML=txt;
+    }
+  });
+}
+
+// ====== THEME TOGGLE ======
+function toggleTheme(){
+  const html=document.documentElement;
+  const cur=html.getAttribute('data-theme');
+  html.setAttribute('data-theme',cur==='dark'?'light':'dark');
+  document.getElementById('themeToggle').innerHTML=cur==='dark'?'&#9788;':'&#9790;';
+}
+
+// ====== SCROLL REVEAL ======
+function initReveal(){
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('revealed');
+      }
+    });
+  },{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+}
+
+// ====== CANVAS: FOG + DRONES ======
+function initCanvas(){
+  const canvas=document.getElementById('bgCanvas');
+  const ctx=canvas.getContext('2d');
+  let w,h;
+  function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight}
+  resize();
+  window.addEventListener('resize',resize);
+
+  // Fog particles
+  const fogParticles=[];
+  const FOG_COUNT=80;
+  for(let i=0;i<FOG_COUNT;i++){
+    fogParticles.push({
+      x:Math.random()*w,
+      y:Math.random()*h,
+      r:Math.random()*80+40,
+      vx:(Math.random()-.5)*.3,
+      vy:(Math.random()-.5)*.15,
+      alpha:Math.random()*.04+.01,
+    });
+  }
+
+  // Drone silhouettes
+  const drones=[];
+  const DRONE_COUNT=5;
+  for(let i=0;i<DRONE_COUNT;i++){
+    drones.push({
+      x:Math.random()*w,
+      y:Math.random()*h*.6+h*.1,
+      vx:(Math.random()>.5?1:-1)*(Math.random()*.4+.2),
+      vy:Math.sin(Math.random()*Math.PI*2)*.1,
+      size:Math.random()*8+4,
+      alpha:Math.random()*.12+.04,
+      phase:Math.random()*Math.PI*2,
+    });
+  }
+
+  function drawDrone(x,y,size,alpha){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle='#00ff41';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    // Angular drone shape
+    ctx.moveTo(0,-size);
+    ctx.lineTo(-size*.8,size*.3);
+    ctx.lineTo(-size*.4,size*.2);
+    ctx.lineTo(0,size*.6);
+    ctx.lineTo(size*.4,size*.2);
+    ctx.lineTo(size*.8,size*.3);
+    ctx.closePath();
+    ctx.stroke();
+    // Center dot
+    ctx.fillStyle='#00ff41';
+    ctx.globalAlpha=alpha*2;
+    ctx.beginPath();
+    ctx.arc(0,0,1.5,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  let t=0;
+  function animate(){
+    ctx.clearRect(0,0,w,h);
+    t+=.01;
+
+    // Draw fog
+    fogParticles.forEach(p=>{
+      p.x+=p.vx;
+      p.y+=p.vy;
+      if(p.x<-p.r)p.x=w+p.r;
+      if(p.x>w+p.r)p.x=-p.r;
+      if(p.y<-p.r)p.y=h+p.r;
+      if(p.y>h+p.r)p.y=-p.r;
+
+      const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+      grad.addColorStop(0,'rgba(106,122,122,'+p.alpha+')');
+      grad.addColorStop(1,'rgba(106,122,122,0)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);
+    });
+
+    // Draw drones
+    drones.forEach(d=>{
+      d.x+=d.vx;
+      d.y+=Math.sin(t*2+d.phase)*.3;
+      if(d.x<-50)d.x=w+50;
+      if(d.x>w+50)d.x=-50;
+      drawDrone(d.x,d.y,d.size,d.alpha);
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ====== INIT ======
+document.addEventListener('DOMContentLoaded',()=>{
+  initReveal();
+  initCanvas();
+});
+</script>
+</body>
+</html>

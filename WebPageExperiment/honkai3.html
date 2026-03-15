@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>崩坏3rd - Fight for All That Is Beautiful</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== RESET & BASE ========== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0c0820;--bg-mid:#141030;--bg-panel:rgba(20,16,48,0.7);
+  --accent:#8b5cf6;--accent-glow:#a855f7;--pink:#f43f5e;--hot-pink:#ff4081;
+  --ice:#38bdf8;--cyan:#06b6d4;--gold:#fbbf24;
+  --text:#f0f0ff;--text-dim:#8888aa;--text-muted:#555577;
+  --border:rgba(139,92,246,0.25);--border-glow:rgba(139,92,246,0.6);
+  --grad-energy:linear-gradient(135deg,#8b5cf6,#f43f5e);
+  --grad-hero:linear-gradient(180deg,#0c0820 0%,#1a1040 40%,#0e0828 100%);
+  --glass-bg:rgba(20,16,48,0.55);--glass-border:rgba(139,92,246,0.2);
+  --blur:16px;
+  --font-cn:'Noto Sans SC',sans-serif;
+  --font-en:'Rajdhani',sans-serif;
+  --font-mono:'Courier New',monospace;
+  --psy:#f59e0b;--mech:#38bdf8;--bio:#a855f7;
+}
+[data-theme="light"]{
+  --bg-deep:#e8e0f0;--bg-mid:#f0ebf7;--bg-panel:rgba(240,235,247,0.8);
+  --text:#1a1040;--text-dim:#6b5b8a;--text-muted:#9988bb;
+  --border:rgba(139,92,246,0.2);--border-glow:rgba(139,92,246,0.5);
+  --glass-bg:rgba(255,255,255,0.6);--glass-border:rgba(139,92,246,0.15);
+  --grad-hero:linear-gradient(180deg,#e8e0f0 0%,#d8d0e8 40%,#e0d8f0 100%);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:var(--font-cn);color:var(--text);
+  background:var(--bg-deep);overflow-x:hidden;
+  transition:background .5s,color .5s;
+}
+canvas#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+a{color:var(--accent);text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+
+/* ========== UTILITY ========== */
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section-pad{padding:100px 0}
+.glow-text{text-shadow:0 0 20px rgba(139,92,246,0.5),0 0 40px rgba(139,92,246,0.2)}
+.grad-text{background:var(--grad-energy);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);border-radius:12px;
+}
+.hex-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:4px 14px;font-family:var(--font-en);font-weight:600;font-size:.75rem;
+  letter-spacing:1px;text-transform:uppercase;
+  clip-path:polygon(8% 0%,92% 0%,100% 50%,92% 100%,8% 100%,0% 50%);
+  color:#fff;
+}
+.hex-badge.psy{background:var(--psy)}
+.hex-badge.mech{background:var(--mech)}
+.hex-badge.bio{background:var(--bio)}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ========== CONTROLS (top-right) ========== */
+.controls{
+  position:fixed;top:20px;right:20px;z-index:1000;
+  display:flex;gap:10px;
+}
+.ctrl-btn{
+  background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--glass-border);border-radius:8px;
+  color:var(--text);padding:8px 16px;cursor:pointer;
+  font-family:var(--font-en);font-size:.85rem;font-weight:600;
+  transition:all .3s;letter-spacing:.5px;
+}
+.ctrl-btn:hover{border-color:var(--accent);box-shadow:0 0 15px rgba(139,92,246,0.3)}
+
+/* ========== NAV ========== */
+nav{
+  position:fixed;top:0;left:0;width:100%;z-index:900;
+  background:rgba(12,8,32,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);transition:background .5s;
+}
+[data-theme="light"] nav{background:rgba(240,235,247,0.9)}
+.nav-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  max-width:1200px;margin:0 auto;padding:0 24px;height:60px;
+}
+.nav-logo{
+  font-family:var(--font-en);font-weight:700;font-size:1.3rem;
+  background:var(--grad-energy);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:2px;
+}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{
+  color:var(--text-dim);font-size:.9rem;font-weight:500;
+  transition:color .3s;position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;
+  background:var(--grad-energy);transition:width .3s;
+}
+.nav-links a:hover{color:var(--text)}
+.nav-links a:hover::after{width:100%}
+.nav-mobile{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+/* ========== HERO ========== */
+#hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;position:relative;
+  background:var(--grad-hero);
+}
+.hero-content{position:relative;z-index:2}
+.hero-pre{
+  font-family:var(--font-en);font-weight:300;font-size:1rem;
+  letter-spacing:8px;text-transform:uppercase;color:var(--text-dim);
+  margin-bottom:16px;
+}
+.hero-title{
+  font-size:clamp(3rem,8vw,7rem);font-weight:900;
+  line-height:1.05;margin-bottom:20px;
+  background:linear-gradient(135deg,#fff 0%,#c4b5fd 40%,#f43f5e 70%,#8b5cf6 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 30px rgba(139,92,246,0.4));
+}
+.hero-sub{
+  font-size:clamp(1rem,2.5vw,1.5rem);font-weight:300;
+  color:var(--text-dim);margin-bottom:12px;letter-spacing:2px;
+}
+.hero-tagline{
+  font-family:var(--font-en);font-size:clamp(.85rem,1.8vw,1.1rem);
+  color:var(--pink);font-weight:500;letter-spacing:3px;
+  margin-bottom:40px;
+}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 40px;border-radius:50px;
+  background:var(--grad-energy);color:#fff;
+  font-family:var(--font-en);font-weight:700;font-size:1rem;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;
+  box-shadow:0 0 30px rgba(139,92,246,0.4);
+  transition:transform .3s,box-shadow .3s;
+}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(139,92,246,0.6)}
+.hero-scroll{
+  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  color:var(--text-dim);font-size:.8rem;letter-spacing:3px;
+  animation:float 2s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+
+/* hex overlay */
+.hex-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;
+  opacity:.06;pointer-events:none;
+  background-image:
+    linear-gradient(30deg,var(--accent) 12%,transparent 12.5%,transparent 87%,var(--accent) 87.5%,var(--accent)),
+    linear-gradient(150deg,var(--accent) 12%,transparent 12.5%,transparent 87%,var(--accent) 87.5%,var(--accent)),
+    linear-gradient(30deg,var(--accent) 12%,transparent 12.5%,transparent 87%,var(--accent) 87.5%,var(--accent)),
+    linear-gradient(150deg,var(--accent) 12%,transparent 12.5%,transparent 87%,var(--accent) 87.5%,var(--accent)),
+    linear-gradient(60deg,rgba(139,92,246,0.3) 25%,transparent 25.5%,transparent 75%,rgba(139,92,246,0.3) 75%,rgba(139,92,246,0.3)),
+    linear-gradient(60deg,rgba(139,92,246,0.3) 25%,transparent 25.5%,transparent 75%,rgba(139,92,246,0.3) 75%,rgba(139,92,246,0.3));
+  background-size:80px 140px;
+  background-position:0 0,0 0,40px 70px,40px 70px,0 0,40px 70px;
+}
+
+/* ========== SECTION HEADERS ========== */
+.section-header{text-align:center;margin-bottom:60px}
+.section-header h2{
+  font-size:clamp(2rem,4vw,3rem);font-weight:900;margin-bottom:8px;
+}
+.section-header .sub{
+  font-family:var(--font-en);font-size:.95rem;color:var(--text-dim);
+  letter-spacing:4px;text-transform:uppercase;
+}
+.section-line{
+  width:60px;height:3px;margin:16px auto 0;
+  background:var(--grad-energy);border-radius:2px;
+}
+
+/* ========== ABOUT ========== */
+#about .about-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;
+}
+.about-card{
+  padding:32px;border-radius:12px;
+  background:var(--glass-bg);backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  transition:border-color .3s,transform .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.about-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+  background:var(--grad-energy);opacity:0;transition:opacity .3s;
+}
+.about-card:hover{
+  border-color:var(--border-glow);transform:translateY(-4px);
+  box-shadow:0 8px 32px rgba(139,92,246,0.15);
+}
+.about-card:hover::before{opacity:1}
+.about-icon{
+  font-size:2rem;margin-bottom:16px;
+  width:50px;height:50px;display:flex;align-items:center;justify-content:center;
+  border-radius:10px;background:rgba(139,92,246,0.1);
+}
+.about-card h3{font-size:1.2rem;margin-bottom:10px;font-weight:700}
+.about-card p{color:var(--text-dim);font-size:.9rem;line-height:1.7}
+
+/* ========== VALKYRIE CARDS ========== */
+.valk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.valk-card{
+  position:relative;border-radius:14px;overflow:hidden;
+  background:var(--glass-bg);backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  transition:all .4s;cursor:pointer;
+}
+.valk-card:hover{
+  border-color:var(--accent);transform:translateY(-6px);
+  box-shadow:0 12px 40px rgba(139,92,246,0.25);
+}
+.valk-header{
+  padding:20px 20px 16px;position:relative;
+  border-bottom:1px solid var(--border);
+}
+.valk-header .rank{
+  position:absolute;top:16px;right:16px;
+  color:var(--gold);font-size:.9rem;letter-spacing:2px;
+}
+.valk-name-cn{font-size:1.4rem;font-weight:900;margin-bottom:2px}
+.valk-name-en{
+  font-family:var(--font-en);font-size:.8rem;color:var(--text-dim);
+  letter-spacing:2px;text-transform:uppercase;
+}
+.valk-title{
+  font-size:.95rem;margin-top:8px;
+  background:var(--grad-energy);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  font-weight:700;
+}
+.valk-body{padding:16px 20px}
+.valk-desc{font-size:.85rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px}
+.valk-stats{display:flex;flex-direction:column;gap:8px}
+.stat-row{display:flex;align-items:center;gap:10px}
+.stat-label{
+  font-family:var(--font-en);font-size:.7rem;color:var(--text-muted);
+  letter-spacing:1px;text-transform:uppercase;min-width:50px;
+}
+.stat-bar{
+  flex:1;height:6px;background:rgba(139,92,246,0.15);border-radius:3px;overflow:hidden;
+}
+.stat-fill{
+  height:100%;border-radius:3px;
+  background:var(--grad-energy);
+  transition:width 1.2s ease;
+}
+.stat-val{
+  font-family:var(--font-mono);font-size:.75rem;color:var(--accent);min-width:30px;text-align:right;
+}
+.valk-footer{
+  padding:12px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+/* ========== STIGMATA ========== */
+.stig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.stig-card{
+  border-radius:14px;overflow:hidden;
+  background:var(--glass-bg);backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  transition:all .4s;text-align:center;
+  position:relative;
+}
+.stig-card:hover{
+  border-color:var(--gold);transform:translateY(-6px) scale(1.02);
+  box-shadow:0 12px 40px rgba(251,191,36,0.15);
+}
+.stig-top{
+  padding:30px 20px 20px;
+  background:linear-gradient(180deg,rgba(139,92,246,0.1),transparent);
+  position:relative;
+}
+.stig-rarity{color:var(--gold);font-size:1.2rem;letter-spacing:3px;margin-bottom:10px}
+.stig-icon{
+  width:80px;height:80px;margin:0 auto 16px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(244,63,94,0.2));
+  border:2px solid var(--gold);font-size:2rem;
+}
+.stig-name{font-size:1.3rem;font-weight:900;margin-bottom:4px}
+.stig-set{font-family:var(--font-en);font-size:.8rem;color:var(--text-dim);letter-spacing:2px}
+.stig-body{padding:16px 20px 24px}
+.stig-desc{font-size:.85rem;color:var(--text-dim);line-height:1.6;margin-bottom:16px}
+.stig-bonus{
+  padding:12px;border-radius:8px;
+  background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);
+}
+.stig-bonus-label{
+  font-family:var(--font-en);font-size:.7rem;color:var(--accent);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;
+}
+.stig-bonus-text{font-size:.8rem;color:var(--text-dim);line-height:1.5}
+
+/* ========== TIMELINE ========== */
+.timeline{position:relative;padding:20px 0}
+.timeline::before{
+  content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,transparent,var(--accent),var(--pink),var(--accent),transparent);
+  transform:translateX(-50%);
+}
+.tl-item{
+  display:flex;align-items:center;margin-bottom:48px;position:relative;
+}
+.tl-item:nth-child(odd){flex-direction:row-reverse}
+.tl-content{
+  width:45%;padding:24px;border-radius:12px;
+  background:var(--glass-bg);backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  transition:all .3s;
+}
+.tl-content:hover{border-color:var(--border-glow);box-shadow:0 4px 24px rgba(139,92,246,0.15)}
+.tl-dot{
+  position:absolute;left:50%;top:50%;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--accent);border:3px solid var(--bg-deep);
+  transform:translate(-50%,-50%);z-index:2;
+  box-shadow:0 0 15px rgba(139,92,246,0.5);
+}
+.tl-date{
+  font-family:var(--font-en);font-size:.8rem;color:var(--accent);
+  letter-spacing:2px;margin-bottom:6px;
+}
+.tl-content h3{font-size:1.1rem;margin-bottom:6px}
+.tl-content p{font-size:.85rem;color:var(--text-dim);line-height:1.6}
+
+/* ========== QUOTE ========== */
+#quote{
+  text-align:center;position:relative;
+  background:linear-gradient(180deg,transparent,rgba(139,92,246,0.05),transparent);
+}
+.quote-mark{font-size:4rem;color:var(--accent);opacity:.3;line-height:1}
+.quote-text{
+  font-size:clamp(1.2rem,3vw,1.8rem);font-weight:300;
+  max-width:700px;margin:0 auto 16px;line-height:1.6;
+  font-style:italic;
+}
+.quote-author{
+  font-family:var(--font-en);font-size:.9rem;color:var(--pink);
+  letter-spacing:3px;
+}
+
+/* ========== WORLD BOSS ========== */
+.boss-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.boss-card{
+  border-radius:14px;overflow:hidden;
+  background:var(--glass-bg);backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  transition:all .4s;position:relative;
+}
+.boss-card:hover{border-color:var(--pink);box-shadow:0 8px 32px rgba(244,63,94,0.2)}
+.boss-threat{
+  padding:4px 0;text-align:center;font-family:var(--font-en);
+  font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:#fff;
+}
+.boss-threat.sss{background:linear-gradient(90deg,#f43f5e,#ff4081)}
+.boss-threat.ss{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.boss-threat.s{background:linear-gradient(90deg,#8b5cf6,#a855f7)}
+.boss-inner{padding:24px}
+.boss-name{font-size:1.3rem;font-weight:900;margin-bottom:4px}
+.boss-title-sub{font-size:.85rem;color:var(--text-dim);margin-bottom:14px}
+.boss-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.boss-stat{text-align:center;padding:10px;border-radius:8px;background:rgba(139,92,246,0.06)}
+.boss-stat-val{
+  font-family:var(--font-en);font-size:1.4rem;font-weight:700;
+  background:var(--grad-energy);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.boss-stat-label{font-size:.7rem;color:var(--text-muted);letter-spacing:1px;margin-top:2px}
+
+/* ========== CTA ========== */
+#cta{text-align:center}
+.cta-box{
+  padding:60px 40px;border-radius:20px;
+  background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(244,63,94,0.1));
+  border:1px solid var(--glass-border);
+  position:relative;overflow:hidden;
+}
+.cta-box::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(139,92,246,0.1),transparent 70%);
+}
+.cta-box h2{font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:12px;position:relative;z-index:1}
+.cta-box p{color:var(--text-dim);margin-bottom:30px;font-size:1rem;position:relative;z-index:1}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:16px 48px;border-radius:50px;border:2px solid var(--accent);
+  background:transparent;color:var(--text);
+  font-family:var(--font-en);font-weight:700;font-size:1rem;
+  letter-spacing:3px;text-transform:uppercase;cursor:pointer;
+  transition:all .3s;position:relative;z-index:1;
+}
+.cta-btn:hover{
+  background:var(--accent);color:#fff;
+  box-shadow:0 0 30px rgba(139,92,246,0.4);
+}
+
+/* ========== FOOTER ========== */
+footer{
+  padding:40px 0;text-align:center;
+  border-top:1px solid var(--border);
+  background:rgba(12,8,32,0.5);
+}
+[data-theme="light"] footer{background:rgba(240,235,247,0.5)}
+.footer-logo{
+  font-family:var(--font-en);font-weight:700;font-size:1.2rem;
+  background:var(--grad-energy);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+.footer-text{font-size:.8rem;color:var(--text-muted);line-height:1.8}
+.footer-links{display:flex;justify-content:center;gap:24px;margin:16px 0}
+.footer-links a{color:var(--text-dim);font-size:.85rem;transition:color .3s}
+.footer-links a:hover{color:var(--accent)}
+
+/* ========== ENERGY LINES DECO ========== */
+.energy-line{
+  position:absolute;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),var(--pink),transparent);
+  opacity:.15;pointer-events:none;
+}
+
+/* ========== LOADING PROGRESS BAR ========== */
+.progress-bar{
+  width:100%;height:4px;background:rgba(139,92,246,0.1);
+  border-radius:2px;overflow:hidden;margin:8px 0;
+}
+.progress-fill{
+  height:100%;border-radius:2px;
+  background:var(--grad-energy);
+  animation:progressPulse 2s ease-in-out infinite;
+}
+@keyframes progressPulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:900px){
+  #about .about-grid,.valk-grid,.stig-grid,.boss-grid{grid-template-columns:1fr 1fr}
+  .timeline::before{left:20px}
+  .tl-item,.tl-item:nth-child(odd){flex-direction:row;justify-content:flex-start;padding-left:50px}
+  .tl-content{width:100%}
+  .tl-dot{left:20px}
+}
+@media(max-width:600px){
+  #about .about-grid,.valk-grid,.stig-grid,.boss-grid{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .nav-mobile{display:block}
+  .controls{top:10px;right:10px}
+  .ctrl-btn{padding:6px 12px;font-size:.75rem}
+  .section-pad{padding:60px 0}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <button class="ctrl-btn" id="langToggle" onclick="toggleLang()">EN</button>
+  <button class="ctrl-btn" id="themeToggle" onclick="toggleTheme()">☀</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">HONKAI IMPACT 3RD</div>
+    <ul class="nav-links">
+      <li><a href="#about" data-zh="关于" data-en="About">关于</a></li>
+      <li><a href="#valkyries" data-zh="女武神" data-en="Valkyries">女武神</a></li>
+      <li><a href="#stigmata" data-zh="圣痕" data-en="Stigmata">圣痕</a></li>
+      <li><a href="#timeline" data-zh="时间线" data-en="Timeline">时间线</a></li>
+      <li><a href="#bosses" data-zh="世界Boss" data-en="World Boss">世界Boss</a></li>
+    </ul>
+    <button class="nav-mobile" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hex-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-pre" data-zh="MIHOYO / HOYOVERSE" data-en="MIHOYO / HOYOVERSE">MIHOYO / HOYOVERSE</div>
+    <h1 class="hero-title" data-zh="崩坏3rd" data-en="HONKAI IMPACT 3RD">崩坏3rd</h1>
+    <p class="hero-sub" data-zh="为世界上所有的美好而战" data-en="Fight for All That Is Beautiful in This World">为世界上所有的美好而战</p>
+    <p class="hero-tagline" data-zh="FIGHT FOR ALL THAT IS BEAUTIFUL" data-en="FIGHT FOR ALL THAT IS BEAUTIFUL">FIGHT FOR ALL THAT IS BEAUTIFUL</p>
+    <button class="hero-cta" data-zh="▶ 开始作战" data-en="▶ ENGAGE">▶ 开始作战</button>
+  </div>
+  <div class="hero-scroll" data-zh="▼ 向下探索" data-en="▼ SCROLL TO EXPLORE">▼ 向下探索</div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2 data-zh="崩坏现象" data-en="The Honkai Phenomenon">崩坏现象</h2>
+      <p class="sub" data-zh="HONKAI — 文明之敌" data-en="HONKAI — ENEMY OF CIVILIZATION">HONKAI — 文明之敌</p>
+      <div class="section-line"></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-card reveal">
+        <div class="about-icon">⚡</div>
+        <h3 data-zh="崩坏能" data-en="Honkai Energy">崩坏能</h3>
+        <p data-zh="崩坏是一种与文明共存的毁灭力量。当文明发展到一定程度，崩坏便会降临，以各种形式摧毁一切。崩坏能是这种毁灭力量的能量形态，既是灾难之源，也是女武神们力量的来源。" data-en="Honkai is a destructive force that coexists with civilization. When civilization reaches a certain level, the Honkai descends to destroy everything. Honkai energy is both the source of disaster and the power that fuels the Valkyries.">崩坏是一种与文明共存的毁灭力量。当文明发展到一定程度，崩坏便会降临，以各种形式摧毁一切。崩坏能是这种毁灭力量的能量形态，既是灾难之源，也是女武神们力量的来源。</p>
+      </div>
+      <div class="about-card reveal">
+        <div class="about-icon">🛡</div>
+        <h3 data-zh="天命组织" data-en="Schicksal Organization">天命组织</h3>
+        <p data-zh="天命（Schicksal）是人类对抗崩坏的最大武装组织，总部位于欧洲。拥有数百年历史的天命，训练并派遣女武神（Valkyrie）执行对抗崩坏兽和律者的任务，守护人类文明的最后防线。" data-en="Schicksal is humanity's largest armed organization against the Honkai, headquartered in Europe. With centuries of history, Schicksal trains and deploys Valkyries to combat Honkai beasts and Herrschers, defending the last line of human civilization.">天命（Schicksal）是人类对抗崩坏的最大武装组织，总部位于欧洲。拥有数百年历史的天命，训练并派遣女武神（Valkyrie）执行对抗崩坏兽和律者的任务，守护人类文明的最后防线。</p>
+      </div>
+      <div class="about-card reveal">
+        <div class="about-icon">⚔</div>
+        <h3 data-zh="女武神" data-en="Valkyries">女武神</h3>
+        <p data-zh="女武神是经过特殊训练和改造的战士，能够运用崩坏能进行战斗。她们是天命对抗崩坏的核心力量。每位女武神都拥有独特的战斗风格和武器，在战场上展现超凡的战斗能力。" data-en="Valkyries are specially trained and augmented warriors who can harness Honkai energy in combat. They are Schicksal's core force against the Honkai. Each Valkyrie possesses unique combat styles and weapons, demonstrating extraordinary abilities on the battlefield.">女武神是经过特殊训练和改造的战士，能够运用崩坏能进行战斗。她们是天命对抗崩坏的核心力量。每位女武神都拥有独特的战斗风格和武器，在战场上展现超凡的战斗能力。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALKYRIES -->
+<section id="valkyries" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2 data-zh="女武神档案" data-en="Valkyrie Dossier">女武神档案</h2>
+      <p class="sub" data-zh="VALKYRIE BATTLESUIT DATABASE" data-en="VALKYRIE BATTLESUIT DATABASE">VALKYRIE BATTLESUIT DATABASE</p>
+      <div class="section-line"></div>
+    </div>
+    <div class="valk-grid">
+
+      <!-- Kiana -->
+      <div class="valk-card reveal">
+        <div class="valk-header">
+          <span class="rank">★★★★★</span>
+          <div class="valk-name-cn" data-zh="琪亚娜·卡斯兰娜" data-en="Kiana Kaslana">琪亚娜·卡斯兰娜</div>
+          <div class="valk-name-en">KIANA KASLANA</div>
+          <div class="valk-title" data-zh="空之律者" data-en="Herrscher of Flamescion">空之律者</div>
+        </div>
+        <div class="valk-body">
+          <p class="valk-desc" data-zh="K-423，天命的实验体，也是卡斯兰娜家族的继承人。觉醒为空之律者后，她以坚定的意志守护着世间所有美好，成为对抗终焉的最强之矛。" data-en="K-423, Schicksal's test subject and heir to the Kaslana lineage. After awakening as the Herrscher of the Void, her unwavering will protects all beauty in this world, becoming the strongest spear against the Final Herrscher.">K-423，天命的实验体，也是卡斯兰娜家族的继承人。觉醒为空之律者后，她以坚定的意志守护着世间所有美好，成为对抗终焉的最强之矛。</p>
+          <div class="valk-stats">
+            <div class="stat-row"><span class="stat-label">ATK</span><div class="stat-bar"><div class="stat-fill" data-width="95%"></div></div><span class="stat-val">462</span></div>
+            <div class="stat-row"><span class="stat-label">DEF</span><div class="stat-bar"><div class="stat-fill" data-width="70%"></div></div><span class="stat-val">289</span></div>
+            <div class="stat-row"><span class="stat-label">CRT</span><div class="stat-bar"><div class="stat-fill" data-width="88%"></div></div><span class="stat-val">124</span></div>
+          </div>
+        </div>
+        <div class="valk-footer">
+          <span class="hex-badge bio">BIO</span>
+          <span style="font-family:var(--font-en);font-size:.75rem;color:var(--text-muted);letter-spacing:1px">S-RANK</span>
+        </div>
+      </div>
+
+      <!-- Mei -->
+      <div class="valk-card reveal">
+        <div class="valk-header">
+          <span class="rank">★★★★★</span>
+          <div class="valk-name-cn" data-zh="雷电芽衣" data-en="Raiden Mei">雷电芽衣</div>
+          <div class="valk-name-en">RAIDEN MEI</div>
+          <div class="valk-title" data-zh="雷之律者" data-en="Herrscher of Thunder">雷之律者</div>
+        </div>
+        <div class="valk-body">
+          <p class="valk-desc" data-zh="ME社社长之女，第三律者——雷之律者的宿主。为了拯救琪亚娜，她选择接受律者之力，以雷霆之姿斩断一切阻碍，守护最重要的人。" data-en="Daughter of the ME Corp president and host of the 3rd Herrscher — the Herrscher of Thunder. To save Kiana, she embraced her Herrscher powers, cutting through all obstacles with thunderous might to protect the one she holds dear.">ME社社长之女，第三律者——雷之律者的宿主。为了拯救琪亚娜，她选择接受律者之力，以雷霆之姿斩断一切阻碍，守护最重要的人。</p>
+          <div class="valk-stats">
+            <div class="stat-row"><span class="stat-label">ATK</span><div class="stat-bar"><div class="stat-fill" data-width="92%"></div></div><span class="stat-val">448</span></div>
+            <div class="stat-row"><span class="stat-label">DEF</span><div class="stat-bar"><div class="stat-fill" data-width="65%"></div></div><span class="stat-val">265</span></div>
+            <div class="stat-row"><span class="stat-label">CRT</span><div class="stat-bar"><div class="stat-fill" data-width="90%"></div></div><span class="stat-val">130</span></div>
+          </div>
+        </div>
+        <div class="valk-footer">
+          <span class="hex-badge mech">MECH</span>
+          <span style="font-family:var(--font-en);font-size:.75rem;color:var(--text-muted);letter-spacing:1px">S-RANK</span>
+        </div>
+      </div>
+
+      <!-- Bronya -->
+      <div class="valk-card reveal">
+        <div class="valk-header">
+          <span class="rank">★★★★★</span>
+          <div class="valk-name-cn" data-zh="布洛妮娅·扎伊切克" data-en="Bronya Zaychik">布洛妮娅·扎伊切克</div>
+          <div class="valk-name-en">BRONYA ZAYCHIK</div>
+          <div class="valk-title" data-zh="理之律者" data-en="Herrscher of Reason">理之律者</div>
+        </div>
+        <div class="valk-body">
+          <p class="valk-desc" data-zh="来自极北之地的银发少女，继承了前代理之律者的核心，获得了重构物质的能力。冷静理性的她，用自己的方式守护着身边的伙伴。" data-en="A silver-haired girl from the far north who inherited the core of the previous Herrscher of Reason, gaining the power to reconstruct matter. Cool and rational, she protects her companions in her own way.">来自极北之地的银发少女，继承了前代理之律者的核心，获得了重构物质的能力。冷静理性的她，用自己的方式守护着身边的伙伴。</p>
+          <div class="valk-stats">
+            <div class="stat-row"><span class="stat-label">ATK</span><div class="stat-bar"><div class="stat-fill" data-width="85%"></div></div><span class="stat-val">410</span></div>
+            <div class="stat-row"><span class="stat-label">DEF</span><div class="stat-bar"><div class="stat-fill" data-width="78%"></div></div><span class="stat-val">318</span></div>
+            <div class="stat-row"><span class="stat-label">CRT</span><div class="stat-bar"><div class="stat-fill" data-width="82%"></div></div><span class="stat-val">116</span></div>
+          </div>
+        </div>
+        <div class="valk-footer">
+          <span class="hex-badge mech">MECH</span>
+          <span style="font-family:var(--font-en);font-size:.75rem;color:var(--text-muted);letter-spacing:1px">S-RANK</span>
+        </div>
+      </div>
+
+      <!-- Himeko -->
+      <div class="valk-card reveal">
+        <div class="valk-header">
+          <span class="rank">★★★★☆</span>
+          <div class="valk-name-cn" data-zh="无量塔姬子" data-en="Murata Himeko">无量塔姬子</div>
+          <div class="valk-name-en">MURATA HIMEKO</div>
+          <div class="valk-title" data-zh="陨星之刃" data-en="Vermillion Knight: Eclipse">陨星之刃</div>
+        </div>
+        <div class="valk-body">
+          <p class="valk-desc" data-zh="圣芙蕾雅学园的教官，琪亚娜等人的引路者。她以燃烧生命为代价发动了最后一击，将琪亚娜从虚无中拉回，成为永远闪耀的陨星之刃。" data-en="Instructor of St. Freya Academy and mentor to Kiana. She delivered her final strike at the cost of her life, pulling Kiana back from the void, becoming the eternally shining Vermillion Knight.">圣芙蕾雅学园的教官，琪亚娜等人的引路者。她以燃烧生命为代价发动了最后一击，将琪亚娜从虚无中拉回，成为永远闪耀的陨星之刃。</p>
+          <div class="valk-stats">
+            <div class="stat-row"><span class="stat-label">ATK</span><div class="stat-bar"><div class="stat-fill" data-width="98%"></div></div><span class="stat-val">480</span></div>
+            <div class="stat-row"><span class="stat-label">DEF</span><div class="stat-bar"><div class="stat-fill" data-width="55%"></div></div><span class="stat-val">225</span></div>
+            <div class="stat-row"><span class="stat-label">CRT</span><div class="stat-bar"><div class="stat-fill" data-width="75%"></div></div><span class="stat-val">105</span></div>
+          </div>
+        </div>
+        <div class="valk-footer">
+          <span class="hex-badge psy">PSY</span>
+          <span style="font-family:var(--font-en);font-size:.75rem;color:var(--text-muted);letter-spacing:1px">S-RANK</span>
+        </div>
+      </div>
+
+      <!-- Fu Hua -->
+      <div class="valk-card reveal">
+        <div class="valk-header">
+          <span class="rank">★★★★★</span>
+          <div class="valk-name-cn" data-zh="符华" data-en="Fu Hua">符华</div>
+          <div class="valk-name-en">FU HUA</div>
+          <div class="valk-title" data-zh="天元骑英" data-en="Herrscher of Sentience">天元骑英</div>
+        </div>
+        <div class="valk-body">
+          <p class="valk-desc" data-zh="活了五万年的不死战士，曾经的融合战士与前文明的守护者。识之律者虽夺取了她的身体，但她不屈的意志始终守望着人类文明的未来。" data-en="An immortal warrior who has lived for 50,000 years, a former MANTIS and guardian of the Previous Era. Though the Herrscher of Sentience took her body, her unyielding will forever watches over humanity's future.">活了五万年的不死战士，曾经的融合战士与前文明的守护者。识之律者虽夺取了她的身体，但她不屈的意志始终守望着人类文明的未来。</p>
+          <div class="valk-stats">
+            <div class="stat-row"><span class="stat-label">ATK</span><div class="stat-bar"><div class="stat-fill" data-width="88%"></div></div><span class="stat-val">430</span></div>
+            <div class="stat-row"><span class="stat-label">DEF</span><div class="stat-bar"><div class="stat-fill" data-width="82%"></div></div><span class="stat-val">335</span></div>
+            <div class="stat-row"><span class="stat-label">CRT</span><div class="stat-bar"><div class="stat-fill" data-width="86%"></div></div><span class="stat-val">120</span></div>
+          </div>
+        </div>
+        <div class="valk-footer">
+          <span class="hex-badge psy">PSY</span>
+          <span style="font-family:var(--font-en);font-size:.75rem;color:var(--text-muted);letter-spacing:1px">S-RANK</span>
+        </div>
+      </div>
+
+      <!-- Seele -->
+      <div class="valk-card reveal">
+        <div class="valk-header">
+          <span class="rank">★★★★★</span>
+          <div class="valk-name-cn" data-zh="希儿·芙乐艾" data-en="Seele Vollerei">希儿·芙乐艾</div>
+          <div class="valk-name-en">SEELE VOLLEREI</div>
+          <div class="valk-title" data-zh="幽兰黛尔" data-en="Starchasm Nyx">幽兰黛尔</div>
+        </div>
+        <div class="valk-body">
+          <p class="valk-desc" data-zh="量子之海的少女，拥有双重人格。另一个她——「希儿」是她最忠实的守护者。觉醒幽兰黛尔之力后，她能自如穿梭于现实与量子之海之间。" data-en="A girl from the Sea of Quanta with a dual personality. Her other self — 'Seele' — is her most faithful protector. After awakening as Starchasm Nyx, she can freely traverse between reality and the Sea of Quanta.">量子之海的少女，拥有双重人格。另一个她——「希儿」是她最忠实的守护者。觉醒幽兰黛尔之力后，她能自如穿梭于现实与量子之海之间。</p>
+          <div class="valk-stats">
+            <div class="stat-row"><span class="stat-label">ATK</span><div class="stat-bar"><div class="stat-fill" data-width="91%"></div></div><span class="stat-val">445</span></div>
+            <div class="stat-row"><span class="stat-label">DEF</span><div class="stat-bar"><div class="stat-fill" data-width="60%"></div></div><span class="stat-val">245</span></div>
+            <div class="stat-row"><span class="stat-label">CRT</span><div class="stat-bar"><div class="stat-fill" data-width="93%"></div></div><span class="stat-val">135</span></div>
+          </div>
+        </div>
+        <div class="valk-footer">
+          <span class="hex-badge bio">BIO</span>
+          <span style="font-family:var(--font-en);font-size:.75rem;color:var(--text-muted);letter-spacing:1px">S-RANK</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- STIGMATA -->
+<section id="stigmata" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2 data-zh="圣痕系统" data-en="Stigmata System">圣痕系统</h2>
+      <p class="sub" data-zh="STIGMATA COLLECTION" data-en="STIGMATA COLLECTION">STIGMATA COLLECTION</p>
+      <div class="section-line"></div>
+    </div>
+    <div class="stig-grid">
+
+      <div class="stig-card reveal">
+        <div class="stig-top">
+          <div class="stig-rarity">★★★★★</div>
+          <div class="stig-icon">🔥</div>
+          <div class="stig-name" data-zh="始源之火 · 希莉丝" data-en="Sirin: Ascendant">始源之火 · 希莉丝</div>
+          <div class="stig-set" data-zh="空之律者套装" data-en="HERRSCHER OF THE VOID SET">空之律者套装</div>
+        </div>
+        <div class="stig-body">
+          <p class="stig-desc" data-zh="蕴含第二律者力量的圣痕，能够操控虚空之力，撕裂空间的界限。装备后大幅提升全伤害与暴击率。" data-en="A stigmata imbued with the power of the 2nd Herrscher, capable of manipulating void energy and tearing the boundaries of space. Greatly increases total damage and critical rate when equipped.">蕴含第二律者力量的圣痕，能够操控虚空之力，撕裂空间的界限。装备后大幅提升全伤害与暴击率。</p>
+          <div class="stig-bonus">
+            <div class="stig-bonus-label" data-zh="二件套效果" data-en="2-PC BONUS">二件套效果</div>
+            <p class="stig-bonus-text" data-zh="全伤害提升30%，释放终结技时获得15秒无敌状态" data-en="Total DMG +30%. Gain 15s invincibility when casting Ultimate">全伤害提升30%，释放终结技时获得15秒无敌状态</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stig-card reveal">
+        <div class="stig-top">
+          <div class="stig-rarity">★★★★★</div>
+          <div class="stig-icon">⚡</div>
+          <div class="stig-name" data-zh="雷渊 · 弑神" data-en="Benares: Awakening">雷渊 · 弑神</div>
+          <div class="stig-set" data-zh="雷之律者套装" data-en="HERRSCHER OF THUNDER SET">雷之律者套装</div>
+        </div>
+        <div class="stig-body">
+          <p class="stig-desc" data-zh="以雷电之龙贝纳勒斯之力铸造的圣痕，闪电在其中永不止息。装备后极大强化雷电元素伤害与连击能力。" data-en="Stigmata forged with the power of Benares, the Thunder Dragon. Lightning never ceases within. Massively enhances lightning elemental DMG and combo abilities when equipped.">以雷电之龙贝纳勒斯之力铸造的圣痕，闪电在其中永不止息。装备后极大强化雷电元素伤害与连击能力。</p>
+          <div class="stig-bonus">
+            <div class="stig-bonus-label" data-zh="三件套效果" data-en="3-PC BONUS">三件套效果</div>
+            <p class="stig-bonus-text" data-zh="雷电元素伤害提升50%，每次连击恢复2点SP" data-en="Lightning Elemental DMG +50%. Restore 2 SP per combo hit">雷电元素伤害提升50%，每次连击恢复2点SP</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stig-card reveal">
+        <div class="stig-top">
+          <div class="stig-rarity">★★★★★</div>
+          <div class="stig-icon">❄</div>
+          <div class="stig-name" data-zh="深渊之花 · 赫尔塔" data-en="Welt: Scholar">深渊之花 · 赫尔塔</div>
+          <div class="stig-set" data-zh="理之律者套装" data-en="HERRSCHER OF REASON SET">理之律者套装</div>
+        </div>
+        <div class="stig-body">
+          <p class="stig-desc" data-zh="继承了初代理之律者意志的圣痕，蕴含重构万物的理性之力。装备后大幅提升冰元素伤害与武器主动技能效果。" data-en="Stigmata inheriting the will of the 1st Herrscher of Reason, containing the rational power to reconstruct all things. Greatly enhances ice elemental DMG and weapon active skill effects.">继承了初代理之律者意志的圣痕，蕴含重构万物的理性之力。装备后大幅提升冰元素伤害与武器主动技能效果。</p>
+          <div class="stig-bonus">
+            <div class="stig-bonus-label" data-zh="二件套效果" data-en="2-PC BONUS">二件套效果</div>
+            <p class="stig-bonus-text" data-zh="冰元素伤害提升40%，武器主动技能CD减少30%" data-en="Ice Elemental DMG +40%. Weapon active skill CD -30%">冰元素伤害提升40%，武器主动技能CD减少30%</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2 data-zh="历史年表" data-en="Historical Chronicle">历史年表</h2>
+      <p class="sub" data-zh="KEY EVENTS IN THE HONKAI SAGA" data-en="KEY EVENTS IN THE HONKAI SAGA">KEY EVENTS IN THE HONKAI SAGA</p>
+      <div class="section-line"></div>
+    </div>
+    <div class="timeline">
+
+      <div class="tl-item reveal">
+        <div class="tl-content">
+          <div class="tl-date">50,000 YEARS AGO</div>
+          <h3 data-zh="崩坏降临 · 前文明覆灭" data-en="Honkai Descends: Fall of the Previous Era">崩坏降临 · 前文明覆灭</h3>
+          <p data-zh="前文明时期，第十四律者——终焉律者降临，毁灭了高度发达的前文明。逐火之蛾的战士们拼尽全力，最终Dr.MEI封印了崩坏意志。" data-en="In the Previous Era, the 14th Herrscher — the Herrscher of the End — descended and destroyed the advanced Previous Era civilization. The warriors of Fire Moth fought with everything they had until Dr. MEI sealed the Will of Honkai.">前文明时期，第十四律者——终焉律者降临，毁灭了高度发达的前文明。逐火之蛾的战士们拼尽全力，最终Dr.MEI封印了崩坏意志。</p>
+        </div>
+        <div class="tl-dot"></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-content">
+          <div class="tl-date">500 YEARS AGO</div>
+          <h3 data-zh="逐火之蛾 · 天命建立" data-en="Fire Moth Legacy: Schicksal Founded">逐火之蛾 · 天命建立</h3>
+          <p data-zh="奥托·阿波卡利斯建立天命组织，开始系统性地对抗崩坏。天命在全球建立基地，训练女武神，研究崩坏能技术。" data-en="Otto Apocalypse establishes Schicksal, beginning the systematic fight against Honkai. Schicksal builds bases worldwide, training Valkyries and researching Honkai energy technology.">奥托·阿波卡利斯建立天命组织，开始系统性地对抗崩坏。天命在全球建立基地，训练女武神，研究崩坏能技术。</p>
+        </div>
+        <div class="tl-dot"></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-content">
+          <div class="tl-date">2000</div>
+          <h3 data-zh="第二次崩坏 · 西伯利亚灾变" data-en="2nd Eruption: Siberian Catastrophe">第二次崩坏 · 西伯利亚灾变</h3>
+          <p data-zh="第二律者空之律者在西伯利亚觉醒，引发大规模崩坏灾难。卡斯兰娜家族的塞西莉亚与齐格飞在此战中牺牲，改变了无数人的命运。" data-en="The 2nd Herrscher, Herrscher of the Void, awakens in Siberia, triggering a massive Honkai disaster. Cecilia and Siegfried of the Kaslana family sacrifice themselves in this battle, changing countless fates.">第二律者空之律者在西伯利亚觉醒，引发大规模崩坏灾难。卡斯兰娜家族的塞西莉亚与齐格飞在此战中牺牲，改变了无数人的命运。</p>
+        </div>
+        <div class="tl-dot"></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-content">
+          <div class="tl-date">2016</div>
+          <h3 data-zh="圣芙蕾雅学园" data-en="St. Freya Academy">圣芙蕾雅学园</h3>
+          <p data-zh="琪亚娜、芽衣、布洛妮娅在圣芙蕾雅学园相聚。在姬子老师的指导下，她们开始了作为女武神的旅程，也揭开了天命背后隐藏的真相。" data-en="Kiana, Mei, and Bronya gather at St. Freya Academy. Under Himeko's guidance, they begin their journey as Valkyries and start to uncover the hidden truths behind Schicksal.">琪亚娜、芽衣、布洛妮娅在圣芙蕾雅学园相聚。在姬子老师的指导下，她们开始了作为女武神的旅程，也揭开了天命背后隐藏的真相。</p>
+        </div>
+        <div class="tl-dot"></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-content">
+          <div class="tl-date">FINAL CHAPTER</div>
+          <h3 data-zh="终焉之律者 · 最终决战" data-en="Herrscher of Finality: The Final Battle">终焉之律者 · 最终决战</h3>
+          <p data-zh="终焉律者降临，世界面临最终审判。琪亚娜汇聚所有同伴的力量，以薪炎之律者之姿，向着终焉发起最后的冲锋——为世界上所有的美好而战。" data-en="The Herrscher of Finality descends, and the world faces its final judgment. Kiana gathers the power of all her companions and, as the Herrscher of Flamescion, launches the final charge — fighting for all that is beautiful in this world.">终焉律者降临，世界面临最终审判。琪亚娜汇聚所有同伴的力量，以薪炎之律者之姿，向着终焉发起最后的冲锋——为世界上所有的美好而战。</p>
+        </div>
+        <div class="tl-dot"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section id="quote" class="section-pad">
+  <div class="container reveal">
+    <div class="quote-mark">"</div>
+    <p class="quote-text" data-zh="即使这条路上只有我一个人，我也会继续走下去。因为这条路的尽头，是所有人都在的明天。" data-en="Even if I walk this path alone, I will keep going. Because at the end of this road lies a tomorrow where everyone is together.">即使这条路上只有我一个人，我也会继续走下去。因为这条路的尽头，是所有人都在的明天。</p>
+    <div class="quote-author" data-zh="—— 琪亚娜 · 卡斯兰娜" data-en="— KIANA KASLANA">—— 琪亚娜 · 卡斯兰娜</div>
+  </div>
+</section>
+
+<!-- WORLD BOSS -->
+<section id="bosses" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2 data-zh="世界Boss" data-en="World Boss">世界Boss</h2>
+      <p class="sub" data-zh="THREAT LEVEL ASSESSMENT" data-en="THREAT LEVEL ASSESSMENT">THREAT LEVEL ASSESSMENT</p>
+      <div class="section-line"></div>
+    </div>
+    <div class="boss-grid">
+
+      <div class="boss-card reveal">
+        <div class="boss-threat sss" data-zh="SSS 级威胁" data-en="SSS-LEVEL THREAT">SSS 级威胁</div>
+        <div class="boss-inner">
+          <div class="boss-name" data-zh="终焉律者" data-en="Herrscher of Finality">终焉律者</div>
+          <p class="boss-title-sub" data-zh="第十四律者 · 崩坏意志化身" data-en="14th Herrscher · Incarnation of the Will of Honkai">第十四律者 · 崩坏意志化身</p>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+          <div class="boss-stats">
+            <div class="boss-stat"><div class="boss-stat-val">∞</div><div class="boss-stat-label" data-zh="攻击力" data-en="ATK">攻击力</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">∞</div><div class="boss-stat-label" data-zh="生命值" data-en="HP">生命值</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">14</div><div class="boss-stat-label" data-zh="律者序号" data-en="HERRSCHER #">律者序号</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">MAX</div><div class="boss-stat-label" data-zh="危险度" data-en="DANGER">危险度</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="boss-card reveal">
+        <div class="boss-threat ss" data-zh="SS 级威胁" data-en="SS-LEVEL THREAT">SS 级威胁</div>
+        <div class="boss-inner">
+          <div class="boss-name" data-zh="帕凡提 · 虚空之影" data-en="Parvati: Shadow of the Void">帕凡提 · 虚空之影</div>
+          <p class="boss-title-sub" data-zh="量子型崩坏兽 · 深渊统领" data-en="Quantum Honkai Beast · Abyss Commander">量子型崩坏兽 · 深渊统领</p>
+          <div class="progress-bar"><div class="progress-fill" style="width:82%"></div></div>
+          <div class="boss-stats">
+            <div class="boss-stat"><div class="boss-stat-val">12.8K</div><div class="boss-stat-label" data-zh="攻击力" data-en="ATK">攻击力</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">5.2M</div><div class="boss-stat-label" data-zh="生命值" data-en="HP">生命值</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">QUA</div><div class="boss-stat-label" data-zh="属性" data-en="TYPE">属性</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">EX</div><div class="boss-stat-label" data-zh="危险度" data-en="DANGER">危险度</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="boss-card reveal">
+        <div class="boss-threat s" data-zh="S 级威胁" data-en="S-LEVEL THREAT">S 级威胁</div>
+        <div class="boss-inner">
+          <div class="boss-name" data-zh="贝纳勒斯 · 雷龙" data-en="Benares: Thunder Dragon">贝纳勒斯 · 雷龙</div>
+          <p class="boss-title-sub" data-zh="远古崩坏兽 · 律者之仆从" data-en="Ancient Honkai Beast · Herrscher's Servant">远古崩坏兽 · 律者之仆从</p>
+          <div class="progress-bar"><div class="progress-fill" style="width:68%"></div></div>
+          <div class="boss-stats">
+            <div class="boss-stat"><div class="boss-stat-val">8.6K</div><div class="boss-stat-label" data-zh="攻击力" data-en="ATK">攻击力</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">3.1M</div><div class="boss-stat-label" data-zh="生命值" data-en="HP">生命值</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">PSY</div><div class="boss-stat-label" data-zh="属性" data-en="TYPE">属性</div></div>
+            <div class="boss-stat"><div class="boss-stat-val">HIGH</div><div class="boss-stat-label" data-zh="危险度" data-en="DANGER">危险度</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="section-pad">
+  <div class="container reveal">
+    <div class="cta-box">
+      <h2 data-zh="加入战斗，舰长" data-en="Join the Fight, Captain">加入战斗，舰长</h2>
+      <p data-zh="在崩坏的世界中，与女武神们并肩作战，守护这个世界的美好" data-en="Stand alongside the Valkyries in a world besieged by Honkai, and protect all that is beautiful">在崩坏的世界中，与女武神们并肩作战，守护这个世界的美好</p>
+      <button class="cta-btn" data-zh="⬡ 立即启航" data-en="⬡ SET SAIL NOW">⬡ 立即启航</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">HONKAI IMPACT 3RD</div>
+    <div class="footer-links">
+      <a href="#" data-zh="官方网站" data-en="Official Site">官方网站</a>
+      <a href="#" data-zh="游戏下载" data-en="Download">游戏下载</a>
+      <a href="#" data-zh="漫画" data-en="Manga">漫画</a>
+      <a href="#" data-zh="动画" data-en="Animation">动画</a>
+    </div>
+    <p class="footer-text" data-zh="© 2026 miHoYo / HoYoverse. 此页面为粉丝创作，非官方内容。<br>崩坏3rd 及相关标识为 miHoYo 的注册商标。" data-en="© 2026 miHoYo / HoYoverse. This page is fan-made and not official content.<br>Honkai Impact 3rd and related marks are registered trademarks of miHoYo.">© 2026 miHoYo / HoYoverse. 此页面为粉丝创作，非官方内容。<br>崩坏3rd 及相关标识为 miHoYo 的注册商标。</p>
+  </div>
+</footer>
+
+<script>
+/* ========== PARTICLE CANVAS ========== */
+(function(){
+  const canvas=document.getElementById('bgCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  const PARTICLE_COUNT=80;
+
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight*5;
+  }
+  window.addEventListener('resize',resize);
+  resize();
+
+  class Particle{
+    constructor(){this.reset()}
+    reset(){
+      this.x=Math.random()*W;
+      this.y=Math.random()*H;
+      this.r=Math.random()*2+0.5;
+      this.vx=(Math.random()-0.5)*0.3;
+      this.vy=(Math.random()-0.5)*0.3;
+      this.alpha=Math.random()*0.5+0.1;
+      this.color=Math.random()>0.5?'139,92,246':'244,63,94';
+      this.pulse=Math.random()*Math.PI*2;
+      this.pulseSpeed=Math.random()*0.02+0.01;
+    }
+    update(){
+      this.x+=this.vx;this.y+=this.vy;
+      this.pulse+=this.pulseSpeed;
+      if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();
+    }
+    draw(){
+      const a=this.alpha*(0.5+0.5*Math.sin(this.pulse));
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${this.color},${a})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.r*3,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${this.color},${a*0.15})`;
+      ctx.fill();
+    }
+  }
+
+  for(let i=0;i<PARTICLE_COUNT;i++)particles.push(new Particle());
+
+  function animate(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{p.update();p.draw()});
+    // draw a few energy lines
+    ctx.strokeStyle='rgba(139,92,246,0.04)';
+    ctx.lineWidth=1;
+    for(let i=0;i<particles.length-1;i++){
+      const a=particles[i],b=particles[i+1];
+      const dx=a.x-b.x,dy=a.y-b.y;
+      if(Math.sqrt(dx*dx+dy*dy)<150){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* ========== LANGUAGE TOGGLE ========== */
+function toggleLang(){
+  const html=document.documentElement;
+  const cur=html.getAttribute('data-lang');
+  const next=cur==='zh'?'en':'zh';
+  html.setAttribute('data-lang',next);
+  document.getElementById('langToggle').textContent=next==='zh'?'EN':'中';
+  document.querySelectorAll('[data-zh][data-en]').forEach(el=>{
+    el.innerHTML=el.getAttribute('data-'+next);
+  });
+}
+
+/* ========== THEME TOGGLE ========== */
+function toggleTheme(){
+  const html=document.documentElement;
+  const cur=html.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  document.getElementById('themeToggle').textContent=next==='dark'?'☀':'☾';
+}
+
+/* ========== SCROLL REVEAL ========== */
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      // animate stat bars
+      e.target.querySelectorAll('.stat-fill[data-width]').forEach(bar=>{
+        bar.style.width=bar.getAttribute('data-width');
+      });
+    }
+  });
+},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+/* ========== INIT STAT BARS AT 0 ========== */
+document.querySelectorAll('.stat-fill[data-width]').forEach(bar=>{bar.style.width='0%'});
+</script>
+</body>
+</html>

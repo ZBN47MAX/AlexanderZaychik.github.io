@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>极简主义设计工作室 | Minimalist Design Studio</title>
+<style>
+  :root {
+    --bg: #000000;
+    --fg: #ffffff;
+    --fg-secondary: #999999;
+    --fg-tertiary: #666666;
+    --border: #333333;
+    --card-bg: #111111;
+    --card-hover: #1a1a1a;
+    --overlay: rgba(0,0,0,0.85);
+    --shadow: rgba(255,255,255,0.03);
+    --quote-bg: #0a0a0a;
+    --cta-bg: #ffffff;
+    --cta-fg: #000000;
+    --gallery-gap: 4px;
+  }
+
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --fg: #000000;
+    --fg-secondary: #555555;
+    --fg-tertiary: #888888;
+    --border: #e0e0e0;
+    --card-bg: #f5f5f5;
+    --card-hover: #eeeeee;
+    --overlay: rgba(255,255,255,0.85);
+    --shadow: rgba(0,0,0,0.05);
+    --quote-bg: #fafafa;
+    --cta-bg: #000000;
+    --cta-fg: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, "Helvetica Neue", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.7;
+    overflow-x: hidden;
+    transition: background 0.6s ease, color 0.6s ease;
+  }
+
+  canvas#bg-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .content-wrapper {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Controls */
+  .controls {
+    position: fixed;
+    top: 32px;
+    right: 32px;
+    z-index: 1000;
+    display: flex;
+    gap: 12px;
+  }
+
+  .ctrl-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    letter-spacing: -0.5px;
+    backdrop-filter: blur(20px);
+  }
+
+  .ctrl-btn:hover {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+
+  /* Typography */
+  h1, h2, h3, h4 { font-weight: 300; letter-spacing: -0.03em; }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--fg-tertiary);
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 200;
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--fg-secondary);
+    max-width: 560px;
+    line-height: 1.8;
+  }
+
+  /* Reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+  .reveal-delay-5 { transition-delay: 0.5s; }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 8vw;
+    position: relative;
+  }
+
+  .hero-label {
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--fg-tertiary);
+    margin-bottom: 40px;
+  }
+
+  .hero-title {
+    font-size: clamp(48px, 9vw, 120px);
+    font-weight: 100;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    margin-bottom: 48px;
+    max-width: 900px;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: var(--fg-secondary);
+    max-width: 480px;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 48px;
+    left: 8vw;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--fg-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .scroll-line {
+    width: 48px;
+    height: 1px;
+    background: var(--fg-tertiary);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; width: 48px; }
+    50% { opacity: 1; width: 64px; }
+  }
+
+  /* Divider */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* About */
+  .about {
+    padding: 160px 8vw;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .about-left .big-number {
+    font-size: clamp(80px, 12vw, 160px);
+    font-weight: 100;
+    color: var(--fg-tertiary);
+    line-height: 1;
+    margin-bottom: 24px;
+    opacity: 0.3;
+  }
+
+  .about-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 64px;
+  }
+
+  .stat-num {
+    font-size: 48px;
+    font-weight: 200;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-text {
+    font-size: 13px;
+    color: var(--fg-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  /* Features */
+  .features {
+    padding: 160px 8vw;
+  }
+
+  .features-header {
+    margin-bottom: 80px;
+    max-width: 600px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .feature-card {
+    background: var(--bg);
+    padding: 56px 40px;
+    transition: background 0.4s ease;
+    cursor: default;
+    position: relative;
+  }
+
+  .feature-card:hover {
+    background: var(--card-bg);
+  }
+
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .feature-icon-circle {
+    width: 48px; height: 48px;
+    border: 1.5px solid var(--fg-tertiary);
+    border-radius: 50%;
+  }
+
+  .feature-icon-square {
+    width: 40px; height: 40px;
+    border: 1.5px solid var(--fg-tertiary);
+    margin: 4px;
+  }
+
+  .feature-icon-line {
+    width: 48px; height: 0;
+    border-top: 1.5px solid var(--fg-tertiary);
+    margin-top: 24px;
+  }
+
+  .feature-icon-triangle {
+    width: 0; height: 0;
+    border-left: 24px solid transparent;
+    border-right: 24px solid transparent;
+    border-bottom: 42px solid transparent;
+    border-bottom-color: var(--fg-tertiary);
+    position: relative;
+  }
+  .feature-icon-triangle::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: -20px;
+    width: 0; height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 35px solid var(--bg);
+    transition: border-bottom-color 0.4s ease;
+  }
+  .feature-card:hover .feature-icon-triangle::after {
+    border-bottom-color: var(--card-bg);
+  }
+
+  .feature-icon-diamond {
+    width: 34px; height: 34px;
+    border: 1.5px solid var(--fg-tertiary);
+    transform: rotate(45deg);
+    margin: 7px;
+  }
+
+  .feature-icon-cross {
+    position: relative;
+    width: 48px; height: 48px;
+  }
+  .feature-icon-cross::before,
+  .feature-icon-cross::after {
+    content: '';
+    position: absolute;
+    background: var(--fg-tertiary);
+  }
+  .feature-icon-cross::before {
+    width: 1.5px; height: 48px;
+    left: 23px; top: 0;
+  }
+  .feature-icon-cross::after {
+    width: 48px; height: 1.5px;
+    left: 0; top: 23px;
+  }
+
+  .feature-num {
+    font-size: 11px;
+    color: var(--fg-tertiary);
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+  }
+
+  .feature-title {
+    font-size: 22px;
+    font-weight: 300;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .feature-desc {
+    font-size: 14px;
+    color: var(--fg-secondary);
+    line-height: 1.7;
+  }
+
+  /* Gallery */
+  .gallery {
+    padding: 160px 8vw;
+  }
+
+  .gallery-header {
+    margin-bottom: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 200px);
+    gap: var(--gallery-gap);
+  }
+
+  .gallery-item {
+    background: var(--card-bg);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s ease;
+  }
+
+  .gallery-item:hover { opacity: 0.8; }
+
+  .gallery-item:nth-child(1) { grid-column: span 2; grid-row: span 2; }
+  .gallery-item:nth-child(4) { grid-row: span 2; }
+
+  .gallery-shape {
+    opacity: 0.15;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .gallery-item:hover .gallery-shape {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+
+  .g-circle { width: 80px; height: 80px; border: 2px solid var(--fg); border-radius: 50%; }
+  .g-circle-lg { width: 160px; height: 160px; border: 2px solid var(--fg); border-radius: 50%; }
+  .g-square { width: 60px; height: 60px; border: 2px solid var(--fg); }
+  .g-square-lg { width: 120px; height: 120px; border: 2px solid var(--fg); }
+  .g-rect { width: 120px; height: 40px; border: 2px solid var(--fg); }
+  .g-line-h { width: 100px; height: 0; border-top: 2px solid var(--fg); }
+  .g-line-v { width: 0; height: 100px; border-left: 2px solid var(--fg); }
+  .g-dot { width: 12px; height: 12px; background: var(--fg); border-radius: 50%; }
+  .g-diamond { width: 60px; height: 60px; border: 2px solid var(--fg); transform: rotate(45deg); }
+
+  /* Quote */
+  .quote-section {
+    padding: 160px 8vw;
+    background: var(--quote-bg);
+    text-align: center;
+    transition: background 0.6s ease;
+  }
+
+  .quote-mark {
+    font-size: 120px;
+    font-weight: 100;
+    color: var(--fg-tertiary);
+    opacity: 0.2;
+    line-height: 0.5;
+    margin-bottom: 40px;
+  }
+
+  .quote-text {
+    font-size: clamp(24px, 3.5vw, 42px);
+    font-weight: 200;
+    max-width: 800px;
+    margin: 0 auto 40px;
+    line-height: 1.5;
+    letter-spacing: -0.02em;
+  }
+
+  .quote-author {
+    font-size: 13px;
+    color: var(--fg-tertiary);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* CTA */
+  .cta {
+    padding: 200px 8vw;
+    text-align: center;
+  }
+
+  .cta-title {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 100;
+    margin-bottom: 32px;
+    letter-spacing: -0.03em;
+  }
+
+  .cta-desc {
+    font-size: 16px;
+    color: var(--fg-secondary);
+    margin-bottom: 56px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.8;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    padding: 18px 56px;
+    background: var(--cta-bg);
+    color: var(--cta-fg);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 400;
+    transition: all 0.4s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .cta-btn:hover {
+    opacity: 0.7;
+    letter-spacing: 0.35em;
+  }
+
+  /* Footer */
+  footer {
+    padding: 80px 8vw;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+
+  .footer-brand {
+    font-size: 18px;
+    font-weight: 300;
+    margin-bottom: 16px;
+  }
+
+  .footer-tagline {
+    font-size: 13px;
+    color: var(--fg-tertiary);
+    line-height: 1.7;
+  }
+
+  .footer-heading {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--fg-tertiary);
+    margin-bottom: 20px;
+  }
+
+  .footer-links {
+    list-style: none;
+  }
+
+  .footer-links li {
+    margin-bottom: 10px;
+  }
+
+  .footer-links a {
+    color: var(--fg-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .footer-links a:hover { color: var(--fg); }
+
+  .footer-bottom {
+    padding: 32px 8vw;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--fg-tertiary);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(4, 180px);
+    }
+    .gallery-item:nth-child(1) { grid-column: span 2; grid-row: span 1; }
+    .gallery-item:nth-child(4) { grid-row: span 1; }
+    footer { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .about { grid-template-columns: 1fr; gap: 48px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .gallery-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+    }
+    .gallery-item:nth-child(1) { grid-column: span 2; }
+    .gallery-item { min-height: 160px; }
+    .hero { padding: 100px 6vw; }
+    .controls { top: 20px; right: 20px; }
+    .ctrl-btn { width: 42px; height: 42px; font-size: 12px; }
+    footer { grid-template-columns: 1fr; }
+    .gallery-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+    .gallery-item:nth-child(1) { grid-column: span 1; }
+    .about-stats { grid-template-columns: 1fr; gap: 32px; }
+    .footer-bottom { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="controls">
+  <button class="ctrl-btn" id="langBtn" onclick="toggleLang()" title="切换语言 / Toggle Language">EN</button>
+  <button class="ctrl-btn" id="themeBtn" onclick="toggleTheme()" title="切换主题 / Toggle Theme">☀</button>
+</div>
+
+<div class="content-wrapper">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-label reveal" data-zh="设计工作室 — 成立于2019" data-en="Design Studio — Est. 2019">设计工作室 — 成立于2019</div>
+    <h1 class="hero-title reveal reveal-delay-1" data-zh="极简主义&#10;设计工作室" data-en="Minimalist&#10;Design Studio">极简主义&#10;设计工作室</h1>
+    <p class="hero-sub reveal reveal-delay-2" data-zh="我们相信少即是多。通过去除多余的装饰，让设计回归本质，用最纯粹的形式传达最深刻的理念。" data-en="We believe less is more. By stripping away the unnecessary, we return design to its essence — conveying the most profound ideas through the purest forms.">我们相信少即是多。通过去除多余的装饰，让设计回归本质，用最纯粹的形式传达最深刻的理念。</p>
+    <div class="hero-scroll reveal reveal-delay-3">
+      <span class="scroll-line"></span>
+      <span data-zh="向下滚动" data-en="Scroll Down">向下滚动</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- About -->
+  <section class="about">
+    <div class="about-left reveal">
+      <div class="big-number">極</div>
+      <div class="section-label" data-zh="关于我们" data-en="About Us">关于我们</div>
+      <h2 class="section-title" data-zh="追求极致的&#10;纯粹与克制" data-en="Pursuing the Ultimate&#10;Purity and Restraint">追求极致的&#10;纯粹与克制</h2>
+    </div>
+    <div class="about-right">
+      <p class="section-desc reveal reveal-delay-1" data-zh="极简主义设计工作室成立于2019年，专注于建筑空间、品牌视觉与数字体验设计。我们的设计哲学根植于东方美学与西方现代主义的交融——在留白中寻找力量，在沉静中发现深度。" data-en="Founded in 2019, Minimalist Design Studio focuses on architectural spaces, brand identity, and digital experience design. Our philosophy is rooted in the confluence of Eastern aesthetics and Western modernism — finding strength in negative space and depth in stillness.">极简主义设计工作室成立于2019年，专注于建筑空间、品牌视觉与数字体验设计。我们的设计哲学根植于东方美学与西方现代主义的交融——在留白中寻找力量，在沉静中发现深度。</p>
+      <p class="section-desc reveal reveal-delay-2" style="margin-top:24px" data-zh="每一个项目，我们都从本质出发，剥离一切不必要的元素，直到剩下的每一笔都不可或缺。这不是简单的删减，而是一种精心的提炼。" data-en="For every project, we start from the essence, stripping away all unnecessary elements until every remaining stroke is indispensable. This is not mere reduction — it is careful distillation.">每一个项目，我们都从本质出发，剥离一切不必要的元素，直到剩下的每一笔都不可或缺。这不是简单的删减，而是一种精心的提炼。</p>
+      <div class="about-stats">
+        <div class="reveal reveal-delay-2">
+          <div class="stat-num" data-zh="127+" data-en="127+">127+</div>
+          <div class="stat-text" data-zh="完成项目" data-en="Projects">完成项目</div>
+        </div>
+        <div class="reveal reveal-delay-3">
+          <div class="stat-num" data-zh="6" data-en="6">6</div>
+          <div class="stat-text" data-zh="设计大奖" data-en="Awards">设计大奖</div>
+        </div>
+        <div class="reveal reveal-delay-4">
+          <div class="stat-num" data-zh="15" data-en="15">15</div>
+          <div class="stat-text" data-zh="团队成员" data-en="Team Members">团队成员</div>
+        </div>
+        <div class="reveal reveal-delay-5">
+          <div class="stat-num" data-zh="7年" data-en="7 Yrs">7年</div>
+          <div class="stat-text" data-zh="行业经验" data-en="Experience">行业经验</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="features-header reveal">
+      <div class="section-label" data-zh="核心服务" data-en="Core Services">核心服务</div>
+      <h2 class="section-title" data-zh="以克制为方法&#10;以本质为目标" data-en="Restraint as Method&#10;Essence as Goal">以克制为方法&#10;以本质为目标</h2>
+      <p class="section-desc" data-zh="我们的每项服务都贯穿着同一个信念：真正的优雅来自于精简。" data-en="Every service we offer is guided by a single belief: true elegance comes from refinement.">我们的每项服务都贯穿着同一个信念：真正的优雅来自于精简。</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon"><div class="feature-icon-circle"></div></div>
+        <div class="feature-num">01</div>
+        <h3 class="feature-title" data-zh="建筑空间设计" data-en="Architectural Design">建筑空间设计</h3>
+        <p class="feature-desc" data-zh="将空间视为画布，以光影为笔触，创造富有呼吸感的建筑体验。每一处留白都经过深思熟虑。" data-en="We treat space as canvas, light and shadow as brushstrokes, creating architecture that breathes. Every void is deliberate.">将空间视为画布，以光影为笔触，创造富有呼吸感的建筑体验。每一处留白都经过深思熟虑。</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon"><div class="feature-icon-square"></div></div>
+        <div class="feature-num">02</div>
+        <h3 class="feature-title" data-zh="品牌视觉系统" data-en="Brand Identity">品牌视觉系统</h3>
+        <p class="feature-desc" data-zh="构建纯粹而有力的品牌语言。我们相信最好的标识是那些无法再被简化的符号。" data-en="Building pure and powerful brand languages. We believe the best marks are those that cannot be simplified further.">构建纯粹而有力的品牌语言。我们相信最好的标识是那些无法再被简化的符号。</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon"><div class="feature-icon-triangle"></div></div>
+        <div class="feature-num">03</div>
+        <h3 class="feature-title" data-zh="数字体验设计" data-en="Digital Experience">数字体验设计</h3>
+        <p class="feature-desc" data-zh="在数字世界中重现极简之美。每一次交互都精确而优雅，每一个界面都清晰而从容。" data-en="Recreating minimalist beauty in the digital realm. Every interaction is precise and elegant, every interface clear and composed.">在数字世界中重现极简之美。每一次交互都精确而优雅，每一个界面都清晰而从容。</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon"><div class="feature-icon-diamond"></div></div>
+        <div class="feature-num">04</div>
+        <h3 class="feature-title" data-zh="产品设计" data-en="Product Design">产品设计</h3>
+        <p class="feature-desc" data-zh="从形态到材质，从功能到触感，追求每一个细节的完美平衡与和谐统一。" data-en="From form to material, function to touch — pursuing perfect balance and harmonious unity in every detail.">从形态到材质，从功能到触感，追求每一个细节的完美平衡与和谐统一。</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon"><div class="feature-icon-line"></div></div>
+        <div class="feature-num">05</div>
+        <h3 class="feature-title" data-zh="艺术指导" data-en="Art Direction">艺术指导</h3>
+        <p class="feature-desc" data-zh="以全局视角把控项目的视觉调性，确保每一个元素都服务于统一的美学愿景。" data-en="Guiding the visual tone of each project with a holistic perspective, ensuring every element serves a unified aesthetic vision.">以全局视角把控项目的视觉调性，确保每一个元素都服务于统一的美学愿景。</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon"><div class="feature-icon-cross"></div></div>
+        <div class="feature-num">06</div>
+        <h3 class="feature-title" data-zh="策略咨询" data-en="Strategy Consulting">策略咨询</h3>
+        <p class="feature-desc" data-zh="为品牌提供从定位到表达的全方位策略支持，帮助客户找到最纯粹的品牌内核。" data-en="Providing comprehensive strategic support from positioning to expression, helping clients discover their purest brand core.">为品牌提供从定位到表达的全方位策略支持，帮助客户找到最纯粹的品牌内核。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Gallery -->
+  <section class="gallery">
+    <div class="gallery-header reveal">
+      <div>
+        <div class="section-label" data-zh="精选作品" data-en="Selected Works">精选作品</div>
+        <h2 class="section-title" data-zh="作品集锦" data-en="Portfolio">作品集锦</h2>
+      </div>
+      <p class="section-desc" data-zh="每一件作品都是对极简理念的一次实践。" data-en="Each work is a practice of minimalist philosophy.">每一件作品都是对极简理念的一次实践。</p>
+    </div>
+    <div class="gallery-grid">
+      <div class="gallery-item reveal"><div class="gallery-shape g-circle-lg"></div></div>
+      <div class="gallery-item reveal reveal-delay-1"><div class="gallery-shape g-square"></div></div>
+      <div class="gallery-item reveal reveal-delay-2"><div class="gallery-shape g-line-h"></div></div>
+      <div class="gallery-item reveal reveal-delay-2"><div class="gallery-shape g-diamond"></div></div>
+      <div class="gallery-item reveal reveal-delay-3"><div class="gallery-shape g-rect"></div></div>
+      <div class="gallery-item reveal reveal-delay-3"><div class="gallery-shape g-dot"></div></div>
+      <div class="gallery-item reveal reveal-delay-4"><div class="gallery-shape g-circle"></div></div>
+      <div class="gallery-item reveal reveal-delay-4"><div class="gallery-shape g-square-lg"></div></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Quote -->
+  <section class="quote-section">
+    <div class="quote-mark reveal">"</div>
+    <blockquote class="quote-text reveal reveal-delay-1" data-zh="完美不是无以复加，而是无可删减。" data-en="Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.">完美不是无以复加，而是无可删减。</blockquote>
+    <div class="quote-author reveal reveal-delay-2" data-zh="— 安托万·德·圣-埃克苏佩里" data-en="— Antoine de Saint-Exup&eacute;ry">— 安托万·德·圣-埃克苏佩里</div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2 class="cta-title reveal" data-zh="开启你的&#10;极简之旅" data-en="Begin Your&#10;Minimalist Journey">开启你的&#10;极简之旅</h2>
+    <p class="cta-desc reveal reveal-delay-1" data-zh="让我们一起，用最少的元素讲述最动人的故事。无论您的项目规模如何，我们都期待与您的对话。" data-en="Let us tell the most compelling stories with the fewest elements. Regardless of your project's scale, we look forward to the conversation.">让我们一起，用最少的元素讲述最动人的故事。无论您的项目规模如何，我们都期待与您的对话。</p>
+    <button class="cta-btn reveal reveal-delay-2" data-zh="联系我们" data-en="Get in Touch">联系我们</button>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Footer -->
+  <footer>
+    <div>
+      <div class="footer-brand" data-zh="极简主义设计工作室" data-en="Minimalist Design Studio">极简主义设计工作室</div>
+      <p class="footer-tagline" data-zh="少即是多。纯粹即力量。" data-en="Less is more. Purity is power.">少即是多。纯粹即力量。</p>
+    </div>
+    <div>
+      <div class="footer-heading" data-zh="服务" data-en="Services">服务</div>
+      <ul class="footer-links">
+        <li><a href="#" data-zh="建筑设计" data-en="Architecture">建筑设计</a></li>
+        <li><a href="#" data-zh="品牌设计" data-en="Branding">品牌设计</a></li>
+        <li><a href="#" data-zh="数字设计" data-en="Digital">数字设计</a></li>
+        <li><a href="#" data-zh="产品设计" data-en="Product">产品设计</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading" data-zh="工作室" data-en="Studio">工作室</div>
+      <ul class="footer-links">
+        <li><a href="#" data-zh="关于" data-en="About">关于</a></li>
+        <li><a href="#" data-zh="作品" data-en="Work">作品</a></li>
+        <li><a href="#" data-zh="团队" data-en="Team">团队</a></li>
+        <li><a href="#" data-zh="招聘" data-en="Careers">招聘</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading" data-zh="联系" data-en="Contact">联系</div>
+      <ul class="footer-links">
+        <li><a href="#">hello@minimal.studio</a></li>
+        <li><a href="#">+86 21 8888 6666</a></li>
+        <li><a href="#" data-zh="上海市静安区" data-en="Jing'an, Shanghai">上海市静安区</a></li>
+      </ul>
+    </div>
+  </footer>
+  <div class="footer-bottom">
+    <span data-zh="&copy; 2026 极简主义设计工作室" data-en="&copy; 2026 Minimalist Design Studio">&copy; 2026 极简主义设计工作室</span>
+    <span data-zh="沪ICP备xxxxxxxx号" data-en="All rights reserved">沪ICP备xxxxxxxx号</span>
+  </div>
+
+</div>
+
+<script>
+// Language toggle
+let currentLang = 'zh';
+function toggleLang() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  document.getElementById('langBtn').textContent = currentLang === 'zh' ? 'EN' : '中';
+  document.documentElement.lang = currentLang === 'zh' ? 'zh' : 'en';
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    const text = el.getAttribute('data-' + currentLang);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = text;
+    } else {
+      el.innerHTML = text;
+    }
+  });
+}
+
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '●' : '☀';
+  initCanvas();
+}
+
+// Scroll reveal
+function revealOnScroll() {
+  const reveals = document.querySelectorAll('.reveal');
+  const windowH = window.innerHeight;
+  reveals.forEach(el => {
+    const top = el.getBoundingClientRect().top;
+    if (top < windowH - 80) {
+      el.classList.add('visible');
+    }
+  });
+}
+window.addEventListener('scroll', revealOnScroll);
+window.addEventListener('load', revealOnScroll);
+
+// Canvas background
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let shapes = [];
+let animId;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function createShapes() {
+  shapes = [];
+  const count = Math.floor(window.innerWidth / 120);
+  for (let i = 0; i < count; i++) {
+    shapes.push({
+      type: ['circle', 'line', 'square', 'dot'][Math.floor(Math.random() * 4)],
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 8 + Math.random() * 40,
+      speedX: (Math.random() - 0.5) * 0.3,
+      speedY: (Math.random() - 0.5) * 0.2,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.005,
+      opacity: 0.03 + Math.random() * 0.06
+    });
+  }
+}
+
+function drawShapes() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const baseColor = isDark ? '255,255,255' : '0,0,0';
+
+  shapes.forEach(s => {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rotation);
+    ctx.strokeStyle = `rgba(${baseColor},${s.opacity})`;
+    ctx.fillStyle = `rgba(${baseColor},${s.opacity * 0.5})`;
+    ctx.lineWidth = 1;
+
+    switch (s.type) {
+      case 'circle':
+        ctx.beginPath();
+        ctx.arc(0, 0, s.size, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+      case 'square':
+        ctx.strokeRect(-s.size / 2, -s.size / 2, s.size, s.size);
+        break;
+      case 'line':
+        ctx.beginPath();
+        ctx.moveTo(-s.size, 0);
+        ctx.lineTo(s.size, 0);
+        ctx.stroke();
+        break;
+      case 'dot':
+        ctx.beginPath();
+        ctx.arc(0, 0, s.size * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+    }
+
+    ctx.restore();
+
+    s.x += s.speedX;
+    s.y += s.speedY;
+    s.rotation += s.rotSpeed;
+
+    if (s.x < -60) s.x = canvas.width + 60;
+    if (s.x > canvas.width + 60) s.x = -60;
+    if (s.y < -60) s.y = canvas.height + 60;
+    if (s.y > canvas.height + 60) s.y = -60;
+  });
+
+  animId = requestAnimationFrame(drawShapes);
+}
+
+function initCanvas() {
+  if (animId) cancelAnimationFrame(animId);
+  resizeCanvas();
+  createShapes();
+  drawShapes();
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+});
+
+initCanvas();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATOMIC HEART · 原子之心 · Facility 3826</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Playfair+Display:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --red:#b71c1c;--red-bright:#d32f2f;--gold:#c9a84c;--gold-bright:#d4af37;
+  --cream:#f5f0e1;--cream-dark:#ebe5d4;--charcoal:#1a1a1a;--charcoal-light:#2d2d2d;
+  --steel:#607d8b;--steel-light:#78909c;--polymer:#00bcd4;--white:#ffffff;
+  --font-display:'Playfair Display',Georgia,'Noto Sans SC',serif;
+  --font-body:'Noto Sans SC','Segoe UI',sans-serif;
+  --font-tech:'Rajdhani','Noto Sans SC',monospace;
+}
+[data-theme="dark"]{
+  --bg:#0d0d0d;--bg2:var(--charcoal);--bg3:var(--charcoal-light);
+  --text:var(--cream);--text-dim:var(--steel-light);
+  --card-bg:rgba(30,30,30,0.85);--card-border:var(--gold);
+  --hero-bg:var(--charcoal);--section-alt:rgba(20,20,20,0.9);
+  --banner-bg:var(--red);--banner-text:var(--white);
+  --divider-color:var(--gold);
+}
+[data-theme="light"]{
+  --bg:var(--cream);--bg2:var(--cream-dark);--bg3:#ddd5c0;
+  --text:var(--charcoal);--text-dim:var(--steel);
+  --card-bg:rgba(255,252,240,0.92);--card-border:var(--red);
+  --hero-bg:var(--cream-dark);--section-alt:rgba(235,229,212,0.95);
+  --banner-bg:var(--red);--banner-text:var(--white);
+  --divider-color:var(--red);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  line-height:1.7;overflow-x:hidden;transition:background .5s,color .5s;
+}
+canvas#polymerBg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.3}
+.page-wrap{position:relative;z-index:1}
+
+/* Controls */
+.controls{position:fixed;top:20px;right:20px;z-index:1000;display:flex;gap:12px}
+.ctrl-btn{
+  width:48px;height:48px;border-radius:50%;border:2px solid var(--gold);
+  background:var(--bg);color:var(--gold);font-family:var(--font-tech);
+  font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all .3s;box-shadow:0 0 12px rgba(201,168,76,0.3);
+}
+.ctrl-btn:hover{background:var(--gold);color:var(--charcoal);transform:scale(1.1)}
+
+/* Soviet Ornamental Divider */
+.soviet-divider{
+  text-align:center;padding:24px 0;font-size:18px;color:var(--divider-color);
+  letter-spacing:6px;user-select:none;
+}
+.soviet-divider::before,.soviet-divider::after{
+  content:'═══ ✦ ';
+}
+.soviet-divider::after{content:' ✦ ═══'}
+
+/* Red Banner Ribbon */
+.ribbon{
+  background:var(--red);color:var(--white);text-align:center;
+  padding:10px 40px;font-family:var(--font-display);font-size:1.1rem;
+  letter-spacing:3px;text-transform:uppercase;position:relative;
+  display:inline-block;margin:0 auto;
+}
+.ribbon::before,.ribbon::after{
+  content:'';position:absolute;top:0;width:0;height:0;
+  border-style:solid;
+}
+.ribbon::before{left:-20px;border-width:0 20px 22px 0;border-color:transparent var(--red-bright) transparent transparent}
+.ribbon::after{right:-20px;border-width:22px 20px 0 0;border-color:var(--red-bright) transparent transparent transparent}
+
+/* Section titles */
+.section-title{
+  font-family:var(--font-display);font-size:clamp(2rem,5vw,3.2rem);
+  color:var(--red-bright);text-align:center;margin-bottom:8px;
+  letter-spacing:2px;
+}
+.section-subtitle{
+  text-align:center;font-family:var(--font-tech);color:var(--gold);
+  font-size:1rem;letter-spacing:4px;text-transform:uppercase;margin-bottom:40px;
+}
+
+/* ===== HERO ===== */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;position:relative;overflow:hidden;
+  background:var(--hero-bg);
+}
+.hero-sunburst{
+  position:absolute;inset:0;
+  background:repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg, transparent 8deg,
+    rgba(183,28,28,0.08) 8deg, rgba(183,28,28,0.08) 10deg
+  );
+  animation:rotateSunburst 120s linear infinite;
+}
+@keyframes rotateSunburst{to{transform:rotate(360deg)}}
+.hero-overlay{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 30%,var(--bg) 90%);
+}
+.hero-content{position:relative;z-index:2;padding:20px}
+.hero-star{
+  font-size:clamp(3rem,8vw,5rem);color:var(--gold-bright);
+  text-shadow:0 0 30px rgba(212,175,55,0.6);margin-bottom:16px;
+  animation:starPulse 3s ease-in-out infinite;
+}
+@keyframes starPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8}}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(3rem,10vw,7rem);
+  color:var(--red-bright);letter-spacing:8px;text-transform:uppercase;
+  text-shadow:3px 3px 0 rgba(0,0,0,0.4);line-height:1.1;margin-bottom:8px;
+}
+.hero .hero-zh{
+  font-family:var(--font-body);font-size:clamp(1.8rem,5vw,3.5rem);
+  color:var(--gold);letter-spacing:12px;margin-bottom:20px;
+}
+.hero .hero-sub{
+  font-family:var(--font-tech);font-size:clamp(1rem,2.5vw,1.6rem);
+  color:var(--text-dim);letter-spacing:6px;text-transform:uppercase;
+}
+.hero .hero-sub span{color:var(--polymer)}
+.hero-badge{
+  margin-top:32px;width:120px;height:120px;border-radius:50%;
+  border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;
+  flex-direction:column;background:rgba(0,0,0,0.5);
+}
+.hero-badge .badge-num{font-family:var(--font-tech);font-size:2rem;color:var(--gold);font-weight:700}
+.hero-badge .badge-label{font-family:var(--font-tech);font-size:.65rem;color:var(--text-dim);letter-spacing:2px}
+
+.scroll-hint{
+  position:absolute;bottom:30px;color:var(--gold);font-family:var(--font-tech);
+  font-size:.8rem;letter-spacing:3px;animation:bounce 2s infinite;
+}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+/* ===== SECTIONS ===== */
+section{padding:80px 20px;max-width:1200px;margin:0 auto}
+.full-section{max-width:100%;padding:80px 0}
+
+/* About */
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;
+  max-width:1000px;margin:0 auto;
+}
+.about-text p{margin-bottom:16px;font-size:1.05rem;line-height:1.8}
+.about-panel{
+  background:var(--card-bg);border:1px solid var(--card-border);
+  padding:30px;position:relative;
+}
+.about-panel::before{
+  content:'★';position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  font-size:1.4rem;color:var(--gold);background:var(--bg);padding:0 12px;
+}
+.about-panel h3{
+  font-family:var(--font-display);color:var(--red-bright);margin-bottom:12px;font-size:1.3rem;
+}
+.about-panel ul{list-style:none;padding:0}
+.about-panel ul li{
+  padding:8px 0;border-bottom:1px solid rgba(201,168,76,0.2);
+  font-family:var(--font-tech);font-size:.95rem;
+}
+.about-panel ul li::before{content:'◆ ';color:var(--gold)}
+
+/* Facility Cards */
+.facility-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:24px;max-width:1100px;margin:0 auto;
+}
+.facility-card{
+  background:var(--card-bg);border:2px solid var(--card-border);
+  padding:0;overflow:hidden;transition:transform .3s,box-shadow .3s;
+  position:relative;
+}
+.facility-card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(183,28,28,0.3)}
+.facility-card-header{
+  background:var(--red);padding:14px 20px;display:flex;align-items:center;
+  justify-content:space-between;
+}
+.facility-card-header h3{
+  font-family:var(--font-display);color:var(--white);font-size:1.15rem;letter-spacing:1px;
+}
+.threat-level{
+  font-family:var(--font-tech);font-size:.85rem;padding:3px 10px;
+  border-radius:2px;font-weight:700;letter-spacing:1px;
+}
+.threat-low{background:var(--steel);color:var(--white)}
+.threat-med{background:var(--gold);color:var(--charcoal)}
+.threat-high{background:#e65100;color:var(--white)}
+.threat-critical{background:#b71c1c;color:var(--gold);border:1px solid var(--gold)}
+.facility-card-body{padding:20px}
+.facility-card-body p{font-size:.95rem;line-height:1.7;margin-bottom:12px}
+.facility-code{
+  font-family:var(--font-tech);font-size:.8rem;color:var(--polymer);
+  letter-spacing:2px;
+}
+
+/* Robot Bestiary */
+.bestiary-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:28px;max-width:1100px;margin:0 auto;
+}
+.robot-card{
+  background:var(--card-bg);border:1px solid var(--card-border);
+  padding:28px;text-align:center;position:relative;transition:all .3s;
+}
+.robot-card:hover{border-color:var(--red-bright);box-shadow:0 0 20px rgba(211,47,47,0.2)}
+.robot-icon{
+  font-size:3rem;margin-bottom:12px;display:block;
+  color:var(--steel-light);
+}
+.robot-card h3{
+  font-family:var(--font-display);color:var(--red-bright);font-size:1.2rem;margin-bottom:4px;
+}
+.robot-designation{
+  font-family:var(--font-tech);font-size:.8rem;color:var(--polymer);
+  letter-spacing:3px;margin-bottom:12px;
+}
+.robot-card p{font-size:.9rem;line-height:1.6;margin-bottom:16px}
+.threat-gauge{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--font-tech);font-size:.85rem;color:var(--gold);
+}
+.gauge-bar{
+  width:100px;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;
+  position:relative;
+}
+.gauge-fill{
+  height:100%;border-radius:4px;transition:width 1s ease;
+  background:linear-gradient(90deg,var(--gold),var(--red-bright));
+}
+
+/* Technology */
+.tech-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:30px;max-width:1100px;margin:0 auto;
+}
+.tech-card{
+  background:var(--card-bg);border:1px solid var(--steel);
+  padding:32px;position:relative;overflow:hidden;transition:all .3s;
+}
+.tech-card:hover{border-color:var(--polymer);box-shadow:0 0 24px rgba(0,188,212,0.15)}
+.tech-card::after{
+  content:'';position:absolute;top:0;right:0;width:60px;height:60px;
+  border-left:1px solid var(--polymer);border-bottom:1px solid var(--polymer);
+  opacity:.3;
+}
+.tech-card h3{
+  font-family:var(--font-display);color:var(--polymer);font-size:1.2rem;
+  margin-bottom:6px;
+}
+.tech-card .tech-id{
+  font-family:var(--font-tech);font-size:.75rem;color:var(--gold);
+  letter-spacing:3px;margin-bottom:14px;
+}
+.tech-card p{font-size:.93rem;line-height:1.7}
+
+/* Propaganda Quote */
+.quote-section{
+  background:var(--red);padding:60px 20px;text-align:center;
+  position:relative;overflow:hidden;max-width:100%;
+}
+.quote-section::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-conic-gradient(from 0deg,transparent 0deg,transparent 12deg,rgba(255,255,255,0.03) 12deg,rgba(255,255,255,0.03) 14deg);
+}
+.quote-content{position:relative;max-width:800px;margin:0 auto}
+.quote-content .quote-star{font-size:2.5rem;color:var(--gold-bright);margin-bottom:16px}
+.quote-content blockquote{
+  font-family:var(--font-display);font-size:clamp(1.3rem,3vw,2rem);
+  color:var(--white);line-height:1.5;margin-bottom:16px;
+  font-style:italic;
+}
+.quote-content .quote-attr{
+  font-family:var(--font-tech);font-size:.9rem;color:var(--gold);
+  letter-spacing:3px;
+}
+
+/* Timeline */
+.timeline{max-width:700px;margin:0 auto;position:relative;padding-left:40px}
+.timeline::before{
+  content:'';position:absolute;left:15px;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,var(--red),var(--gold),var(--polymer));
+}
+.timeline-item{
+  position:relative;margin-bottom:40px;padding-left:30px;
+}
+.timeline-item::before{
+  content:'★';position:absolute;left:-32px;top:2px;
+  font-size:1.2rem;color:var(--gold);
+}
+.timeline-item .tl-year{
+  font-family:var(--font-tech);font-size:1.4rem;color:var(--red-bright);
+  font-weight:700;letter-spacing:2px;
+}
+.timeline-item h3{
+  font-family:var(--font-display);font-size:1.1rem;color:var(--gold);margin:4px 0 8px;
+}
+.timeline-item p{font-size:.93rem;line-height:1.6;color:var(--text-dim)}
+
+/* CTA */
+.cta-section{
+  text-align:center;padding:80px 20px;position:relative;
+}
+.cta-section h2{
+  font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);
+  color:var(--red-bright);letter-spacing:4px;margin-bottom:8px;
+}
+.cta-section .cta-zh{
+  font-size:clamp(1.2rem,3vw,1.8rem);color:var(--gold);
+  letter-spacing:8px;margin-bottom:30px;
+}
+.cta-btn{
+  display:inline-block;padding:16px 48px;border:2px solid var(--gold);
+  background:transparent;color:var(--gold);font-family:var(--font-tech);
+  font-size:1.1rem;letter-spacing:4px;text-transform:uppercase;
+  cursor:pointer;transition:all .3s;position:relative;
+}
+.cta-btn:hover{
+  background:var(--gold);color:var(--charcoal);box-shadow:0 0 30px rgba(201,168,76,0.4);
+}
+.cta-btn::before,.cta-btn::after{
+  content:'★';position:absolute;top:50%;transform:translateY(-50%);
+  color:var(--gold);font-size:.8rem;
+}
+.cta-btn::before{left:16px}
+.cta-btn::after{right:16px}
+
+/* Footer */
+footer{
+  background:var(--charcoal);border-top:3px solid var(--gold);
+  padding:40px 20px;text-align:center;
+}
+.footer-ornament{
+  color:var(--gold);font-size:1rem;letter-spacing:4px;margin-bottom:12px;
+}
+footer p{
+  font-family:var(--font-tech);color:var(--steel-light);
+  font-size:.85rem;letter-spacing:3px;margin-bottom:8px;
+}
+.footer-stars{color:var(--red-bright);font-size:1.2rem;letter-spacing:8px;margin-top:12px}
+
+/* Scroll Reveal */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:768px){
+  .about-grid{grid-template-columns:1fr}
+  .facility-grid,.bestiary-grid,.tech-grid{grid-template-columns:1fr}
+  .controls{top:10px;right:10px;gap:8px}
+  .ctrl-btn{width:40px;height:40px;font-size:12px}
+  section{padding:50px 16px}
+  .hero-badge{width:90px;height:90px}
+  .hero-badge .badge-num{font-size:1.4rem}
+  .timeline{padding-left:30px}
+  .timeline::before{left:10px}
+  .timeline-item::before{left:-27px;font-size:1rem}
+}
+
+/* Diagonal stripe accent used on some sections */
+.stripe-accent{
+  position:relative;
+}
+.stripe-accent::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:6px;
+  background:repeating-linear-gradient(
+    -45deg,var(--red),var(--red) 8px,var(--gold) 8px,var(--gold) 16px,
+    var(--red) 16px
+  );
+}
+</style>
+</head>
+<body>
+<canvas id="polymerBg"></canvas>
+
+<div class="controls">
+  <button class="ctrl-btn" id="langToggle" title="Language Toggle" onclick="toggleLang()">EN</button>
+  <button class="ctrl-btn" id="themeToggle" title="Theme Toggle" onclick="toggleTheme()">☀</button>
+</div>
+
+<div class="page-wrap">
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="hero-sunburst"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-star">★</div>
+    <h1>ATOMIC HEART</h1>
+    <div class="hero-zh">原 子 之 心</div>
+    <div class="hero-sub">
+      <span data-en="Facility 3826" data-zh="设施 3826">Facility 3826</span>
+      &nbsp;·&nbsp;
+      <span data-en="Ministry of Science · USSR" data-zh="科学部 · 苏联">Ministry of Science · USSR</span>
+    </div>
+    <div class="hero-badge">
+      <div class="badge-num">3826</div>
+      <div class="badge-label" data-en="FACILITY" data-zh="设施">FACILITY</div>
+    </div>
+  </div>
+  <div class="scroll-hint" data-en="▼ SCROLL TO ENTER ▼" data-zh="▼ 向下滚动进入 ▼">▼ SCROLL TO ENTER ▼</div>
+</header>
+
+<!-- ===== ABOUT ===== -->
+<section class="stripe-accent reveal">
+  <h2 class="section-title" data-en="THE KOLLEKTIV PROGRAM" data-zh="集体计划">THE KOLLEKTIV PROGRAM</h2>
+  <div class="section-subtitle" data-en="★ Sechenov's Grand Vision ★" data-zh="★ 谢切诺夫的宏伟愿景 ★">★ Sechenov's Grand Vision ★</div>
+
+  <div class="about-grid">
+    <div class="about-text">
+      <p data-en="In an alternate timeline, the Soviet Union achieved technological supremacy through the discovery of Polymer — a miraculous substance that could interface directly with the human neural network. Professor Dmitry Sechenov, visionary scientist and hero of the state, created a utopia where robots served humanity and labor was abolished."
+         data-zh="在一个平行时间线中，苏联通过发现聚合物——一种可以直接与人类神经网络连接的神奇物质——实现了技术霸权。维谢沃洛德·谢切诺夫教授，这位富有远见的科学家和国家英雄，创造了一个机器人服务人类、劳动被废除的乌托邦。">In an alternate timeline, the Soviet Union achieved technological supremacy through the discovery of Polymer — a miraculous substance that could interface directly with the human neural network. Professor Dmitry Sechenov, visionary scientist and hero of the state, created a utopia where robots served humanity and labor was abolished.</p>
+      <p data-en="But on the day of Kollektiv 2.0's launch — the system that would network every citizen's mind into a perfect collective consciousness — something went terribly wrong. The robots turned hostile. The facility locked down. And the dream of a perfect Soviet future became a waking nightmare."
+         data-zh="但在集体2.0启动的那一天——这个系统将把每个公民的思维联网成完美的集体意识——出了可怕的差错。机器人变得充满敌意。设施被封锁。完美苏联未来的梦想变成了一场清醒的噩梦。">But on the day of Kollektiv 2.0's launch — the system that would network every citizen's mind into a perfect collective consciousness — something went terribly wrong. The robots turned hostile. The facility locked down. And the dream of a perfect Soviet future became a waking nightmare.</p>
+    </div>
+    <div class="about-panel">
+      <h3 data-en="POLYMER TECHNOLOGY" data-zh="聚合物技术">POLYMER TECHNOLOGY</h3>
+      <ul>
+        <li data-en="Neural-interface biomaterial discovered 1936" data-zh="1936年发现的神经接口生物材料">Neural-interface biomaterial discovered 1936</li>
+        <li data-en="Enables direct mind-machine communication" data-zh="实现直接的心灵-机器通信">Enables direct mind-machine communication</li>
+        <li data-en="Powers all robotic systems in Facility 3826" data-zh="为设施3826的所有机器人系统提供动力">Powers all robotic systems in Facility 3826</li>
+        <li data-en="Kollektiv network: mass neural synchronization" data-zh="集体网络：大规模神经同步">Kollektiv network: mass neural synchronization</li>
+        <li data-en="Side effects: mutation, loss of autonomy, death" data-zh="副作用：突变、丧失自主权、死亡">Side effects: mutation, loss of autonomy, death</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="soviet-divider">★</div>
+
+<!-- ===== FACILITY SECTIONS ===== -->
+<section class="reveal">
+  <h2 class="section-title" data-en="FACILITY SECTORS" data-zh="设施区域">FACILITY SECTORS</h2>
+  <div class="section-subtitle" data-en="★ Classified Zones of Complex 3826 ★" data-zh="★ 3826综合体机密区域 ★">★ Classified Zones of Complex 3826 ★</div>
+
+  <div class="facility-grid">
+
+    <div class="facility-card reveal">
+      <div class="facility-card-header">
+        <h3 data-en="Vavilov Complex" data-zh="瓦维洛夫综合体">Vavilov Complex</h3>
+        <span class="threat-level threat-critical" data-en="CRITICAL" data-zh="极危">CRITICAL</span>
+      </div>
+      <div class="facility-card-body">
+        <p data-en="The botanical research sector where Polymer-enhanced plant life has grown beyond all containment. Mutant flora merges with robotic systems in grotesque symbiosis. The greenhouses are alive — and hungry."
+           data-zh="植物研究区域，聚合物增强的植物生命已经超出了所有控制范围。变异植物与机器人系统以怪异的共生方式融合。温室是活的——而且饥饿。">The botanical research sector where Polymer-enhanced plant life has grown beyond all containment. Mutant flora merges with robotic systems in grotesque symbiosis. The greenhouses are alive — and hungry.</p>
+        <span class="facility-code">SECTOR-V7 · BIO-CONTAINMENT FAILED</span>
+      </div>
+    </div>
+
+    <div class="facility-card reveal">
+      <div class="facility-card-header">
+        <h3 data-en="VDNH Exhibition" data-zh="全联盟展览馆">VDNH Exhibition</h3>
+        <span class="threat-level threat-high" data-en="HIGH" data-zh="高危">HIGH</span>
+      </div>
+      <div class="facility-card-body">
+        <p data-en="The grand exhibition grounds where Soviet technological achievements were once displayed to adoring crowds. Now the golden pavilions house malfunctioning patrol robots and the fountain of friendship runs red with Polymer discharge."
+           data-zh="曾经向崇拜的人群展示苏联技术成就的宏伟展览场地。如今金色展馆里驻扎着故障的巡逻机器人，友谊喷泉流淌着红色的聚合物排放物。">The grand exhibition grounds where Soviet technological achievements were once displayed to adoring crowds. Now the golden pavilions house malfunctioning patrol robots and the fountain of friendship runs red with Polymer discharge.</p>
+        <span class="facility-code">SECTOR-E2 · SURFACE ZONE</span>
+      </div>
+    </div>
+
+    <div class="facility-card reveal">
+      <div class="facility-card-header">
+        <h3 data-en="Limbo" data-zh="边狱">Limbo</h3>
+        <span class="threat-level threat-critical" data-en="CRITICAL" data-zh="极危">CRITICAL</span>
+      </div>
+      <div class="facility-card-body">
+        <p data-en="The deepest subterranean level of the facility. A nightmare realm where failed Polymer experiments were dumped. Reality itself seems to warp in the presence of concentrated neuropolymer deposits. Few who enter return unchanged."
+           data-zh="设施最深的地下层。一个噩梦般的领域，失败的聚合物实验被丢弃在这里。在浓缩神经聚合物沉积物的存在下，现实本身似乎都在扭曲。进入的人很少能毫发无损地返回。">The deepest subterranean level of the facility. A nightmare realm where failed Polymer experiments were dumped. Reality itself seems to warp in the presence of concentrated neuropolymer deposits. Few who enter return unchanged.</p>
+        <span class="facility-code">SECTOR-L0 · DEEP UNDERGROUND</span>
+      </div>
+    </div>
+
+    <div class="facility-card reveal">
+      <div class="facility-card-header">
+        <h3 data-en="Testing Grounds 1-12" data-zh="测试场 1-12">Testing Grounds 1-12</h3>
+        <span class="threat-level threat-high" data-en="HIGH" data-zh="高危">HIGH</span>
+      </div>
+      <div class="facility-card-body">
+        <p data-en="A series of elaborate obstacle courses and combat arenas designed to stress-test new robot models. With containment protocols offline, the testing grounds have become kill zones where rogue machines patrol endlessly, executing their combat programs on any living target."
+           data-zh="一系列精心设计的障碍赛道和战斗竞技场，用于对新型机器人模型进行压力测试。随着控制协议离线，测试场已变成杀戮区，失控的机器在其中无休止地巡逻，对任何活体目标执行战斗程序。">A series of elaborate obstacle courses and combat arenas designed to stress-test new robot models. With containment protocols offline, the testing grounds have become kill zones where rogue machines patrol endlessly, executing their combat programs on any living target.</p>
+        <span class="facility-code">SECTOR-T12 · WEAPONS TESTING</span>
+      </div>
+    </div>
+
+    <div class="facility-card reveal">
+      <div class="facility-card-header">
+        <h3 data-en="Chelomey" data-zh="切洛梅">Chelomey</h3>
+        <span class="threat-level threat-med" data-en="MEDIUM" data-zh="中危">MEDIUM</span>
+      </div>
+      <div class="facility-card-body">
+        <p data-en="The aerospace research wing named after the legendary rocket engineer. Anti-gravity prototypes and jetpack systems still float through the vast hangar bays. The automated defense turrets respond to movement with cold, calculated precision."
+           data-zh="以传奇火箭工程师命名的航空航天研究翼。反重力原型机和喷气背包系统仍在巨大的机库中漂浮。自动防御炮塔以冷酷、精确的计算对移动做出反应。">The aerospace research wing named after the legendary rocket engineer. Anti-gravity prototypes and jetpack systems still float through the vast hangar bays. The automated defense turrets respond to movement with cold, calculated precision.</p>
+        <span class="facility-code">SECTOR-C4 · AEROSPACE DIVISION</span>
+      </div>
+    </div>
+
+    <div class="facility-card reveal">
+      <div class="facility-card-header">
+        <h3 data-en="Sechenov's Tower" data-zh="谢切诺夫之塔">Sechenov's Tower</h3>
+        <span class="threat-level threat-critical" data-en="CRITICAL" data-zh="极危">CRITICAL</span>
+      </div>
+      <div class="facility-card-body">
+        <p data-en="The central command spire from which Professor Sechenov orchestrates the Kollektiv network. A towering monument to Soviet ambition clad in chrome and red banners, housing the master neural relay that connects every robot, every Polymer node, every mind."
+           data-zh="谢切诺夫教授从中央指挥塔尖协调集体网络。一座覆盖着铬合金和红色横幅的苏联雄心丰碑，容纳着连接每个机器人、每个聚合物节点、每个思维的主神经中继站。">The central command spire from which Professor Sechenov orchestrates the Kollektiv network. A towering monument to Soviet ambition clad in chrome and red banners, housing the master neural relay that connects every robot, every Polymer node, every mind.</p>
+        <span class="facility-code">SECTOR-S1 · COMMAND CENTER</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="soviet-divider">★</div>
+
+<!-- ===== ROBOT BESTIARY ===== -->
+<section class="reveal">
+  <h2 class="section-title" data-en="ROBOT BESTIARY" data-zh="机器人图鉴">ROBOT BESTIARY</h2>
+  <div class="section-subtitle" data-en="★ Hostile Machine Catalog ★" data-zh="★ 敌对机器目录 ★">★ Hostile Machine Catalog ★</div>
+
+  <div class="bestiary-grid">
+
+    <div class="robot-card reveal">
+      <span class="robot-icon">⚙</span>
+      <h3 data-en="VOV-A6 &quot;Vovka&quot;" data-zh="VOV-A6「沃夫卡」">VOV-A6 "Vovka"</h3>
+      <div class="robot-designation">VOV-A6/PATROL-CLASS</div>
+      <p data-en="Standard bipedal patrol robot. Once a friendly helper, now reprogrammed for lethal enforcement. Swings its industrial arms with devastating force. Found throughout all facility sectors."
+         data-zh="标准双足巡逻机器人。曾经是友好的助手，现在被重新编程为致命执法者。以毁灭性的力量挥动工业机械臂。遍布所有设施区域。">Standard bipedal patrol robot. Once a friendly helper, now reprogrammed for lethal enforcement. Swings its industrial arms with devastating force. Found throughout all facility sectors.</p>
+      <div class="threat-gauge">
+        <span data-en="THREAT" data-zh="威胁">THREAT</span>
+        <div class="gauge-bar"><div class="gauge-fill" data-width="50"></div></div>
+        <span>5/10</span>
+      </div>
+    </div>
+
+    <div class="robot-card reveal">
+      <span class="robot-icon">◉</span>
+      <h3 data-en="Plyush" data-zh="普柳什">Plyush</h3>
+      <div class="robot-designation">PLY-08/SECURITY-CLASS</div>
+      <p data-en="Massive spherical combat robot with extending limbs. Its cheerful face plate belies terrifying combat capability. Can roll at high speed and deploy shock charges. A perversion of friendly design."
+         data-zh="巨大的球形战斗机器人，配有可伸展的肢体。其欢快的面板掩盖了可怕的战斗能力。能够高速滚动并释放电击。友好设计的扭曲产物。">Massive spherical combat robot with extending limbs. Its cheerful face plate belies terrifying combat capability. Can roll at high speed and deploy shock charges. A perversion of friendly design.</p>
+      <div class="threat-gauge">
+        <span data-en="THREAT" data-zh="威胁">THREAT</span>
+        <div class="gauge-bar"><div class="gauge-fill" data-width="70"></div></div>
+        <span>7/10</span>
+      </div>
+    </div>
+
+    <div class="robot-card reveal">
+      <span class="robot-icon">✦</span>
+      <h3 data-en="Belyash" data-zh="别利亚什">Belyash</h3>
+      <div class="robot-designation">BEL-12/HEAVY-CLASS</div>
+      <p data-en="Four-legged beast-class robot originally designed for heavy construction. Its reinforced chassis can withstand extreme punishment. Charges with the force of a locomotive and slams the ground to create shockwaves."
+         data-zh="四足兽型机器人，最初设计用于重型建筑。其加固底盘能承受极端打击。以火车头般的力量冲撞并猛击地面制造冲击波。">Four-legged beast-class robot originally designed for heavy construction. Its reinforced chassis can withstand extreme punishment. Charges with the force of a locomotive and slams the ground to create shockwaves.</p>
+      <div class="threat-gauge">
+        <span data-en="THREAT" data-zh="威胁">THREAT</span>
+        <div class="gauge-bar"><div class="gauge-fill" data-width="85"></div></div>
+        <span>8.5/10</span>
+      </div>
+    </div>
+
+    <div class="robot-card reveal">
+      <span class="robot-icon">♀</span>
+      <h3 data-en="The Natasha Twins" data-zh="娜塔莎双子">The Natasha Twins</h3>
+      <div class="robot-designation">NAT-X2/ELITE-CLASS</div>
+      <p data-en="Identical ballerina-type combat androids of disturbing elegance. They move with inhuman grace, wielding blade-arms in perfectly synchronized attacks. Their porcelain faces show eternal smiles as they pirouette through carnage."
+         data-zh="令人不安地优雅的同型芭蕾舞战斗机器人。她们以非人的优雅移动，挥舞刀刃手臂进行完美同步的攻击。瓷质面孔在屠杀中旋转时露出永恒的微笑。">Identical ballerina-type combat androids of disturbing elegance. They move with inhuman grace, wielding blade-arms in perfectly synchronized attacks. Their porcelain faces show eternal smiles as they pirouette through carnage.</p>
+      <div class="threat-gauge">
+        <span data-en="THREAT" data-zh="威胁">THREAT</span>
+        <div class="gauge-bar"><div class="gauge-fill" data-width="95"></div></div>
+        <span>9.5/10</span>
+      </div>
+    </div>
+
+    <div class="robot-card reveal">
+      <span class="robot-icon">⬡</span>
+      <h3 data-en="Hedgie" data-zh="刺猬">Hedgie</h3>
+      <div class="robot-designation">HDG-03/SWARM-CLASS</div>
+      <p data-en="Small spherical drone covered in retractable spikes. Individually weak but attacks in relentless swarms. They roll along floors and walls, launching themselves at targets with explosive force. Infests ventilation systems."
+         data-zh="覆盖可收缩尖刺的小型球形无人机。单独较弱但以无情的蜂群方式攻击。沿地板和墙壁滚动，以爆炸性力量向目标发射自身。寄生于通风系统。">Small spherical drone covered in retractable spikes. Individually weak but attacks in relentless swarms. They roll along floors and walls, launching themselves at targets with explosive force. Infests ventilation systems.</p>
+      <div class="threat-gauge">
+        <span data-en="THREAT" data-zh="威胁">THREAT</span>
+        <div class="gauge-bar"><div class="gauge-fill" data-width="40"></div></div>
+        <span>4/10</span>
+      </div>
+    </div>
+
+    <div class="robot-card reveal">
+      <span class="robot-icon">☢</span>
+      <h3 data-en="Lab Tech" data-zh="实验室技术员">Lab Tech</h3>
+      <div class="robot-designation">LBT-15/SCIENCE-CLASS</div>
+      <p data-en="Former laboratory assistant robots now fused with Polymer-mutated organic matter. They shamble through corridors, spraying caustic chemicals and deploying surgical tools as weapons. The boundary between machine and flesh has dissolved."
+         data-zh="曾经的实验室助手机器人，现已与聚合物变异有机物融合。它们在走廊中蹒跚前行，喷洒腐蚀性化学物质并将手术工具用作武器。机器与血肉之间的界限已经消融。">Former laboratory assistant robots now fused with Polymer-mutated organic matter. They shamble through corridors, spraying caustic chemicals and deploying surgical tools as weapons. The boundary between machine and flesh has dissolved.</p>
+      <div class="threat-gauge">
+        <span data-en="THREAT" data-zh="威胁">THREAT</span>
+        <div class="gauge-bar"><div class="gauge-fill" data-width="65"></div></div>
+        <span>6.5/10</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="soviet-divider">★</div>
+
+<!-- ===== TECHNOLOGY ===== -->
+<section class="reveal">
+  <h2 class="section-title" data-en="TECHNOLOGY" data-zh="技术">TECHNOLOGY</h2>
+  <div class="section-subtitle" data-en="★ Polymer-Based Innovations ★" data-zh="★ 基于聚合物的创新 ★">★ Polymer-Based Innovations ★</div>
+
+  <div class="tech-grid">
+
+    <div class="tech-card reveal">
+      <h3 data-en="Polymer Glove (P-9)" data-zh="聚合物手套 (P-9)">Polymer Glove (P-9)</h3>
+      <div class="tech-id">DESIGNATION: P-9/TELEKINESIS</div>
+      <p data-en="A weaponized glove that channels Polymer energy through the user's nervous system. Grants telekinetic abilities, cryogenic blasts, electrical discharge, and polymeric shield generation. The glove bonds permanently with the host's neural pathways — removal is not recommended."
+         data-zh="一种通过用户神经系统引导聚合物能量的武器化手套。赋予心灵感应能力、冷冻爆破、放电和聚合物护盾生成。手套与宿主的神经通路永久结合——不建议移除。">A weaponized glove that channels Polymer energy through the user's nervous system. Grants telekinetic abilities, cryogenic blasts, electrical discharge, and polymeric shield generation. The glove bonds permanently with the host's neural pathways — removal is not recommended.</p>
+    </div>
+
+    <div class="tech-card reveal">
+      <h3 data-en="CHAR-les" data-zh="查尔斯">CHAR-les</h3>
+      <div class="tech-id">DESIGNATION: AI-COMPANION/NEURAL</div>
+      <p data-en="An AI consciousness implanted directly into the protagonist's glove. CHAR-les provides tactical analysis, sarcastic commentary, and moral guidance — though his true loyalties remain questionable. His neural presence is a constant companion in the facility's horrors."
+         data-zh="一个直接植入主角手套中的AI意识。查尔斯提供战术分析、讽刺评论和道德指导——尽管他的真正忠诚仍然值得怀疑。他的神经存在是设施恐怖中不变的伙伴。">An AI consciousness implanted directly into the protagonist's glove. CHAR-les provides tactical analysis, sarcastic commentary, and moral guidance — though his true loyalties remain questionable. His neural presence is a constant companion in the facility's horrors.</p>
+    </div>
+
+    <div class="tech-card reveal">
+      <h3 data-en="Neuropolymer Network" data-zh="神经聚合物网络">Neuropolymer Network</h3>
+      <div class="tech-id">DESIGNATION: KOLLEKTIV/BACKBONE</div>
+      <p data-en="The backbone infrastructure of the Kollektiv system. A vast web of Polymer conduits running through every wall, floor, and ceiling of Facility 3826. It carries neural signals, powers robots, and was designed to unify all Soviet citizens into a single collective consciousness."
+         data-zh="集体系统的骨干基础设施。一个庞大的聚合物管道网络贯穿设施3826的每一面墙壁、地板和天花板。它传输神经信号、为机器人供电，旨在将所有苏联公民统一为单一的集体意识。">The backbone infrastructure of the Kollektiv system. A vast web of Polymer conduits running through every wall, floor, and ceiling of Facility 3826. It carries neural signals, powers robots, and was designed to unify all Soviet citizens into a single collective consciousness.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== PROPAGANDA QUOTE ===== -->
+<div class="quote-section full-section reveal">
+  <div class="quote-content">
+    <div class="quote-star">★</div>
+    <blockquote data-en="&ldquo;A perfect world requires perfect obedience. The Kollektiv does not ask for your loyalty — it removes the burden of choice entirely. In unity, there is no suffering. In the network, there is no self. This is not tyranny. This is liberation.&rdquo;"
+                data-zh="&ldquo;完美的世界需要完美的服从。集体不要求你的忠诚——它完全消除了选择的负担。在统一中，没有痛苦。在网络中，没有自我。这不是暴政。这是解放。&rdquo;">&ldquo;A perfect world requires perfect obedience. The Kollektiv does not ask for your loyalty — it removes the burden of choice entirely. In unity, there is no suffering. In the network, there is no self. This is not tyranny. This is liberation.&rdquo;</blockquote>
+    <div class="quote-attr" data-en="— Prof. Dmitry Sechenov, Address to the Presidium, 1955" data-zh="— 德米特里·谢切诺夫教授，1955年主席团讲话">— Prof. Dmitry Sechenov, Address to the Presidium, 1955</div>
+  </div>
+</div>
+
+<div class="soviet-divider">★</div>
+
+<!-- ===== TIMELINE ===== -->
+<section class="reveal">
+  <h2 class="section-title" data-en="CHRONOLOGY" data-zh="年表">CHRONOLOGY</h2>
+  <div class="section-subtitle" data-en="★ Key Events ★" data-zh="★ 关键事件 ★">★ Key Events ★</div>
+
+  <div class="timeline">
+    <div class="timeline-item reveal">
+      <div class="tl-year">1936</div>
+      <h3 data-en="Discovery of Polymer" data-zh="聚合物的发现">Discovery of Polymer</h3>
+      <p data-en="Soviet scientists discover a biomechanical substance in the Ural mountains capable of interfacing with organic neural tissue. Sechenov, then a young researcher, recognizes its transformative potential."
+         data-zh="苏联科学家在乌拉尔山脉发现了一种能够与有机神经组织接口的生物机械物质。当时还是年轻研究员的谢切诺夫认识到了其变革性潜力。">Soviet scientists discover a biomechanical substance in the Ural mountains capable of interfacing with organic neural tissue. Sechenov, then a young researcher, recognizes its transformative potential.</p>
+    </div>
+
+    <div class="timeline-item reveal">
+      <div class="tl-year">1941</div>
+      <h3 data-en="Sechenov's Rise" data-zh="谢切诺夫的崛起">Sechenov's Rise</h3>
+      <p data-en="Polymer-powered weapons turn the tide of the Great Patriotic War. Sechenov is awarded Hero of the Soviet Union and given unlimited resources to develop the technology further."
+         data-zh="聚合物驱动的武器扭转了伟大卫国战争的局势。谢切诺夫被授予苏联英雄称号，并获得无限资源来进一步开发这项技术。">Polymer-powered weapons turn the tide of the Great Patriotic War. Sechenov is awarded Hero of the Soviet Union and given unlimited resources to develop the technology further.</p>
+    </div>
+
+    <div class="timeline-item reveal">
+      <div class="tl-year">1948</div>
+      <h3 data-en="Facility 3826 Established" data-zh="设施3826建立">Facility 3826 Established</h3>
+      <p data-en="Construction of the massive underground-and-surface research complex begins. It will house thousands of scientists, workers, and the largest concentration of robots in the Soviet Union."
+         data-zh="大规模的地下和地面研究综合体开始建设。它将容纳数千名科学家、工人以及苏联最大规模的机器人集中地。">Construction of the massive underground-and-surface research complex begins. It will house thousands of scientists, workers, and the largest concentration of robots in the Soviet Union.</p>
+    </div>
+
+    <div class="timeline-item reveal">
+      <div class="tl-year">1951</div>
+      <h3 data-en="Kollektiv 1.0 Launch" data-zh="集体1.0启动">Kollektiv 1.0 Launch</h3>
+      <p data-en="The first-generation neural network goes online, connecting all robots to a central command system. Productivity increases 400%. The Soviet Union declares a new era of prosperity."
+         data-zh="第一代神经网络上线，将所有机器人连接到中央指挥系统。生产力提高400%。苏联宣布进入新的繁荣时代。">The first-generation neural network goes online, connecting all robots to a central command system. Productivity increases 400%. The Soviet Union declares a new era of prosperity.</p>
+    </div>
+
+    <div class="timeline-item reveal">
+      <div class="tl-year">1955</div>
+      <h3 data-en="Kollektiv 2.0 — The Incident" data-zh="集体2.0 — 事件">Kollektiv 2.0 — The Incident</h3>
+      <p data-en="On launch day, the upgraded system — designed to network human minds into the collective — catastrophically fails. Every robot in the facility turns hostile simultaneously. Communications are cut. The facility becomes a sealed tomb of chrome and blood."
+         data-zh="在启动日，旨在将人类思维联入集体的升级系统——灾难性地失败了。设施中的每一个机器人同时变得充满敌意。通讯被切断。设施变成了铬合金与鲜血的密封坟墓。">On launch day, the upgraded system — designed to network human minds into the collective — catastrophically fails. Every robot in the facility turns hostile simultaneously. Communications are cut. The facility becomes a sealed tomb of chrome and blood.</p>
+    </div>
+  </div>
+</section>
+
+<div class="soviet-divider">★</div>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section reveal">
+  <h2 data-en="SERVE THE COLLECTIVE" data-zh="为集体服务">SERVE THE COLLECTIVE</h2>
+  <div class="cta-zh" data-en="The Kollektiv Requires Your Participation" data-zh="集体需要你的参与">The Kollektiv Requires Your Participation</div>
+  <button class="cta-btn" data-en="★ CONNECT TO KOLLEKTIV ★" data-zh="★ 连接到集体 ★">★ CONNECT TO KOLLEKTIV ★</button>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-ornament">═══ ✦ ◆ ✦ ═══</div>
+  <p data-en="FACILITY 3826 · MINISTRY OF SCIENCE · USSR" data-zh="设施3826 · 科学部 · 苏联">FACILITY 3826 · MINISTRY OF SCIENCE · USSR</p>
+  <p data-en="All Systems Under Kollektiv Oversight · Unauthorized Access Will Be Corrected" data-zh="所有系统由集体监督 · 未经授权的访问将被纠正">All Systems Under Kollektiv Oversight · Unauthorized Access Will Be Corrected</p>
+  <div class="footer-stars">★ ★ ★ ★ ★</div>
+  <div class="footer-ornament" style="margin-top:12px">═══ ✦ ◆ ✦ ═══</div>
+</footer>
+
+</div><!-- /page-wrap -->
+
+<script>
+// === POLYMER NETWORK CANVAS ===
+(function(){
+  const canvas=document.getElementById('polymerBg');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  const PARTICLE_COUNT=80;
+  const CONNECT_DIST=140;
+
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  window.addEventListener('resize',resize);resize();
+
+  class Particle{
+    constructor(){this.reset()}
+    reset(){
+      this.x=Math.random()*W;this.y=Math.random()*H;
+      this.vx=(Math.random()-.5)*.4;this.vy=(Math.random()-.5)*.4;
+      this.r=Math.random()*2+1;
+    }
+    update(){
+      this.x+=this.vx;this.y+=this.vy;
+      if(this.x<0||this.x>W)this.vx*=-1;
+      if(this.y<0||this.y>H)this.vy*=-1;
+    }
+  }
+  for(let i=0;i<PARTICLE_COUNT;i++)particles.push(new Particle());
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    const dotColor=isDark?'rgba(96,125,139,0.6)':'rgba(96,125,139,0.35)';
+    const lineColor=isDark?'rgba(0,188,212,0.12)':'rgba(0,188,212,0.08)';
+
+    for(let i=0;i<particles.length;i++){
+      particles[i].update();
+      ctx.beginPath();
+      ctx.arc(particles[i].x,particles[i].y,particles[i].r,0,Math.PI*2);
+      ctx.fillStyle=dotColor;ctx.fill();
+
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<CONNECT_DIST){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=lineColor;
+          ctx.lineWidth=1;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// === LANGUAGE TOGGLE ===
+function toggleLang(){
+  const html=document.documentElement;
+  const curr=html.getAttribute('data-lang');
+  const next=curr==='en'?'zh':'en';
+  html.setAttribute('data-lang',next);
+  document.getElementById('langToggle').textContent=next.toUpperCase();
+
+  document.querySelectorAll('[data-en][data-zh]').forEach(el=>{
+    const val=el.getAttribute('data-'+next);
+    if(el.tagName==='INPUT'||el.tagName==='TEXTAREA'){el.placeholder=val}
+    else{el.innerHTML=val}
+  });
+}
+
+// === THEME TOGGLE ===
+function toggleTheme(){
+  const html=document.documentElement;
+  const curr=html.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  document.getElementById('themeToggle').textContent=next==='dark'?'☀':'☾';
+}
+
+// === SCROLL REVEAL ===
+(function(){
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){e.target.classList.add('visible')}
+    });
+  },{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+})();
+
+// === GAUGE ANIMATION ===
+(function(){
+  const gaugeObs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.style.width=e.target.getAttribute('data-width')+'%';
+      }
+    });
+  },{threshold:0.5});
+
+  document.querySelectorAll('.gauge-fill').forEach(el=>{
+    el.style.width='0%';
+    gaugeObs.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

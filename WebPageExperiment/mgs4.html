@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metal Gear Solid 4: Guns of the Patriots | 合金装备4：爱国者之枪</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--ash:#4a4a50;--gunmetal:#3a3a42;--faded-blue:#3a4a5a;--exhausted-brown:#5a5048;
+--sop-blue:#2080c0;--nano-green:#40a060;--ocelot-gold:#a08840;
+--bg-primary:#1a1a1e;--bg-secondary:#222228;--bg-card:#2a2a30;
+--text-primary:#b8b8bc;--text-secondary:#808088;--text-muted:#58585e;
+--border:#3a3a40;--shadow:rgba(0,0,0,0.5);
+}
+[data-theme="light"]{
+--bg-primary:#c8c8cc;--bg-secondary:#b8b8bc;--bg-card:#d0d0d4;
+--text-primary:#2a2a30;--text-secondary:#4a4a50;--text-muted:#6a6a70;
+--border:#9a9a9e;--shadow:rgba(0,0,0,0.2);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+font-family:'Rajdhani','Noto Sans SC',sans-serif;
+background:var(--bg-primary);color:var(--text-primary);
+overflow-x:hidden;line-height:1.6;
+transition:background .5s,color .5s;
+}
+canvas#ashCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;opacity:.4}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-primary)}
+::-webkit-scrollbar-thumb{background:var(--ash);border-radius:3px}
+
+/* Toggle Controls */
+.controls{
+position:fixed;top:16px;right:16px;z-index:10000;
+display:flex;gap:8px;
+}
+.ctrl-btn{
+background:rgba(42,42,48,0.9);border:1px solid var(--border);
+color:var(--text-primary);padding:6px 14px;
+font-family:'Space Mono',monospace;font-size:.7rem;
+cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+backdrop-filter:blur(8px);transition:all .3s;
+}
+.ctrl-btn:hover{border-color:var(--sop-blue);color:var(--sop-blue)}
+
+/* War Stock Ticker */
+.ticker-wrap{
+position:fixed;bottom:0;left:0;width:100%;z-index:9998;
+background:rgba(26,26,30,0.92);border-top:1px solid var(--border);
+overflow:hidden;height:28px;backdrop-filter:blur(6px);
+}
+.ticker{
+display:flex;white-space:nowrap;animation:tickerScroll 40s linear infinite;
+font-family:'Space Mono',monospace;font-size:.65rem;line-height:28px;
+color:var(--text-secondary);
+}
+.ticker span{margin-right:40px}
+.ticker .up{color:var(--nano-green)}
+.ticker .down{color:#c05050}
+.ticker .label{color:var(--ocelot-gold)}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Section base */
+section{padding:100px 5%;position:relative}
+.section-label{
+font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:4px;
+text-transform:uppercase;color:var(--sop-blue);margin-bottom:8px;
+display:flex;align-items:center;gap:10px;
+}
+.section-label::before{content:'';width:24px;height:1px;background:var(--sop-blue)}
+.section-title{
+font-family:'Rajdhani','Noto Sans SC',sans-serif;font-weight:700;
+font-size:clamp(2rem,4vw,3.2rem);letter-spacing:2px;
+text-transform:uppercase;margin-bottom:12px;
+color:var(--text-primary);
+}
+.section-title .accent{color:var(--sop-blue)}
+.section-desc{
+max-width:700px;color:var(--text-secondary);font-size:.95rem;
+line-height:1.8;margin-bottom:50px;
+}
+
+/* Scroll Reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ===== HERO ===== */
+.hero{
+min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+align-items:center;text-align:center;position:relative;overflow:hidden;
+background:linear-gradient(135deg,#1a1a1e,#2a2a30,#1e2228,#28242a,#1a1a1e);
+background-size:400% 400%;
+animation:octoCamo 20s ease infinite;
+}
+@keyframes octoCamo{
+0%{background-position:0% 50%}
+25%{background-position:100% 0%}
+50%{background-position:100% 100%}
+75%{background-position:0% 100%}
+100%{background-position:0% 50%}
+}
+.hero::before{
+content:'';position:absolute;inset:0;
+background:repeating-linear-gradient(
+0deg,transparent,transparent 2px,rgba(74,74,80,0.03) 2px,rgba(74,74,80,0.03) 4px
+);
+pointer-events:none;
+}
+.hero::after{
+content:'';position:absolute;inset:0;
+background:radial-gradient(ellipse at center,transparent 30%,rgba(26,26,30,0.7));
+pointer-events:none;
+}
+.hero-content{position:relative;z-index:2;max-width:800px;padding:0 20px}
+.hero-subtitle{
+font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:6px;
+text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;
+}
+.hero-title{
+font-family:'Rajdhani','Noto Sans SC',sans-serif;
+font-size:clamp(3rem,8vw,6rem);font-weight:700;
+letter-spacing:6px;text-transform:uppercase;
+line-height:1.1;margin-bottom:16px;
+color:var(--text-primary);
+background:linear-gradient(180deg,var(--text-primary) 40%,var(--text-muted));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+background-clip:text;
+}
+.hero-jp{
+font-family:'Noto Sans SC',sans-serif;font-size:1rem;
+letter-spacing:8px;color:var(--text-muted);margin-bottom:32px;
+font-weight:300;
+}
+.hero-quote{
+font-family:'Space Mono',monospace;font-size:.85rem;
+color:var(--sop-blue);letter-spacing:1px;
+border-left:2px solid var(--sop-blue);padding-left:16px;
+text-align:left;max-width:500px;margin:0 auto 40px;
+line-height:1.8;
+}
+.hero-year{
+font-family:'Space Mono',monospace;font-size:.65rem;
+color:var(--text-muted);letter-spacing:4px;
+}
+
+/* Threat Ring */
+.threat-ring{
+position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+width:120px;height:120px;z-index:2;opacity:.25;
+}
+.threat-ring circle{
+fill:none;stroke:var(--sop-blue);stroke-width:.5;
+}
+.threat-ring .pulse{animation:ringPulse 3s ease-in-out infinite}
+@keyframes ringPulse{0%,100%{opacity:.3;r:20}50%{opacity:.6;r:28}}
+
+/* ===== WAR ECONOMY ===== */
+.war-economy{background:var(--bg-secondary)}
+.econ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+.econ-card{
+background:var(--bg-card);border:1px solid var(--border);
+padding:28px;position:relative;overflow:hidden;
+transition:border-color .3s;
+}
+.econ-card:hover{border-color:var(--sop-blue)}
+.econ-card::before{
+content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+background:var(--sop-blue);opacity:0;transition:opacity .3s;
+}
+.econ-card:hover::before{opacity:1}
+.econ-value{
+font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;
+color:var(--ocelot-gold);margin-bottom:4px;
+}
+.econ-label{
+font-family:'Space Mono',monospace;font-size:.65rem;
+letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);
+margin-bottom:12px;
+}
+.econ-desc{font-size:.85rem;color:var(--text-secondary);line-height:1.7}
+
+/* ===== ACTS ===== */
+.acts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.act-card{
+background:var(--bg-card);border:1px solid var(--border);
+padding:32px 24px;text-align:center;position:relative;
+overflow:hidden;transition:all .4s;cursor:default;
+}
+.act-card:hover{border-color:var(--ocelot-gold);transform:translateY(-4px)}
+.act-num{
+font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:4px;
+text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;
+}
+.act-name{
+font-family:'Rajdhani','Noto Sans SC',sans-serif;font-size:1.4rem;
+font-weight:700;letter-spacing:2px;text-transform:uppercase;
+color:var(--ocelot-gold);margin-bottom:12px;
+}
+.act-location{
+font-family:'Space Mono',monospace;font-size:.65rem;
+color:var(--text-muted);letter-spacing:1px;margin-bottom:12px;
+}
+.act-desc{font-size:.82rem;color:var(--text-secondary);line-height:1.7}
+.act-card::after{
+content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;
+background:linear-gradient(90deg,transparent,var(--ocelot-gold),transparent);
+opacity:0;transition:opacity .4s;
+}
+.act-card:hover::after{opacity:1}
+
+/* ===== BB UNIT ===== */
+.bb-section{background:var(--bg-secondary)}
+.bb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px}
+.bb-card{
+background:var(--bg-card);border:1px solid var(--border);
+padding:0;overflow:hidden;transition:all .4s;position:relative;
+}
+.bb-card:hover{border-color:var(--nano-green)}
+.bb-header{
+padding:20px 24px 12px;border-bottom:1px solid var(--border);
+}
+.bb-emotion{
+font-family:'Space Mono',monospace;font-size:.55rem;
+letter-spacing:4px;text-transform:uppercase;
+margin-bottom:4px;
+}
+.bb-card:nth-child(1) .bb-emotion{color:#c05050}
+.bb-card:nth-child(2) .bb-emotion{color:#c08040}
+.bb-card:nth-child(3) .bb-emotion{color:var(--sop-blue)}
+.bb-card:nth-child(4) .bb-emotion{color:#a040a0}
+.bb-name{
+font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;
+text-transform:uppercase;letter-spacing:2px;color:var(--text-primary);
+}
+.bb-body{padding:20px 24px}
+.bb-beast{
+font-family:'Space Mono',monospace;font-size:.65rem;
+color:var(--text-muted);letter-spacing:2px;margin-bottom:10px;
+}
+.bb-desc{font-size:.82rem;color:var(--text-secondary);line-height:1.8}
+.bb-icon{
+position:absolute;top:16px;right:20px;width:36px;height:36px;
+border:1px solid var(--border);border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+font-size:.8rem;color:var(--text-muted);
+}
+
+/* ===== SOP / NANOMACHINES ===== */
+.sop-section{position:relative}
+canvas#nanoCanvas{
+position:absolute;top:0;left:0;width:100%;height:100%;
+pointer-events:none;opacity:.3;
+}
+.sop-content{position:relative;z-index:2}
+.sop-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.sop-text h3{
+font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:600;
+text-transform:uppercase;letter-spacing:2px;color:var(--sop-blue);
+margin-bottom:12px;
+}
+.sop-text p{font-size:.88rem;color:var(--text-secondary);line-height:1.9;margin-bottom:20px}
+.sop-stats{display:flex;flex-direction:column;gap:16px}
+.sop-stat{
+background:var(--bg-card);border:1px solid var(--border);padding:20px;
+display:flex;align-items:center;gap:16px;
+}
+.sop-stat-icon{
+width:40px;height:40px;border:1px solid var(--nano-green);
+display:flex;align-items:center;justify-content:center;
+font-family:'Space Mono',monospace;font-size:.7rem;color:var(--nano-green);
+flex-shrink:0;
+}
+.sop-stat-info .s-label{
+font-family:'Space Mono',monospace;font-size:.6rem;
+letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);
+}
+.sop-stat-info .s-value{
+font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-top:2px;
+}
+
+/* ===== DREBIN SHOP ===== */
+.drebin-section{background:var(--bg-secondary)}
+.drebin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.weapon-card{
+background:var(--bg-card);border:1px solid var(--border);
+overflow:hidden;transition:all .4s;
+}
+.weapon-card:hover{border-color:var(--ocelot-gold)}
+.weapon-top{
+padding:20px 24px 12px;display:flex;justify-content:space-between;
+align-items:flex-start;border-bottom:1px solid var(--border);
+}
+.weapon-name{
+font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;
+text-transform:uppercase;letter-spacing:1px;color:var(--text-primary);
+}
+.weapon-type{
+font-family:'Space Mono',monospace;font-size:.55rem;
+letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;
+}
+.weapon-price{
+font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;
+color:var(--ocelot-gold);white-space:nowrap;
+}
+.weapon-body{padding:16px 24px}
+.weapon-stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.w-stat{
+font-family:'Space Mono',monospace;font-size:.6rem;
+color:var(--text-muted);letter-spacing:1px;
+}
+.w-stat strong{color:var(--text-secondary)}
+.weapon-bar{
+height:3px;background:var(--border);margin-top:8px;overflow:hidden;
+}
+.weapon-bar-fill{
+height:100%;background:linear-gradient(90deg,var(--ocelot-gold),var(--sop-blue));
+transition:width 1s ease;
+}
+.weapon-dp{
+font-family:'Space Mono',monospace;font-size:.55rem;
+color:var(--text-muted);text-align:right;margin-top:6px;letter-spacing:1px;
+}
+
+/* ===== QUOTE ===== */
+.quote-section{
+text-align:center;padding:120px 5%;
+background:linear-gradient(180deg,var(--bg-primary),var(--bg-secondary),var(--bg-primary));
+}
+.big-quote{
+font-family:'Rajdhani','Noto Sans SC',sans-serif;
+font-size:clamp(1.8rem,4vw,3rem);font-weight:300;
+letter-spacing:3px;color:var(--text-primary);
+max-width:700px;margin:0 auto 20px;line-height:1.5;
+}
+.quote-attr{
+font-family:'Space Mono',monospace;font-size:.7rem;
+color:var(--text-muted);letter-spacing:3px;text-transform:uppercase;
+}
+
+/* ===== FOOTER ===== */
+footer{
+background:var(--bg-secondary);border-top:1px solid var(--border);
+padding:40px 5% 70px;text-align:center;
+}
+footer p{
+font-family:'Space Mono',monospace;font-size:.65rem;
+color:var(--text-muted);letter-spacing:2px;line-height:2;
+}
+footer .fox{color:var(--sop-blue)}
+
+/* Blueprint grid overlay */
+.blueprint-overlay{
+position:absolute;inset:0;pointer-events:none;
+background:
+linear-gradient(rgba(32,128,192,0.03) 1px,transparent 1px),
+linear-gradient(90deg,rgba(32,128,192,0.03) 1px,transparent 1px);
+background-size:40px 40px;
+}
+
+/* Responsive */
+@media(max-width:768px){
+.sop-grid{grid-template-columns:1fr}
+.controls{top:auto;bottom:36px;right:8px;flex-direction:column}
+.hero-title{letter-spacing:3px}
+section{padding:60px 5%}
+}
+@media(max-width:480px){
+.acts-grid,.bb-grid,.drebin-grid,.econ-grid{grid-template-columns:1fr}
+}
+
+/* Lang toggles */
+[data-lang="en"] .zh{display:none}
+[data-lang="zh"] .en{display:none}
+</style>
+</head>
+<body>
+
+<canvas id="ashCanvas"></canvas>
+
+<!-- Controls -->
+<div class="controls">
+<button class="ctrl-btn" id="langBtn" onclick="toggleLang()">中/EN</button>
+<button class="ctrl-btn" id="themeBtn" onclick="toggleTheme()">THEME</button>
+</div>
+
+<!-- War Economy Ticker -->
+<div class="ticker-wrap">
+<div class="ticker" id="ticker"></div>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+<div class="blueprint-overlay"></div>
+<div class="hero-content">
+<div class="hero-subtitle">
+<span class="en">Tactical Espionage Action</span>
+<span class="zh">战术间谍行动</span>
+</div>
+<h1 class="hero-title">
+<span class="en">Metal Gear Solid 4</span>
+<span class="zh">合金装备4</span>
+</h1>
+<div class="hero-jp">
+<span class="en">GUNS OF THE PATRIOTS</span>
+<span class="zh">爱国者之枪</span>
+</div>
+<div class="hero-quote">
+<span class="en">"War has changed. It's no longer about nations, ideologies, or ethnicity. It's an endless series of proxy battles fought by mercenaries and machines."</span>
+<span class="zh">"战争已经改变了。它不再关乎国家、意识形态或种族。它是由雇佣兵和机器进行的无尽代理战争。"</span>
+</div>
+<div class="hero-year">2008 &mdash; KOJIMA PRODUCTIONS</div>
+</div>
+<svg class="threat-ring" viewBox="0 0 120 120">
+<circle cx="60" cy="60" r="55" opacity=".15"/>
+<circle cx="60" cy="60" r="45" opacity=".2"/>
+<circle cx="60" cy="60" r="35" opacity=".3"/>
+<circle cx="60" cy="60" r="25" class="pulse"/>
+</svg>
+</section>
+
+<!-- ===== WAR ECONOMY ===== -->
+<section class="war-economy">
+<div class="reveal">
+<div class="section-label">
+<span class="en">System Analysis</span>
+<span class="zh">系统分析</span>
+</div>
+<h2 class="section-title">
+<span class="en">The <span class="accent">War Economy</span></span>
+<span class="zh"><span class="accent">战争经济</span></span>
+</h2>
+<p class="section-desc">
+<span class="en">In 2014, the world's economy revolves entirely around war. Private Military Companies have become the world's largest industry, fueled by nanomachine-controlled soldiers and an arms market regulated by the Patriots' AI system.</span>
+<span class="zh">2014年，世界经济完全围绕战争运转。私人军事公司已成为世界最大产业，由纳米机器控制的士兵和爱国者AI系统监管的军火市场推动。</span>
+</p>
+</div>
+<div class="econ-grid reveal">
+<div class="econ-card">
+<div class="econ-value">$840B</div>
+<div class="econ-label">
+<span class="en">PMC Revenue</span>
+<span class="zh">PMC收入</span>
+</div>
+<div class="econ-desc">
+<span class="en">Combined annual revenue of the five largest PMCs, all secretly controlled by Outer Heaven mother company.</span>
+<span class="zh">五大PMC的年度总收入，均由外天堂母公司秘密控制。</span>
+</div>
+</div>
+<div class="econ-card">
+<div class="econ-value">3.2M</div>
+<div class="econ-label">
+<span class="en">Active Soldiers</span>
+<span class="zh">现役士兵</span>
+</div>
+<div class="econ-desc">
+<span class="en">Nanomachine-injected PMC combatants worldwide, their emotions and combat performance regulated by SOP.</span>
+<span class="zh">全球注入纳米机器的PMC战斗人员，其情绪和战斗表现由SOP系统调控。</span>
+</div>
+</div>
+<div class="econ-card">
+<div class="econ-value">ID-TAG</div>
+<div class="econ-label">
+<span class="en">Weapon Lock</span>
+<span class="zh">武器锁定</span>
+</div>
+<div class="econ-desc">
+<span class="en">Every firearm is ID-locked to its registered user via nanomachines. Drebin launders these locks — for a price.</span>
+<span class="zh">每件枪械都通过纳米机器锁定注册用户。德雷宾可以解除这些锁——但需要付费。</span>
+</div>
+</div>
+<div class="econ-card">
+<div class="econ-value">AI</div>
+<div class="econ-label">
+<span class="en">Patriot Control</span>
+<span class="zh">爱国者控制</span>
+</div>
+<div class="econ-desc">
+<span class="en">The entire system is governed by the Patriots' proxy AIs: GW, TJ, AL, TR — and their master, JD.</span>
+<span class="zh">整个系统由爱国者的代理AI管理：GW、TJ、AL、TR——以及它们的主宰JD。</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== ACTS ===== -->
+<section class="acts-section">
+<div class="blueprint-overlay"></div>
+<div class="reveal">
+<div class="section-label">
+<span class="en">Mission Briefing</span>
+<span class="zh">任务简报</span>
+</div>
+<h2 class="section-title">
+<span class="en">Five <span class="accent">Acts</span></span>
+<span class="zh">五<span class="accent">幕</span></span>
+</h2>
+<p class="section-desc">
+<span class="en">Old Snake's final mission spans five acts across the globe — from the Middle East to Shadow Moses — culminating in the destruction of the Patriot AI network.</span>
+<span class="zh">老蛇的最终任务横跨全球五幕——从中东到影子摩西——最终摧毁爱国者AI网络。</span>
+</p>
+</div>
+<div class="acts-grid reveal">
+<div class="act-card">
+<div class="act-num">Act 1</div>
+<div class="act-name">Liquid Sun</div>
+<div class="act-location">
+<span class="en">Middle East</span>
+<span class="zh">中东</span>
+</div>
+<div class="act-desc">
+<span class="en">Snake infiltrates a war zone to assassinate Liquid Ocelot, encountering the horrors of the war economy firsthand.</span>
+<span class="zh">蛇潜入战区刺杀液体山猫，亲眼目睹战争经济的恐怖。</span>
+</div>
+</div>
+<div class="act-card">
+<div class="act-num">Act 2</div>
+<div class="act-name">Solid Sun</div>
+<div class="act-location">
+<span class="en">South America</span>
+<span class="zh">南美洲</span>
+</div>
+<div class="act-desc">
+<span class="en">Tracking Liquid through the jungle, Snake meets Drebin and witnesses the power of Liquid's insurrection.</span>
+<span class="zh">在丛林中追踪液体，蛇遇到了德雷宾，目睹了液体叛乱的力量。</span>
+</div>
+</div>
+<div class="act-card">
+<div class="act-num">Act 3</div>
+<div class="act-name">Third Sun</div>
+<div class="act-location">
+<span class="en">Eastern Europe</span>
+<span class="zh">东欧</span>
+</div>
+<div class="act-desc">
+<span class="en">A resistance operation in a European city. Snake tails a member to locate Big Mama and EVA.</span>
+<span class="zh">欧洲城市中的抵抗行动。蛇跟踪成员找到大妈妈和EVA。</span>
+</div>
+</div>
+<div class="act-card">
+<div class="act-num">Act 4</div>
+<div class="act-name">Twin Suns</div>
+<div class="act-location">
+<span class="en">Shadow Moses</span>
+<span class="zh">影子摩西</span>
+</div>
+<div class="act-desc">
+<span class="en">A haunting return to Shadow Moses Island. Memories of 2005, REX vs. RAY, and the ghost of a legend.</span>
+<span class="zh">重返影子摩西岛的令人难忘之旅。2005年的记忆，REX对RAY，以及传说的幽灵。</span>
+</div>
+</div>
+<div class="act-card">
+<div class="act-num">Act 5</div>
+<div class="act-name">Old Sun</div>
+<div class="act-location">
+<span class="en">Outer Haven</span>
+<span class="zh">外天堂</span>
+</div>
+<div class="act-desc">
+<span class="en">The final assault on Liquid's fortress. The microwave corridor. The fall of the Patriots. The end.</span>
+<span class="zh">对液体堡垒的最终攻击。微波走廊。爱国者的陨落。终结。</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== BEAUTY & BEAST ===== -->
+<section class="bb-section">
+<div class="reveal">
+<div class="section-label">
+<span class="en">Enemy Profile</span>
+<span class="zh">敌人档案</span>
+</div>
+<h2 class="section-title">
+<span class="en">Beauty & <span class="accent">Beast</span> Unit</span>
+<span class="zh">美女与<span class="accent">野兽</span>部队</span>
+</h2>
+<p class="section-desc">
+<span class="en">Four women driven mad by the horrors of war, encased in mechanical beast armor. Each embodies an emotion of the battlefield — each echoes a legend from Snake's past.</span>
+<span class="zh">四位被战争恐怖逼疯的女性，被机械野兽装甲包裹。每人都体现了战场上的一种情感——每人都呼应了蛇过去的一个传奇。</span>
+</p>
+</div>
+<div class="bb-grid reveal">
+<div class="bb-card">
+<div class="bb-icon">I</div>
+<div class="bb-header">
+<div class="bb-emotion">
+<span class="en">Laughing</span>
+<span class="zh">狂笑</span>
+</div>
+<div class="bb-name">
+<span class="en">Octopus</span>
+<span class="zh">章鱼</span>
+</div>
+</div>
+<div class="bb-body">
+<div class="bb-beast">
+<span class="en">ECHO: DECOY OCTOPUS</span>
+<span class="zh">回响：诱饵章鱼</span>
+</div>
+<div class="bb-desc">
+<span class="en">Master of disguise with OctoCamo-like tentacles. Her laughter masks the trauma of watching her family slaughtered — a mind broken by unimaginable cruelty, hiding behind mimicry.</span>
+<span class="zh">拥有类似OctoCamo触手的伪装大师。她的笑声掩盖了目睹家人被屠杀的创伤——一个被难以想象的残忍所摧毁的心灵，藏身于模仿之后。</span>
+</div>
+</div>
+</div>
+<div class="bb-card">
+<div class="bb-icon">II</div>
+<div class="bb-header">
+<div class="bb-emotion">
+<span class="en">Raging</span>
+<span class="zh">狂怒</span>
+</div>
+<div class="bb-name">
+<span class="en">Raven</span>
+<span class="zh">乌鸦</span>
+</div>
+</div>
+<div class="bb-body">
+<div class="bb-beast">
+<span class="en">ECHO: VULCAN RAVEN</span>
+<span class="zh">回响：火神乌鸦</span>
+</div>
+<div class="bb-desc">
+<span class="en">Airborne fury in winged armor raining grenades from above. Her rage was born when she was forced to become a child soldier — anger is all she has left.</span>
+<span class="zh">穿着翼甲从空中倾泻手榴弹的空中狂怒。她的愤怒源于被迫成为童兵——愤怒是她仅存的一切。</span>
+</div>
+</div>
+</div>
+<div class="bb-card">
+<div class="bb-icon">III</div>
+<div class="bb-header">
+<div class="bb-emotion">
+<span class="en">Crying</span>
+<span class="zh">哭泣</span>
+</div>
+<div class="bb-name">
+<span class="en">Wolf</span>
+<span class="zh">狼</span>
+</div>
+</div>
+<div class="bb-body">
+<div class="bb-beast">
+<span class="en">ECHO: SNIPER WOLF</span>
+<span class="zh">回响：狙击狼</span>
+</div>
+<div class="bb-desc">
+<span class="en">A railgun-wielding beast prowling the Alaskan snowfields. Her tears never stop — she wept as she was forced to kill refugees alongside the very wolves that raised her.</span>
+<span class="zh">一只在阿拉斯加雪原上游荡的持轨道枪野兽。她的泪水永不停止——当她被迫与养育她的狼群一起杀害难民时，她哭泣不止。</span>
+</div>
+</div>
+</div>
+<div class="bb-card">
+<div class="bb-icon">IV</div>
+<div class="bb-header">
+<div class="bb-emotion">
+<span class="en">Screaming</span>
+<span class="zh">尖叫</span>
+</div>
+<div class="bb-name">
+<span class="en">Mantis</span>
+<span class="zh">螳螂</span>
+</div>
+</div>
+<div class="bb-body">
+<div class="bb-beast">
+<span class="en">ECHO: PSYCHO MANTIS</span>
+<span class="zh">回响：精神螳螂</span>
+</div>
+<div class="bb-desc">
+<span class="en">Puppeteer who controls corpses through nanomachines. Her screams are unending — the psychic residue of Psycho Mantis himself compels her, a vessel for a dead man's will.</span>
+<span class="zh">通过纳米机器控制尸体的傀儡师。她的尖叫永无止境——精神螳螂本人的灵能残留驱使着她，一个死者意志的容器。</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== SOP / NANOMACHINES ===== -->
+<section class="sop-section">
+<canvas id="nanoCanvas"></canvas>
+<div class="sop-content">
+<div class="reveal">
+<div class="section-label">
+<span class="en">Network Architecture</span>
+<span class="zh">网络架构</span>
+</div>
+<h2 class="section-title">
+<span class="en">SOP <span class="accent">System</span></span>
+<span class="zh">SOP<span class="accent">系统</span></span>
+</h2>
+<p class="section-desc">
+<span class="en">Sons of the Patriots — the nanomachine network that links every soldier on the battlefield. It controls emotions, regulates weapons, and feeds data to the Patriot AIs. When it falls, the world goes mad.</span>
+<span class="zh">爱国者之子——连接战场上每个士兵的纳米机器网络。它控制情绪、管理武器、向爱国者AI传输数据。当它崩溃时，世界陷入疯狂。</span>
+</p>
+</div>
+<div class="sop-grid reveal">
+<div class="sop-text">
+<h3>
+<span class="en">Nanomachine Integration</span>
+<span class="zh">纳米机器整合</span>
+</h3>
+<p>
+<span class="en">Every PMC soldier is injected with nanomachines that regulate their hormones, suppress fear, enhance reflexes, and report battlefield data in real-time. The system creates perfect soldiers — but at the cost of their humanity.</span>
+<span class="zh">每个PMC士兵都被注入纳米机器，调节激素、抑制恐惧、增强反射、实时报告战场数据。系统创造了完美的士兵——但代价是他们的人性。</span>
+</p>
+<h3>
+<span class="en">The Patriot AIs</span>
+<span class="zh">爱国者AI</span>
+</h3>
+<p>
+<span class="en">Five AIs — GW, TJ, AL, TR, and the core JD — form the Patriots' proxy system. Built from the framework of The Boss's will, they were meant to unite the world. Instead, they became its invisible tyrants. FOXALIVE destroys them all.</span>
+<span class="zh">五个AI——GW、TJ、AL、TR和核心JD——构成爱国者的代理系统。基于The Boss的意志框架构建，本意是团结世界。然而，它们变成了隐形暴君。FOXALIVE将其全部摧毁。</span>
+</p>
+</div>
+<div class="sop-stats">
+<div class="sop-stat">
+<div class="sop-stat-icon">GW</div>
+<div class="sop-stat-info">
+<div class="s-label">
+<span class="en">Arsenal Gear AI</span>
+<span class="zh">兵工厂装备AI</span>
+</div>
+<div class="s-value">
+<span class="en">Information Control</span>
+<span class="zh">信息控制</span>
+</div>
+</div>
+</div>
+<div class="sop-stat">
+<div class="sop-stat-icon">JD</div>
+<div class="sop-stat-info">
+<div class="s-label">
+<span class="en">Core Patriot AI</span>
+<span class="zh">核心爱国者AI</span>
+</div>
+<div class="s-value">
+<span class="en">Orbital Command Node</span>
+<span class="zh">轨道指挥节点</span>
+</div>
+</div>
+</div>
+<div class="sop-stat">
+<div class="sop-stat-icon">SOP</div>
+<div class="sop-stat-info">
+<div class="s-label">
+<span class="en">Battlefield Network</span>
+<span class="zh">战场网络</span>
+</div>
+<div class="s-value">
+<span class="en">3.2M Connected Nodes</span>
+<span class="zh">320万连接节点</span>
+</div>
+</div>
+</div>
+<div class="sop-stat">
+<div class="sop-stat-icon">FOX</div>
+<div class="sop-stat-info">
+<div class="s-label">
+<span class="en">FOXALIVE Worm</span>
+<span class="zh">FOXALIVE蠕虫</span>
+</div>
+<div class="s-value">
+<span class="en">Patriot Kill Code</span>
+<span class="zh">爱国者销毁代码</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== DREBIN'S SHOP ===== -->
+<section class="drebin-section">
+<div class="reveal">
+<div class="section-label">
+<span class="en">Drebin's Shop — ID Laundering</span>
+<span class="zh">德雷宾商店 — ID洗白</span>
+</div>
+<h2 class="section-title">
+<span class="en">Weapons <span class="accent">Catalog</span></span>
+<span class="zh">武器<span class="accent">目录</span></span>
+</h2>
+<p class="section-desc">
+<span class="en">"I'm Drebin. I'm a gun launderer. I take ID-tagged weapons and make them usable. Everything's for sale — for the right price."</span>
+<span class="zh">"我是德雷宾。我是枪械洗白者。我把ID锁定的武器变得可用。一切都可以卖——只要价格合适。"</span>
+</p>
+</div>
+<div class="drebin-grid reveal">
+<div class="weapon-card">
+<div class="weapon-top">
+<div>
+<div class="weapon-name">M4 Custom</div>
+<div class="weapon-type">
+<span class="en">Assault Rifle</span>
+<span class="zh">突击步枪</span>
+</div>
+</div>
+<div class="weapon-price">18,000 DP</div>
+</div>
+<div class="weapon-body">
+<div class="weapon-stats">
+<div class="w-stat"><span class="en">DMG</span><span class="zh">伤害</span> <strong>C+</strong></div>
+<div class="w-stat"><span class="en">RNG</span><span class="zh">射程</span> <strong>B</strong></div>
+<div class="w-stat"><span class="en">ACC</span><span class="zh">精度</span> <strong>B+</strong></div>
+<div class="w-stat"><span class="en">ROF</span><span class="zh">射速</span> <strong>A</strong></div>
+</div>
+<div class="weapon-bar"><div class="weapon-bar-fill" style="width:72%"></div></div>
+<div class="weapon-dp">
+<span class="en">UNLOCK COST: 18,000 DREBIN POINTS</span>
+<span class="zh">解锁费用：18,000 德雷宾点数</span>
+</div>
+</div>
+</div>
+<div class="weapon-card">
+<div class="weapon-top">
+<div>
+<div class="weapon-name">Rail Gun</div>
+<div class="weapon-type">
+<span class="en">Special Weapon</span>
+<span class="zh">特殊武器</span>
+</div>
+</div>
+<div class="weapon-price">80,000 DP</div>
+</div>
+<div class="weapon-body">
+<div class="weapon-stats">
+<div class="w-stat"><span class="en">DMG</span><span class="zh">伤害</span> <strong>S</strong></div>
+<div class="w-stat"><span class="en">RNG</span><span class="zh">射程</span> <strong>S</strong></div>
+<div class="w-stat"><span class="en">ACC</span><span class="zh">精度</span> <strong>A</strong></div>
+<div class="w-stat"><span class="en">ROF</span><span class="zh">射速</span> <strong>D</strong></div>
+</div>
+<div class="weapon-bar"><div class="weapon-bar-fill" style="width:92%"></div></div>
+<div class="weapon-dp">
+<span class="en">UNLOCK COST: 80,000 DREBIN POINTS</span>
+<span class="zh">解锁费用：80,000 德雷宾点数</span>
+</div>
+</div>
+</div>
+<div class="weapon-card">
+<div class="weapon-top">
+<div>
+<div class="weapon-name">Operator</div>
+<div class="weapon-type">
+<span class="en">Handgun</span>
+<span class="zh">手枪</span>
+</div>
+</div>
+<div class="weapon-price">5,000 DP</div>
+</div>
+<div class="weapon-body">
+<div class="weapon-stats">
+<div class="w-stat"><span class="en">DMG</span><span class="zh">伤害</span> <strong>C</strong></div>
+<div class="w-stat"><span class="en">RNG</span><span class="zh">射程</span> <strong>C</strong></div>
+<div class="w-stat"><span class="en">ACC</span><span class="zh">精度</span> <strong>A</strong></div>
+<div class="w-stat"><span class="en">ROF</span><span class="zh">射速</span> <strong>B</strong></div>
+</div>
+<div class="weapon-bar"><div class="weapon-bar-fill" style="width:55%"></div></div>
+<div class="weapon-dp">
+<span class="en">UNLOCK COST: 5,000 DREBIN POINTS</span>
+<span class="zh">解锁费用：5,000 德雷宾点数</span>
+</div>
+</div>
+</div>
+<div class="weapon-card">
+<div class="weapon-top">
+<div>
+<div class="weapon-name">DSR-1</div>
+<div class="weapon-type">
+<span class="en">Sniper Rifle</span>
+<span class="zh">狙击步枪</span>
+</div>
+</div>
+<div class="weapon-price">60,000 DP</div>
+</div>
+<div class="weapon-body">
+<div class="weapon-stats">
+<div class="w-stat"><span class="en">DMG</span><span class="zh">伤害</span> <strong>A</strong></div>
+<div class="w-stat"><span class="en">RNG</span><span class="zh">射程</span> <strong>S</strong></div>
+<div class="w-stat"><span class="en">ACC</span><span class="zh">精度</span> <strong>S</strong></div>
+<div class="w-stat"><span class="en">ROF</span><span class="zh">射速</span> <strong>D</strong></div>
+</div>
+<div class="weapon-bar"><div class="weapon-bar-fill" style="width:85%"></div></div>
+<div class="weapon-dp">
+<span class="en">UNLOCK COST: 60,000 DREBIN POINTS</span>
+<span class="zh">解锁费用：60,000 德雷宾点数</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== QUOTE ===== -->
+<section class="quote-section">
+<div class="reveal">
+<div class="big-quote">
+<span class="en">"War has changed."</span>
+<span class="zh">"战争已经改变了。"</span>
+</div>
+<div class="quote-attr">
+<span class="en">&mdash; Old Snake, 2014</span>
+<span class="zh">&mdash; 老蛇，2014</span>
+</div>
+</div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+<div class="reveal">
+<p>
+<span class="en">METAL GEAR SOLID 4: GUNS OF THE PATRIOTS &copy; 2008 <span class="fox">KOJIMA PRODUCTIONS</span> / KONAMI</span>
+<span class="zh">合金装备4：爱国者之枪 &copy; 2008 <span class="fox">小岛制作</span> / KONAMI</span>
+</p>
+<p>
+<span class="en">THIS IS A FAN TRIBUTE PAGE &mdash; NOT AN OFFICIAL PRODUCT</span>
+<span class="zh">这是粉丝致敬页面 &mdash; 非官方产品</span>
+</p>
+<p style="margin-top:12px;color:var(--text-muted)">
+<span class="en">"This is good, isn't it?" &mdash; Big Boss</span>
+<span class="zh">"这样挺好的，不是吗？" &mdash; Big Boss</span>
+</p>
+</div>
+</footer>
+
+<script>
+/* ===== THEME & LANG TOGGLES ===== */
+function toggleTheme(){
+const h=document.documentElement;
+h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
+}
+function toggleLang(){
+const h=document.documentElement;
+h.dataset.lang=h.dataset.lang==='en'?'zh':'en';
+}
+
+/* ===== ASH/DUST PARTICLE CANVAS ===== */
+(function(){
+const c=document.getElementById('ashCanvas'),ctx=c.getContext('2d');
+let W,H;
+function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+
+const particles=[];
+const COUNT=80;
+for(let i=0;i<COUNT;i++){
+particles.push({
+x:Math.random()*2000,y:Math.random()*2000,
+r:Math.random()*2+0.5,
+vx:(Math.random()-0.5)*0.3,
+vy:Math.random()*0.2+0.05,
+o:Math.random()*0.4+0.1,
+});
+}
+function draw(){
+ctx.clearRect(0,0,W,H);
+for(const p of particles){
+p.x+=p.vx;p.y+=p.vy;
+if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;
+if(p.y>H+10){p.y=-10;p.x=Math.random()*W}
+ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle=`rgba(160,160,165,${p.o})`;
+ctx.fill();
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+/* ===== NANOMACHINE NETWORK CANVAS ===== */
+(function(){
+const c=document.getElementById('nanoCanvas');
+if(!c)return;
+const ctx=c.getContext('2d');
+let W,H;
+const section=c.parentElement;
+function resize(){
+const r=section.getBoundingClientRect();
+W=c.width=r.width;H=c.height=r.height;
+}
+resize();window.addEventListener('resize',resize);
+
+const nodes=[];
+const N=40;
+for(let i=0;i<N;i++){
+nodes.push({
+x:Math.random()*2000,y:Math.random()*1000,
+vx:(Math.random()-0.5)*0.4,
+vy:(Math.random()-0.5)*0.4,
+r:Math.random()*2+1
+});
+}
+function draw(){
+resize();
+ctx.clearRect(0,0,W,H);
+for(const n of nodes){
+n.x+=n.vx;n.y+=n.vy;
+if(n.x<0||n.x>W)n.vx*=-1;
+if(n.y<0||n.y>H)n.vy*=-1;
+}
+// connections
+for(let i=0;i<N;i++){
+for(let j=i+1;j<N;j++){
+const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y;
+const d=Math.sqrt(dx*dx+dy*dy);
+if(d<160){
+ctx.beginPath();
+ctx.moveTo(nodes[i].x,nodes[i].y);
+ctx.lineTo(nodes[j].x,nodes[j].y);
+ctx.strokeStyle=`rgba(64,160,96,${(1-d/160)*0.5})`;
+ctx.lineWidth=0.5;
+ctx.stroke();
+}
+}
+}
+// dots
+for(const n of nodes){
+ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+ctx.fillStyle='rgba(64,160,96,0.6)';ctx.fill();
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+/* ===== WAR ECONOMY TICKER ===== */
+(function(){
+const data=[
+{l:'PRAYING MANTIS',v:'+3.2%',c:'up'},
+{l:'PIEUVRE ARMEMENT',v:'-1.8%',c:'down'},
+{l:'RAVEN SWORD',v:'+0.7%',c:'up'},
+{l:'WEREWOLF',v:'+2.1%',c:'up'},
+{l:'OTSELOTOVAYA KHVATKA',v:'-0.4%',c:'down'},
+{l:'DREBIN POINTS',v:'1DP = $0.84',c:'label'},
+{l:'SOP UPTIME',v:'99.97%',c:'up'},
+{l:'PMC INDEX',v:'+1.4%',c:'up'},
+{l:'ARMS FUTURES',v:'-2.3%',c:'down'},
+{l:'ID-LOCK REMOVALS',v:'+12.8%',c:'up'},
+{l:'NANOMACHINE SUPPLY',v:'+0.3%',c:'up'},
+{l:'METAL GEAR RAY',v:'CLASSIFIED',c:'label'},
+{l:'OUTER HAVEN',v:'STATUS: ACTIVE',c:'label'},
+{l:'FOXHOUND',v:'DISBANDED',c:'down'},
+{l:'LIQUID OCELOT',v:'THREAT: EXTREME',c:'down'},
+];
+const el=document.getElementById('ticker');
+let html='';
+for(let r=0;r<2;r++){
+for(const d of data){
+html+=`<span><span class="label">${d.l}</span> <span class="${d.c}">${d.v}</span></span>`;
+}
+}
+el.innerHTML=html;
+})();
+
+/* ===== SCROLL REVEAL ===== */
+(function(){
+const obs=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{
+if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}
+});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+})();
+</script>
+</body>
+</html>

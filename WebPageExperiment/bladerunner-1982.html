@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blade Runner 2019 — Tyrell Corporation</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--noir-black:#0a0808;--noir-deep:#0e0c0a;--neon-blue:#0044ff;--neon-blue-light:#3366ff;
+--neon-pink:#ff0066;--neon-pink-dark:#cc0044;--amber:#d4a030;--amber-dark:#c89020;
+--steel-blue:#2a3848;--neon-green:#00ff66;--haze-purple:#3a2050;--haze-deep:#2a1840;
+--dirty-orange:#c06820;--rain-color:rgba(180,200,255,0.12);
+--bg-primary:#0a0808;--bg-secondary:#0e0c0a;--bg-card:rgba(14,12,10,0.85);
+--text-primary:#c8bfb0;--text-heading:#e8dfd0;--text-accent:#d4a030;
+--border-color:rgba(212,160,48,0.15);--glow-primary:rgba(0,68,255,0.4);
+--glow-secondary:rgba(255,0,102,0.3);--crt-glow:rgba(0,255,102,0.15);
+}
+[data-theme="light"]{
+--bg-primary:#2a2018;--bg-secondary:#3a2c1e;--bg-card:rgba(58,44,30,0.9);
+--text-primary:#e8dfd0;--text-heading:#fff5e0;--text-accent:#e8b840;
+--border-color:rgba(232,184,64,0.3);--glow-primary:rgba(212,160,48,0.5);
+--glow-secondary:rgba(232,184,64,0.3);--rain-color:rgba(255,220,150,0.08);
+--crt-glow:rgba(232,184,64,0.2);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+font-family:'Rajdhani',sans-serif;background:var(--bg-primary);color:var(--text-primary);
+overflow-x:hidden;line-height:1.6;position:relative;
+}
+
+/* FILM GRAIN — heavier 35mm analog */
+body::before{
+content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+background:repeating-conic-gradient(rgba(255,255,255,0.015) 0%,transparent 0.4%,transparent 0.8%,rgba(0,0,0,0.02) 1.2%);
+animation:grainShift 0.08s steps(4) infinite;z-index:9998;pointer-events:none;
+opacity:0.7;mix-blend-mode:overlay;
+}
+@keyframes grainShift{
+0%{transform:translate(0,0)}25%{transform:translate(-2%,-3%)}
+50%{transform:translate(3%,1%)}75%{transform:translate(-1%,4%)}100%{transform:translate(2%,-2%)}
+}
+/* secondary grain layer for density */
+body::after{
+content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E");
+z-index:9997;pointer-events:none;opacity:0.5;
+}
+
+/* atmospheric depth layers */
+.atmos-layer{
+position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;
+}
+.atmos-layer.layer1{
+background:linear-gradient(180deg,rgba(42,24,64,0.4) 0%,rgba(10,8,8,0.1) 30%,
+rgba(10,8,8,0.3) 60%,rgba(42,56,72,0.5) 100%);
+}
+.atmos-layer.layer2{
+background:radial-gradient(ellipse at 20% 10%,rgba(0,68,255,0.08) 0%,transparent 50%),
+radial-gradient(ellipse at 80% 30%,rgba(255,0,102,0.06) 0%,transparent 40%),
+radial-gradient(ellipse at 50% 80%,rgba(192,104,32,0.08) 0%,transparent 50%);
+}
+.atmos-layer.layer3{
+background:linear-gradient(0deg,rgba(58,32,80,0.3) 0%,transparent 20%,transparent 80%,rgba(42,24,64,0.2) 100%);
+}
+
+#rain-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none}
+
+/* anamorphic lens flare */
+.lens-flare{
+position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;
+opacity:0;transition:opacity 0.3s;
+}
+.lens-flare.active{opacity:1}
+.lens-flare::before{
+content:'';position:absolute;top:50%;left:-10%;width:120%;height:2px;
+background:linear-gradient(90deg,transparent,rgba(100,160,255,0),rgba(100,160,255,0.6),
+rgba(200,220,255,0.9),rgba(100,160,255,0.6),rgba(100,160,255,0),transparent);
+filter:blur(3px);
+}
+.lens-flare::after{
+content:'';position:absolute;top:calc(50% - 8px);left:-10%;width:120%;height:18px;
+background:linear-gradient(90deg,transparent,rgba(100,160,255,0),rgba(100,160,255,0.15),
+rgba(180,200,255,0.25),rgba(100,160,255,0.15),rgba(100,160,255,0),transparent);
+filter:blur(8px);
+}
+
+/* CRT scanlines for monitor panels */
+.crt-panel{
+position:relative;border:4px solid #1a1815;border-radius:12px;
+background:var(--bg-card);overflow:hidden;
+box-shadow:0 0 20px rgba(0,0,0,0.8),inset 0 0 30px rgba(0,0,0,0.5),
+0 0 60px var(--crt-glow);
+}
+.crt-panel::before{
+content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+pointer-events:none;z-index:2;
+}
+.crt-panel::after{
+content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.4) 100%);
+pointer-events:none;z-index:3;
+}
+.crt-bezel{
+border:6px solid #2a2520;border-radius:16px;padding:3px;
+background:linear-gradient(135deg,#1a1510,#2a2218,#1a1510);
+box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 4px 20px rgba(0,0,0,0.6);
+}
+
+/* neon text */
+.neon-text{
+text-shadow:0 0 7px currentColor,0 0 10px currentColor,0 0 21px currentColor,
+0 0 42px currentColor;
+}
+.neon-blue{color:var(--neon-blue);text-shadow:0 0 7px var(--neon-blue),0 0 10px var(--neon-blue),0 0 21px var(--neon-blue-light),0 0 42px var(--neon-blue)}
+.neon-pink{color:var(--neon-pink);text-shadow:0 0 7px var(--neon-pink),0 0 10px var(--neon-pink),0 0 21px var(--neon-pink),0 0 42px var(--neon-pink-dark)}
+.neon-green{color:var(--neon-green);text-shadow:0 0 7px var(--neon-green),0 0 10px var(--neon-green),0 0 21px var(--neon-green)}
+
+/* neon sign flicker */
+@keyframes neonFlicker{
+0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}
+20%,24%,55%{opacity:0.4}
+}
+@keyframes neonFlicker2{
+0%,18%,22%,25%,53%,57%,100%{opacity:1}
+20%,54%{opacity:0.3}17%{opacity:0.7}
+}
+@keyframes neonFlicker3{
+0%,100%{opacity:1}10%{opacity:0.8}30%{opacity:0.5}31%{opacity:1}70%{opacity:0.9}71%{opacity:0.4}72%{opacity:1}
+}
+.neon-flicker{animation:neonFlicker 3s infinite}
+.neon-flicker-2{animation:neonFlicker2 4s infinite 0.5s}
+.neon-flicker-3{animation:neonFlicker3 5s infinite 1s}
+
+/* neon sign box */
+.neon-sign{
+display:inline-block;padding:8px 20px;border:2px solid;border-radius:4px;
+font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;
+position:relative;
+}
+.neon-sign.blue{border-color:var(--neon-blue);color:var(--neon-blue);box-shadow:0 0 10px var(--neon-blue),inset 0 0 10px rgba(0,68,255,0.1)}
+.neon-sign.pink{border-color:var(--neon-pink);color:var(--neon-pink);box-shadow:0 0 10px var(--neon-pink),inset 0 0 10px rgba(255,0,102,0.1)}
+.neon-sign.green{border-color:var(--neon-green);color:var(--neon-green);box-shadow:0 0 10px var(--neon-green),inset 0 0 10px rgba(0,255,102,0.1)}
+
+/* steam wisps */
+.steam-container{position:absolute;bottom:0;left:0;width:100%;height:200px;overflow:hidden;pointer-events:none}
+.steam{
+position:absolute;bottom:-20px;width:60px;height:120px;
+background:linear-gradient(0deg,rgba(180,180,180,0.06),rgba(180,180,180,0.02),transparent);
+filter:blur(15px);border-radius:50%;
+animation:steamRise 6s ease-out infinite;
+}
+@keyframes steamRise{
+0%{transform:translateY(0) scaleX(1);opacity:0}
+10%{opacity:0.5}
+50%{transform:translateY(-80px) scaleX(1.5);opacity:0.3}
+100%{transform:translateY(-180px) scaleX(2);opacity:0}
+}
+.steam:nth-child(2){left:15%;animation-delay:1.5s;width:40px}
+.steam:nth-child(3){left:45%;animation-delay:3s;width:80px}
+.steam:nth-child(4){left:70%;animation-delay:0.8s;width:50px}
+.steam:nth-child(5){left:90%;animation-delay:4s;width:70px}
+
+/* controls */
+.controls{
+position:fixed;top:20px;right:20px;z-index:9999;display:flex;gap:8px;
+}
+.ctrl-btn{
+width:48px;height:48px;border-radius:50%;border:3px solid #3a3530;
+background:linear-gradient(135deg,#1a1510,#2a2218);
+cursor:pointer;display:flex;align-items:center;justify-content:center;
+font-size:16px;color:var(--amber);position:relative;
+box-shadow:0 2px 10px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);
+transition:all 0.3s;
+}
+.ctrl-btn:hover{box-shadow:0 2px 20px var(--glow-primary);border-color:var(--amber)}
+.ctrl-btn::after{
+content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);
+width:6px;height:6px;border-radius:50%;
+background:var(--neon-green);box-shadow:0 0 6px var(--neon-green);
+}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0808}
+::-webkit-scrollbar-thumb{background:var(--amber-dark);border-radius:3px}
+
+.container{max-width:1100px;margin:0 auto;padding:0 20px;position:relative;z-index:10}
+
+/* HERO */
+.hero{
+min-height:100vh;display:flex;flex-direction:column;align-items:center;
+justify-content:center;position:relative;overflow:hidden;
+}
+.hero-bg{
+position:absolute;top:0;left:0;width:100%;height:100%;
+background:
+radial-gradient(ellipse at 50% 20%,rgba(192,104,32,0.15) 0%,transparent 50%),
+radial-gradient(ellipse at 30% 70%,rgba(0,68,255,0.1) 0%,transparent 40%),
+radial-gradient(ellipse at 80% 50%,rgba(255,0,102,0.08) 0%,transparent 40%),
+linear-gradient(180deg,rgba(42,24,64,0.6) 0%,var(--bg-primary) 100%);
+}
+/* eye reflection */
+.eye-container{
+width:280px;height:140px;margin-bottom:40px;position:relative;
+}
+.eye-outer{
+width:280px;height:140px;border-radius:50%;overflow:hidden;position:relative;
+border:2px solid rgba(192,104,32,0.3);
+box-shadow:0 0 40px rgba(192,104,32,0.2),0 0 80px rgba(192,104,32,0.1);
+}
+.eye-iris{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:100px;height:100px;border-radius:50%;
+background:radial-gradient(circle,#1a1208 25%,#4a3010 35%,#6a4818 50%,#8a6020 65%,#3a2810 80%);
+box-shadow:inset 0 0 20px rgba(0,0,0,0.8);
+}
+.eye-pupil{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:35px;height:35px;border-radius:50%;background:#050200;
+box-shadow:inset 0 0 10px rgba(192,104,32,0.3);
+animation:pupilPulse 4s ease-in-out infinite;
+}
+@keyframes pupilPulse{0%,100%{width:35px;height:35px}50%{width:28px;height:28px}}
+.eye-reflection{
+position:absolute;top:30%;left:55%;width:40px;height:25px;
+background:linear-gradient(135deg,rgba(255,120,30,0.6),rgba(255,80,20,0.3));
+border-radius:50%;filter:blur(3px);
+animation:fireFlicker 2s ease-in-out infinite;
+}
+.eye-reflection2{
+position:absolute;top:40%;left:35%;width:15px;height:10px;
+background:rgba(255,160,60,0.4);border-radius:50%;filter:blur(2px);
+animation:fireFlicker 3s ease-in-out infinite 0.5s;
+}
+@keyframes fireFlicker{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+.eye-sclera{
+position:absolute;top:0;left:0;width:100%;height:100%;
+background:radial-gradient(ellipse at center,transparent 35%,rgba(180,140,100,0.15) 60%,rgba(140,100,70,0.3) 100%);
+}
+.eye-veins{
+position:absolute;top:50%;left:10%;width:20px;height:1px;
+background:rgba(180,60,40,0.3);transform:rotate(-15deg);
+}
+
+.hero-title{
+font-family:'Space Mono',monospace;font-size:clamp(2.5rem,8vw,5.5rem);
+font-weight:700;letter-spacing:12px;text-transform:uppercase;
+color:var(--text-heading);text-align:center;
+text-shadow:0 0 40px rgba(212,160,48,0.3),0 0 80px rgba(212,160,48,0.1);
+margin-bottom:10px;line-height:1.1;
+}
+.hero-sub{
+font-family:'Space Mono',monospace;font-size:clamp(0.7rem,2vw,1rem);
+letter-spacing:8px;text-transform:uppercase;color:var(--amber);
+margin-bottom:30px;
+}
+.hero-year{
+font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,3vw,1.4rem);
+color:var(--text-primary);opacity:0.6;letter-spacing:6px;margin-bottom:40px;
+}
+.hero-tagline{
+font-family:'Rajdhani',sans-serif;font-size:clamp(0.9rem,2vw,1.1rem);
+color:var(--neon-blue-light);letter-spacing:3px;
+border:1px solid rgba(0,68,255,0.3);padding:8px 24px;
+box-shadow:0 0 15px rgba(0,68,255,0.1);
+}
+
+/* neon signs floating */
+.floating-neon{
+position:absolute;pointer-events:none;font-family:'Noto Sans SC','Space Mono',monospace;
+font-size:14px;z-index:5;
+}
+.floating-neon.fn1{top:15%;left:5%;transform:rotate(-5deg)}
+.floating-neon.fn2{top:25%;right:3%;transform:rotate(3deg)}
+.floating-neon.fn3{bottom:20%;left:8%;transform:rotate(-2deg)}
+.floating-neon.fn4{top:60%;right:6%;transform:rotate(5deg)}
+
+/* sections */
+section{padding:80px 0;position:relative;z-index:10}
+.section-title{
+font-family:'Space Mono',monospace;font-size:clamp(1.3rem,3vw,1.8rem);
+letter-spacing:6px;text-transform:uppercase;color:var(--text-heading);
+margin-bottom:40px;position:relative;padding-bottom:15px;
+}
+.section-title::after{
+content:'';position:absolute;bottom:0;left:0;width:60px;height:2px;
+background:var(--amber);box-shadow:0 0 10px var(--amber);
+}
+
+/* about */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+.about-block{
+padding:25px;background:var(--bg-card);border:1px solid var(--border-color);
+position:relative;
+}
+.about-block::before{
+content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+background:linear-gradient(180deg,var(--amber),transparent);
+}
+.about-label{
+font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:3px;
+text-transform:uppercase;color:var(--amber);margin-bottom:8px;
+}
+.about-text{font-size:0.95rem;line-height:1.7;color:var(--text-primary)}
+
+/* replicant cards */
+.replicant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.replicant-card{
+position:relative;overflow:hidden;
+}
+.replicant-card .crt-panel{padding:0}
+.rep-header{
+padding:18px 20px 12px;
+background:linear-gradient(135deg,rgba(42,56,72,0.4),rgba(14,12,10,0.8));
+border-bottom:1px solid var(--border-color);position:relative;z-index:4;
+}
+.rep-name{
+font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;
+color:var(--text-heading);letter-spacing:2px;
+}
+.rep-model{
+font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--amber);
+letter-spacing:1px;margin-top:2px;
+}
+.rep-body{padding:15px 20px;position:relative;z-index:4}
+.rep-function{
+font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;
+color:var(--neon-blue-light);margin-bottom:10px;
+}
+.rep-stats{margin-bottom:12px}
+.rep-stat{
+display:flex;justify-content:space-between;align-items:center;
+font-size:0.75rem;margin-bottom:6px;font-family:'Space Mono',monospace;
+}
+.rep-stat-label{color:var(--text-primary);opacity:0.7}
+.rep-stat-bar{
+width:60%;height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;
+}
+.rep-stat-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.rep-stat-fill.phys{background:linear-gradient(90deg,var(--neon-pink),var(--neon-pink-dark))}
+.rep-stat-fill.ment{background:linear-gradient(90deg,var(--neon-blue),var(--neon-blue-light))}
+.rep-inception{
+font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-primary);
+opacity:0.5;margin-bottom:10px;
+}
+.retired-stamp{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-25deg);
+font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;
+color:rgba(255,0,102,0.2);letter-spacing:8px;
+border:3px solid rgba(255,0,102,0.15);padding:5px 20px;
+z-index:5;pointer-events:none;
+}
+
+/* Voight-Kampff */
+.vk-container{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.vk-display{display:flex;flex-direction:column;align-items:center;gap:20px}
+.vk-iris{
+width:200px;height:200px;border-radius:50%;position:relative;
+background:radial-gradient(circle,#0a0808 20%,#1a1510 40%,#2a2218 60%,#1a1510 80%,#0a0808 100%);
+border:3px solid rgba(212,160,48,0.3);
+box-shadow:0 0 30px rgba(212,160,48,0.1),0 0 60px rgba(0,0,0,0.5);
+overflow:hidden;
+}
+.vk-ring{
+position:absolute;top:50%;left:50%;border-radius:50%;
+border:1px solid rgba(0,255,102,0.3);
+transform:translate(-50%,-50%);
+}
+.vk-ring:nth-child(1){width:30px;height:30px;animation:vkPulse 3s ease-in-out infinite}
+.vk-ring:nth-child(2){width:60px;height:60px;animation:vkPulse 3s ease-in-out infinite 0.3s}
+.vk-ring:nth-child(3){width:90px;height:90px;animation:vkPulse 3s ease-in-out infinite 0.6s}
+.vk-ring:nth-child(4){width:120px;height:120px;animation:vkPulse 3s ease-in-out infinite 0.9s}
+.vk-ring:nth-child(5){width:150px;height:150px;animation:vkPulse 3s ease-in-out infinite 1.2s}
+.vk-ring:nth-child(6){width:180px;height:180px;animation:vkPulse 3s ease-in-out infinite 1.5s}
+@keyframes vkPulse{
+0%,100%{border-color:rgba(0,255,102,0.2);transform:translate(-50%,-50%) scale(1)}
+50%{border-color:rgba(0,255,102,0.6);transform:translate(-50%,-50%) scale(1.05)}
+}
+.vk-crosshair-h,.vk-crosshair-v{position:absolute;background:rgba(0,255,102,0.15)}
+.vk-crosshair-h{width:100%;height:1px;top:50%;left:0}
+.vk-crosshair-v{width:1px;height:100%;top:0;left:50%}
+.vk-pupil-center{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:20px;height:20px;border-radius:50%;
+background:radial-gradient(circle,var(--neon-green),transparent);
+animation:vkGlow 2s ease-in-out infinite;
+}
+@keyframes vkGlow{0%,100%{opacity:0.4;width:20px;height:20px}50%{opacity:0.8;width:24px;height:24px}}
+
+.vk-readout{
+font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--neon-green);
+text-align:center;
+}
+.vk-questions{display:flex;flex-direction:column;gap:15px}
+.vk-q{
+padding:15px 20px;background:rgba(0,255,102,0.03);
+border:1px solid rgba(0,255,102,0.1);border-left:3px solid rgba(0,255,102,0.3);
+font-family:'Space Mono',monospace;font-size:0.8rem;
+color:var(--text-primary);line-height:1.6;
+}
+.vk-q-num{color:var(--neon-green);font-size:0.65rem;margin-bottom:5px;letter-spacing:2px}
+
+/* Esper machine */
+.esper-container{position:relative}
+.esper-screen{
+position:relative;width:100%;aspect-ratio:16/10;
+background:linear-gradient(135deg,#0a0c10,#101418,#0a0c10);
+border:3px solid #1a1815;overflow:hidden;
+box-shadow:0 0 30px rgba(0,0,0,0.8),0 0 60px rgba(0,68,255,0.1);
+}
+.esper-grid{
+position:absolute;top:0;left:0;width:100%;height:100%;
+background:
+linear-gradient(rgba(0,255,102,0.03) 1px,transparent 1px),
+linear-gradient(90deg,rgba(0,255,102,0.03) 1px,transparent 1px);
+background-size:40px 40px;
+}
+.esper-crosshair{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:120px;height:120px;border:1px solid rgba(0,255,102,0.3);
+}
+.esper-crosshair::before,.esper-crosshair::after{
+content:'';position:absolute;background:rgba(0,255,102,0.3);
+}
+.esper-crosshair::before{width:1px;height:140px;top:-10px;left:50%}
+.esper-crosshair::after{width:140px;height:1px;top:50%;left:-10px}
+.esper-text{
+position:absolute;font-family:'Space Mono',monospace;color:var(--neon-green);
+font-size:0.7rem;letter-spacing:2px;
+}
+.esper-text.tl{top:15px;left:15px}
+.esper-text.tr{top:15px;right:15px}
+.esper-text.bl{bottom:15px;left:15px}
+.esper-text.br{bottom:15px;right:15px}
+.esper-text.center{
+top:50%;left:50%;transform:translate(-50%,-50%);
+font-size:1.5rem;font-weight:700;letter-spacing:8px;
+animation:enhancePulse 2s ease-in-out infinite;
+}
+@keyframes enhancePulse{0%,100%{opacity:0.6}50%{opacity:1}}
+.esper-scan{
+position:absolute;top:0;left:0;width:100%;height:3px;
+background:linear-gradient(90deg,transparent,rgba(0,255,102,0.3),transparent);
+animation:esperScan 4s linear infinite;
+}
+@keyframes esperScan{0%{top:0}100%{top:100%}}
+.esper-corner{position:absolute;width:20px;height:20px;border-color:rgba(0,255,102,0.4);border-style:solid}
+.esper-corner.c-tl{top:30%;left:25%;border-width:1px 0 0 1px}
+.esper-corner.c-tr{top:30%;right:25%;border-width:1px 1px 0 0}
+.esper-corner.c-bl{bottom:30%;left:25%;border-width:0 0 1px 1px}
+.esper-corner.c-br{bottom:30%;right:25%;border-width:0 1px 1px 0}
+.esper-image-desc{
+position:absolute;top:35%;left:28%;right:28%;bottom:35%;
+display:flex;align-items:center;justify-content:center;
+font-family:'Space Mono',monospace;font-size:0.7rem;
+color:rgba(0,255,102,0.4);text-align:center;letter-spacing:1px;
+border:1px dashed rgba(0,255,102,0.15);
+}
+
+/* locations */
+.locations-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
+.location-card{
+padding:20px;background:var(--bg-card);border:1px solid var(--border-color);
+position:relative;overflow:hidden;transition:all 0.4s;
+}
+.location-card:hover{border-color:var(--amber);box-shadow:0 0 20px rgba(212,160,48,0.1)}
+.location-card::before{
+content:'';position:absolute;top:0;right:0;width:60px;height:60px;
+background:radial-gradient(circle at top right,rgba(212,160,48,0.06),transparent);
+}
+.location-name{
+font-family:'Space Mono',monospace;font-size:0.85rem;font-weight:700;
+color:var(--text-heading);letter-spacing:1px;margin-bottom:8px;
+}
+.location-desc{font-size:0.8rem;color:var(--text-primary);opacity:0.7;line-height:1.5}
+
+/* Tears in Rain */
+.tears-section{
+padding:100px 0;text-align:center;position:relative;
+}
+.tears-section::before{
+content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+background:radial-gradient(ellipse at center,rgba(0,68,255,0.08) 0%,transparent 60%);
+pointer-events:none;
+}
+.tears-quote{
+font-family:'Rajdhani',sans-serif;font-size:clamp(1.1rem,2.5vw,1.5rem);
+color:var(--text-heading);line-height:2;max-width:700px;margin:0 auto 30px;
+font-weight:300;letter-spacing:1px;
+}
+.tears-attr{
+font-family:'Space Mono',monospace;font-size:0.75rem;
+color:var(--amber);letter-spacing:4px;text-transform:uppercase;
+}
+.tears-border{
+width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--amber),transparent);
+margin:20px auto;
+}
+
+/* origami */
+.origami-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:25px}
+.origami-card{text-align:center;padding:25px}
+.origami-shape{
+width:80px;height:80px;margin:0 auto 20px;position:relative;
+}
+/* chicken */
+.origami-chicken{
+width:0;height:0;border-left:30px solid transparent;border-right:30px solid transparent;
+border-bottom:50px solid rgba(212,160,48,0.3);position:absolute;top:10px;left:10px;
+}
+.origami-chicken::after{
+content:'';position:absolute;top:-15px;left:-5px;
+width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
+border-bottom:25px solid rgba(212,160,48,0.2);
+}
+/* matchstick man */
+.origami-man{
+width:2px;height:40px;background:rgba(212,160,48,0.3);
+position:absolute;top:10px;left:39px;
+}
+.origami-man::before{
+content:'';position:absolute;top:-15px;left:-7px;
+width:16px;height:16px;border-radius:50%;border:2px solid rgba(212,160,48,0.3);
+}
+.origami-man::after{
+content:'';position:absolute;top:8px;left:-14px;
+width:30px;height:2px;background:rgba(212,160,48,0.3);
+}
+/* unicorn */
+.origami-unicorn{
+width:0;height:0;border-left:40px solid transparent;border-right:10px solid transparent;
+border-bottom:35px solid rgba(212,160,48,0.4);position:absolute;top:20px;left:10px;
+}
+.origami-unicorn::before{
+content:'';position:absolute;top:-25px;left:-35px;
+width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;
+border-bottom:30px solid rgba(212,160,48,0.3);transform:rotate(-15deg);
+}
+.origami-unicorn::after{
+content:'';position:absolute;top:5px;left:-35px;
+width:30px;height:2px;background:rgba(212,160,48,0.3);transform:rotate(-5deg);
+}
+.origami-label{
+font-family:'Space Mono',monospace;font-size:0.8rem;
+color:var(--amber);letter-spacing:2px;margin-bottom:8px;
+}
+.origami-meaning{font-size:0.8rem;color:var(--text-primary);opacity:0.6;line-height:1.5}
+
+/* CTA */
+.cta-section{text-align:center;padding:80px 0}
+.cta-title{
+font-family:'Space Mono',monospace;font-size:clamp(1rem,2.5vw,1.4rem);
+color:var(--text-heading);letter-spacing:4px;margin-bottom:10px;
+}
+.cta-motto{
+font-family:'Space Mono',monospace;font-size:0.7rem;
+color:var(--amber);letter-spacing:6px;margin-bottom:30px;opacity:0.6;
+}
+.cta-buttons{display:flex;gap:15px;justify-content:center;flex-wrap:wrap}
+.cta-btn{
+font-family:'Space Mono',monospace;font-size:0.8rem;letter-spacing:3px;
+text-transform:uppercase;padding:14px 35px;cursor:pointer;
+transition:all 0.4s;border:none;
+}
+.cta-btn.primary{
+background:transparent;border:2px solid var(--neon-pink);color:var(--neon-pink);
+box-shadow:0 0 15px rgba(255,0,102,0.2),inset 0 0 15px rgba(255,0,102,0.05);
+}
+.cta-btn.primary:hover{
+background:rgba(255,0,102,0.1);box-shadow:0 0 30px rgba(255,0,102,0.3);
+}
+.cta-btn.secondary{
+background:transparent;border:2px solid var(--amber);color:var(--amber);
+box-shadow:0 0 15px rgba(212,160,48,0.1),inset 0 0 15px rgba(212,160,48,0.03);
+}
+.cta-btn.secondary:hover{
+background:rgba(212,160,48,0.1);box-shadow:0 0 30px rgba(212,160,48,0.2);
+}
+
+/* footer */
+footer{
+padding:40px 0 30px;text-align:center;border-top:1px solid var(--border-color);
+position:relative;z-index:10;
+}
+.footer-city{
+font-family:'Space Mono',monospace;font-size:0.8rem;
+color:var(--text-primary);opacity:0.4;letter-spacing:6px;margin-bottom:15px;
+}
+.footer-unicorn{
+width:40px;height:30px;margin:0 auto 15px;position:relative;
+}
+.footer-unicorn::before{
+content:'';position:absolute;
+width:0;height:0;border-left:20px solid transparent;border-right:5px solid transparent;
+border-bottom:18px solid rgba(212,160,48,0.25);top:8px;left:5px;
+}
+.footer-unicorn::after{
+content:'';position:absolute;
+width:0;height:0;border-left:3px solid transparent;border-right:3px solid transparent;
+border-bottom:15px solid rgba(212,160,48,0.2);top:-3px;left:8px;transform:rotate(-10deg);
+}
+.footer-copy{font-size:0.65rem;color:var(--text-primary);opacity:0.25;letter-spacing:2px}
+.footer-motto{
+font-family:'Space Mono',monospace;font-size:0.6rem;
+color:var(--amber);opacity:0.3;letter-spacing:4px;margin-top:10px;
+}
+
+/* scroll reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.25,0.46,0.45,0.94)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* responsive */
+@media(max-width:768px){
+.about-grid,.vk-container{grid-template-columns:1fr}
+.origami-grid{grid-template-columns:1fr}
+.replicant-grid{grid-template-columns:1fr}
+.hero-title{letter-spacing:6px}
+.floating-neon{display:none}
+}
+@media(max-width:480px){
+section{padding:50px 0}
+.container{padding:0 15px}
+}
+</style>
+</head>
+<body>
+
+<!-- atmospheric layers -->
+<div class="atmos-layer layer1"></div>
+<div class="atmos-layer layer2"></div>
+<div class="atmos-layer layer3"></div>
+
+<canvas id="rain-canvas"></canvas>
+<div class="lens-flare" id="lensFlare"></div>
+
+<!-- controls -->
+<div class="controls">
+<button class="ctrl-btn" id="langToggle" title="Language" onclick="toggleLang()">EN</button>
+<button class="ctrl-btn" id="themeToggle" title="Theme" onclick="toggleTheme()">&#9790;</button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+<div class="hero-bg"></div>
+
+<!-- floating neon signs -->
+<div class="floating-neon fn1">
+<span class="neon-sign pink neon-flicker" style="font-size:11px">&#33457;&#34903;&#37202;&#21543;</span>
+</div>
+<div class="floating-neon fn2">
+<span class="neon-sign blue neon-flicker-2" style="font-size:10px">COCA-COLA</span>
+</div>
+<div class="floating-neon fn3">
+<span class="neon-sign green neon-flicker-3" style="font-size:10px">&#26009;&#29702; NOODLES</span>
+</div>
+<div class="floating-neon fn4">
+<span class="neon-sign pink neon-flicker" style="font-size:10px">&#33464;&#32773; GEISHA</span>
+</div>
+
+<div class="steam-container">
+<div class="steam" style="left:5%"></div>
+<div class="steam"></div>
+<div class="steam"></div>
+<div class="steam"></div>
+<div class="steam"></div>
+</div>
+
+<!-- eye -->
+<div class="eye-container">
+<div class="eye-outer">
+<div class="eye-sclera"></div>
+<div class="eye-iris">
+<div class="eye-pupil"></div>
+<div class="eye-reflection"></div>
+<div class="eye-reflection2"></div>
+</div>
+<div class="eye-veins"></div>
+</div>
+</div>
+
+<h1 class="hero-title" data-en="BLADE RUNNER" data-zh="&#38134;&#32764;&#26432;&#25163;">BLADE RUNNER</h1>
+<div class="hero-sub" data-en="A Ridley Scott Film" data-zh="&#38647;&#24503;&#21033;&middot;&#26031;&#31185;&#29305; &#20316;&#21697;">A Ridley Scott Film</div>
+<div class="hero-year" data-en="Los Angeles &bull; November 2019" data-zh="&#27931;&#26441;&#30710; &bull; 2019&#24180;11&#26376;">Los Angeles &bull; November 2019</div>
+<div class="hero-tagline neon-flicker-2" data-en="Man has made his match... now it's his problem" data-zh="&#20154;&#31867;&#21019;&#36896;&#20102;&#33258;&#24049;&#30340;&#23545;&#25163;&#8230;&#29616;&#22312;&#36825;&#25104;&#20102;&#20182;&#30340;&#38382;&#39064;">Man has made his match... now it's his problem</div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+<div class="container">
+<h2 class="section-title reveal" data-en="THE WORLD" data-zh="&#19990;&#30028;&#35266;">THE WORLD</h2>
+<div class="about-grid">
+<div class="about-block reveal">
+<div class="about-label" data-en="Setting" data-zh="&#32972;&#26223;">Setting</div>
+<p class="about-text" data-en="November 2019, Los Angeles. A perpetually dark, rain-soaked megalopolis choked with industrial smog. Massive off-world colonies have drained Earth of its best and brightest, leaving behind a dense, polyglot underclass living in the shadow of corporate monoliths." data-zh="2019&#24180;11&#26376;&#65292;&#27931;&#26441;&#30710;&#12290;&#19968;&#20010;&#27704;&#36828;&#40657;&#26263;&#12289;&#34987;&#38632;&#27700;&#28024;&#36879;&#30340;&#24040;&#22411;&#37117;&#24066;&#65292;&#34987;&#24037;&#19994;&#28895;&#38654;&#31528;&#32617;&#12290;&#22823;&#35268;&#27169;&#30340;&#22806;&#22826;&#31354;&#27542;&#27665;&#22320;&#25277;&#36208;&#20102;&#22320;&#29699;&#19978;&#26368;&#20248;&#31168;&#30340;&#20154;&#25165;&#65292;&#30041;&#19979;&#23494;&#38598;&#30340;&#22810;&#35821;&#35328;&#24213;&#23618;&#38454;&#32423;&#65292;&#29983;&#27963;&#22312;&#20225;&#19994;&#24040;&#22836;&#30340;&#38452;&#24433;&#20043;&#19979;&#12290;">November 2019, Los Angeles. A perpetually dark, rain-soaked megalopolis choked with industrial smog. Massive off-world colonies have drained Earth of its best and brightest, leaving behind a dense, polyglot underclass living in the shadow of corporate monoliths.</p>
+</div>
+<div class="about-block reveal">
+<div class="about-label" data-en="Replicants" data-zh="&#22797;&#21046;&#20154;">Replicants</div>
+<p class="about-text" data-en="The Tyrell Corporation advances replicant evolution — bioengineered beings virtually identical to humans. Nexus-6 models possess superior strength and intelligence but are given a four-year lifespan as a failsafe. After a bloody mutiny off-world, replicants are declared illegal on Earth. Special police operatives — Blade Runners — are tasked with hunting and 'retiring' them." data-zh="&#27888;&#29790;&#23572;&#20844;&#21496;&#25512;&#36827;&#22797;&#21046;&#20154;&#36827;&#21270;&#8212;&#8212;&#36825;&#20123;&#29983;&#29289;&#24037;&#31243;&#21046;&#36896;&#30340;&#29983;&#21629;&#20307;&#19982;&#20154;&#31867;&#20960;&#20046;&#19968;&#27169;&#19968;&#26679;&#12290;Nexus-6&#22411;&#21495;&#25317;&#26377;&#36229;&#36234;&#20154;&#31867;&#30340;&#21147;&#37327;&#21644;&#26234;&#24935;&#65292;&#20294;&#34987;&#36171;&#20104;&#22235;&#24180;&#30340;&#23551;&#21629;&#20316;&#20026;&#23433;&#20840;&#25514;&#26045;&#12290;&#22312;&#19968;&#27425;&#34880;&#33125;&#30340;&#22806;&#22826;&#31354;&#21467;&#21464;&#21518;&#65292;&#22797;&#21046;&#20154;&#22312;&#22320;&#29699;&#19978;&#34987;&#23459;&#24067;&#20026;&#38750;&#27861;&#12290;&#29305;&#27530;&#35686;&#23519;&#8212;&#8212;&#38134;&#32764;&#26432;&#25163;&#8212;&#8212;&#34987;&#27966;&#21435;&#36861;&#25429;&#24182;&#8220;&#36864;&#24441;&#8221;&#20182;&#20204;&#12290;">The Tyrell Corporation advances replicant evolution — bioengineered beings virtually identical to humans. Nexus-6 models possess superior strength and intelligence but are given a four-year lifespan as a failsafe. After a bloody mutiny off-world, replicants are declared illegal on Earth. Special police operatives — Blade Runners — are tasked with hunting and 'retiring' them.</p>
+</div>
+<div class="about-block reveal">
+<div class="about-label" data-en="Deckard" data-zh="&#25140;&#20811;">Deckard</div>
+<p class="about-text" data-en="Rick Deckard, ex-Blade Runner, is pulled out of retirement by Captain Bryant to track down four escaped Nexus-6 replicants who have hijacked a shuttle and returned to Earth illegally, seeking their maker — Eldon Tyrell — to extend their rapidly expiring lifespans." data-zh="&#37324;&#20811;&middot;&#25140;&#20811;&#65292;&#36864;&#20241;&#30340;&#38134;&#32764;&#26432;&#25163;&#65292;&#34987;&#24067;&#33713;&#24681;&#29305;&#38431;&#38271;&#37325;&#26032;&#21484;&#22238;&#65292;&#36861;&#25429;&#22235;&#21517;&#21163;&#25345;&#31359;&#26797;&#26426;&#38750;&#27861;&#36820;&#22238;&#22320;&#29699;&#30340;&#36867;&#20129;Nexus-6&#22797;&#21046;&#20154;&#12290;&#20182;&#20204;&#22312;&#23547;&#25214;&#33258;&#24049;&#30340;&#21019;&#36896;&#32773;&#8212;&#8212;&#22467;&#23572;&#39039;&middot;&#27888;&#29790;&#23572;&#8212;&#8212;&#20197;&#24310;&#38271;&#20182;&#20204;&#24613;&#36895;&#32553;&#30701;&#30340;&#23551;&#21629;&#12290;">Rick Deckard, ex-Blade Runner, is pulled out of retirement by Captain Bryant to track down four escaped Nexus-6 replicants who have hijacked a shuttle and returned to Earth illegally, seeking their maker — Eldon Tyrell — to extend their rapidly expiring lifespans.</p>
+</div>
+<div class="about-block reveal">
+<div class="about-label" data-en="Tyrell Corporation" data-zh="&#27888;&#29790;&#23572;&#20844;&#21496;">Tyrell Corporation</div>
+<p class="about-text" data-en="'More Human Than Human' is their motto. The Tyrell Corporation's headquarters — a colossal golden pyramid dominating the LA skyline — represents the pinnacle of corporate power. Dr. Eldon Tyrell, the reclusive genius founder, lives in opulent solitude at the pyramid's apex, playing god with engineered life." data-zh="&#8220;&#27604;&#20154;&#31867;&#26356;&#20154;&#31867;&#8221;&#26159;&#20182;&#20204;&#30340;&#24231;&#21491;&#38125;&#12290;&#27888;&#29790;&#23572;&#20844;&#21496;&#30340;&#24635;&#37096;&#8212;&#8212;&#19968;&#24231;&#24040;&#22823;&#30340;&#37329;&#33394;&#37329;&#23383;&#22612;&#32479;&#27835;&#30528;&#27931;&#26441;&#30710;&#30340;&#22825;&#38469;&#32447;&#8212;&#8212;&#20195;&#34920;&#20102;&#20225;&#19994;&#26435;&#21147;&#30340;&#39030;&#23792;&#12290;&#24615;&#26684;&#23396;&#20731;&#30340;&#22825;&#25165;&#21019;&#22987;&#20154;&#22467;&#23572;&#39039;&middot;&#27888;&#29790;&#23572;&#21338;&#22763;&#20303;&#22312;&#37329;&#23383;&#22612;&#39030;&#31471;&#30340;&#22882;&#21326;&#23396;&#23490;&#20013;&#65292;&#25198;&#28436;&#30528;&#25805;&#25511;&#24037;&#31243;&#29983;&#21629;&#30340;&#31070;&#12290;">&#8216;More Human Than Human&#8217; is their motto. The Tyrell Corporation&#8217;s headquarters — a colossal golden pyramid dominating the LA skyline — represents the pinnacle of corporate power. Dr. Eldon Tyrell, the reclusive genius founder, lives in opulent solitude at the pyramid&#8217;s apex, playing god with engineered life.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- REPLICANT FILES -->
+<section id="replicants">
+<div class="container">
+<h2 class="section-title reveal" data-en="NEXUS-6 REPLICANT FILES" data-zh="NEXUS-6 &#22797;&#21046;&#20154;&#26723;&#26696;">NEXUS-6 REPLICANT FILES</h2>
+<div class="replicant-grid">
+
+<!-- Roy Batty -->
+<div class="replicant-card reveal">
+<div class="crt-bezel">
+<div class="crt-panel">
+<div class="rep-header">
+<div class="rep-name" data-en="ROY BATTY" data-zh="&#32599;&#20234;&middot;&#24052;&#33922;">ROY BATTY</div>
+<div class="rep-model">N6MAA10816</div>
+</div>
+<div class="rep-body">
+<div class="rep-function" data-en="Combat / Leader" data-zh="&#25112;&#26007; / &#39046;&#34966;">Combat / Leader</div>
+<div class="rep-inception" data-en="Incept: 8 Jan, 2016" data-zh="&#21551;&#21160;: 2016&#24180;1&#26376;8&#26085;">Incept: 8 Jan, 2016</div>
+<div class="rep-stats">
+<div class="rep-stat"><span class="rep-stat-label" data-en="Physical" data-zh="&#20307;&#33021;">Physical</span><div class="rep-stat-bar"><div class="rep-stat-fill phys" style="width:95%"></div></div></div>
+<div class="rep-stat"><span class="rep-stat-label" data-en="Mental" data-zh="&#26234;&#33021;">Mental</span><div class="rep-stat-bar"><div class="rep-stat-fill ment" style="width:92%"></div></div></div>
+</div>
+</div>
+<div class="retired-stamp" data-en="RETIRED" data-zh="&#24050;&#36864;&#24441;">RETIRED</div>
+</div>
+</div>
+</div>
+
+<!-- Pris -->
+<div class="replicant-card reveal">
+<div class="crt-bezel">
+<div class="crt-panel">
+<div class="rep-header">
+<div class="rep-name" data-en="PRIS STRATTON" data-zh="&#26222;&#33673;&#19997;&middot;&#26031;&#29305;&#25289;&#39039;">PRIS STRATTON</div>
+<div class="rep-model">N6FAB61216</div>
+</div>
+<div class="rep-body">
+<div class="rep-function" data-en="Pleasure Model" data-zh="&#23089;&#20048;&#22411;">Pleasure Model</div>
+<div class="rep-inception" data-en="Incept: 14 Feb, 2016" data-zh="&#21551;&#21160;: 2016&#24180;2&#26376;14&#26085;">Incept: 14 Feb, 2016</div>
+<div class="rep-stats">
+<div class="rep-stat"><span class="rep-stat-label" data-en="Physical" data-zh="&#20307;&#33021;">Physical</span><div class="rep-stat-bar"><div class="rep-stat-fill phys" style="width:72%"></div></div></div>
+<div class="rep-stat"><span class="rep-stat-label" data-en="Mental" data-zh="&#26234;&#33021;">Mental</span><div class="rep-stat-bar"><div class="rep-stat-fill ment" style="width:84%"></div></div></div>
+</div>
+</div>
+<div class="retired-stamp" data-en="RETIRED" data-zh="&#24050;&#36864;&#24441;">RETIRED</div>
+</div>
+</div>
+</div>
+
+<!-- Zhora -->
+<div class="replicant-card reveal">
+<div class="crt-bezel">
+<div class="crt-panel">
+<div class="rep-header">
+<div class="rep-name" data-en="ZHORA SALOME" data-zh="&#20304;&#25289;&middot;&#33678;&#20048;&#32654;">ZHORA SALOME</div>
+<div class="rep-model">N6FAB21416</div>
+</div>
+<div class="rep-body">
+<div class="rep-function" data-en="Assassin / Retrained" data-zh="&#21050;&#23458; / &#20877;&#35757;&#32451;">Assassin / Retrained</div>
+<div class="rep-inception" data-en="Incept: 12 Jun, 2016" data-zh="&#21551;&#21160;: 2016&#24180;6&#26376;12&#26085;">Incept: 12 Jun, 2016</div>
+<div class="rep-stats">
+<div class="rep-stat"><span class="rep-stat-label" data-en="Physical" data-zh="&#20307;&#33021;">Physical</span><div class="rep-stat-bar"><div class="rep-stat-fill phys" style="width:88%"></div></div></div>
+<div class="rep-stat"><span class="rep-stat-label" data-en="Mental" data-zh="&#26234;&#33021;">Mental</span><div class="rep-stat-bar"><div class="rep-stat-fill ment" style="width:76%"></div></div></div>
+</div>
+</div>
+<div class="retired-stamp" data-en="RETIRED" data-zh="&#24050;&#36864;&#24441;">RETIRED</div>
+</div>
+</div>
+</div>
+
+<!-- Leon -->
+<div class="replicant-card reveal">
+<div class="crt-bezel">
+<div class="crt-panel">
+<div class="rep-header">
+<div class="rep-name" data-en="LEON KOWALSKI" data-zh="&#33713;&#26114;&middot;&#31185;&#29926;&#23572;&#26031;&#22522;">LEON KOWALSKI</div>
+<div class="rep-model">N6MAC41717</div>
+</div>
+<div class="rep-body">
+<div class="rep-function" data-en="Labor / Loader (Nuclear)" data-zh="&#21171;&#24037; / &#35013;&#36733;&#26426;(&#26680;&#33021;)">Labor / Loader (Nuclear)</div>
+<div class="rep-inception" data-en="Incept: 10 Apr, 2017" data-zh="&#21551;&#21160;: 2017&#24180;4&#26376;10&#26085;">Incept: 10 Apr, 2017</div>
+<div class="rep-stats">
+<div class="rep-stat"><span class="rep-stat-label" data-en="Physical" data-zh="&#20307;&#33021;">Physical</span><div class="rep-stat-bar"><div class="rep-stat-fill phys" style="width:96%"></div></div></div>
+<div class="rep-stat"><span class="rep-stat-label" data-en="Mental" data-zh="&#26234;&#33021;">Mental</span><div class="rep-stat-bar"><div class="rep-stat-fill ment" style="width:58%"></div></div></div>
+</div>
+</div>
+<div class="retired-stamp" data-en="RETIRED" data-zh="&#24050;&#36864;&#24441;">RETIRED</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- VOIGHT-KAMPFF -->
+<section id="voight-kampff">
+<div class="container">
+<h2 class="section-title reveal" data-en="VOIGHT-KAMPFF TEST" data-zh="&#31119;&#20234;&#29305;-&#22350;&#26222;&#27979;&#35797;">VOIGHT-KAMPFF TEST</h2>
+<div class="vk-container">
+<div class="vk-display reveal">
+<div class="crt-bezel">
+<div class="crt-panel" style="padding:20px">
+<div class="vk-iris">
+<div class="vk-ring"></div>
+<div class="vk-ring"></div>
+<div class="vk-ring"></div>
+<div class="vk-ring"></div>
+<div class="vk-ring"></div>
+<div class="vk-ring"></div>
+<div class="vk-crosshair-h"></div>
+<div class="vk-crosshair-v"></div>
+<div class="vk-pupil-center"></div>
+</div>
+<div class="vk-readout" style="margin-top:15px">
+<span data-en="EMPATHY RESPONSE ANALYSIS" data-zh="&#20849;&#24773;&#21453;&#24212;&#20998;&#26512;">EMPATHY RESPONSE ANALYSIS</span><br>
+<span style="color:var(--amber);font-size:0.6rem" data-en="PUPIL DILATION: MONITORING" data-zh="&#30643;&#23380;&#25193;&#24352;: &#30417;&#25511;&#20013;">PUPIL DILATION: MONITORING</span>
+</div>
+</div>
+</div>
+</div>
+<div class="vk-questions reveal">
+<div class="vk-q">
+<div class="vk-q-num">QUESTION 001</div>
+<span data-en="You're in a desert, walking along in the sand, when all of a sudden you look down and see a tortoise. It's crawling toward you. You reach down and flip the tortoise over on its back. The tortoise lays on its back, its belly baking in the hot sun, beating its legs trying to turn itself over, but it can't. Not without your help. But you're not helping. Why is that?" data-zh="&#20320;&#22312;&#27801;&#28448;&#20013;&#27839;&#30528;&#27801;&#22320;&#34892;&#36208;&#65292;&#31361;&#28982;&#20320;&#20302;&#22836;&#30475;&#21040;&#19968;&#21482;&#20044;&#40863;&#12290;&#23427;&#27491;&#21521;&#20320;&#29228;&#26469;&#12290;&#20320;&#20280;&#25163;&#25226;&#20044;&#40863;&#32763;&#20102;&#20010;&#36523;&#12290;&#20044;&#40863;&#32972;&#26397;&#19979;&#36538;&#30528;&#65292;&#32922;&#23376;&#22312;&#28872;&#26085;&#19979;&#26292;&#26194;&#65292;&#33151;&#22312;&#25405;&#21629;&#25379;&#25166;&#24819;&#32763;&#36523;&#65292;&#20294;&#23427;&#32763;&#19981;&#36807;&#26469;&#12290;&#27809;&#26377;&#20320;&#30340;&#24110;&#21161;&#19981;&#34892;&#12290;&#20294;&#20320;&#27809;&#26377;&#24110;&#24537;&#12290;&#20026;&#20160;&#20040;&#65311;">You're in a desert, walking along in the sand, when all of a sudden you look down and see a tortoise. It's crawling toward you. You reach down and flip the tortoise over on its back. The tortoise lays on its back, its belly baking in the hot sun, beating its legs trying to turn itself over, but it can't. Not without your help. But you're not helping. Why is that?</span>
+</div>
+<div class="vk-q">
+<div class="vk-q-num">QUESTION 002</div>
+<span data-en="Describe in single words only the good things that come into your mind about your mother." data-zh="&#21482;&#29992;&#21333;&#20010;&#35789;&#35821;&#25551;&#36848;&#20320;&#33041;&#28023;&#20013;&#20851;&#20110;&#20320;&#27597;&#20146;&#30340;&#32654;&#22909;&#20107;&#29289;&#12290;">Describe in single words only the good things that come into your mind about your mother.</span>
+</div>
+<div class="vk-q">
+<div class="vk-q-num">QUESTION 003</div>
+<span data-en="You're watching television. Suddenly you realize there's a wasp crawling on your arm. How do you react?" data-zh="&#20320;&#22312;&#30475;&#30005;&#35270;&#12290;&#31361;&#28982;&#20320;&#21457;&#29616;&#19968;&#21482;&#40644;&#34562;&#27491;&#22312;&#20320;&#25163;&#33218;&#19978;&#29228;&#34892;&#12290;&#20320;&#20250;&#22914;&#20309;&#21453;&#24212;&#65311;">You're watching television. Suddenly you realize there's a wasp crawling on your arm. How do you react?</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ESPER MACHINE -->
+<section id="esper">
+<div class="container">
+<h2 class="section-title reveal" data-en="ESPER MACHINE" data-zh="ESPER &#22686;&#24378;&#26426;">ESPER MACHINE</h2>
+<div class="esper-container reveal">
+<div class="crt-bezel">
+<div class="esper-screen">
+<div class="esper-grid"></div>
+<div class="esper-scan"></div>
+<div class="esper-crosshair"></div>
+<div class="esper-corner c-tl"></div>
+<div class="esper-corner c-tr"></div>
+<div class="esper-corner c-bl"></div>
+<div class="esper-corner c-br"></div>
+<div class="esper-text tl neon-green">ESPER // LAPD-001</div>
+<div class="esper-text tr neon-green">SECTOR 4-B</div>
+<div class="esper-text bl neon-green" data-en="PHOTO ANALYSIS" data-zh="&#29031;&#29255;&#20998;&#26512;">PHOTO ANALYSIS</div>
+<div class="esper-text br neon-green">RES: 4096x4096</div>
+<div class="esper-text center neon-green neon-flicker-3" data-en="ENHANCE" data-zh="&#22686;&#24378;">ENHANCE</div>
+<div class="esper-image-desc" data-en="[ LEON'S PHOTOGRAPH ]<br>SECTOR SCAN ACTIVE<br>VOICE: &quot;ENHANCE 224 TO 176&quot;" data-zh="[ &#33713;&#26114;&#30340;&#29031;&#29255; ]<br>&#25159;&#21306;&#25195;&#25551;&#27963;&#36291;<br>&#35821;&#38899;: &quot;&#22686;&#24378; 224 &#21040; 176&quot;">[ LEON'S PHOTOGRAPH ]<br>SECTOR SCAN ACTIVE<br>VOICE: "ENHANCE 224 TO 176"</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- KEY LOCATIONS -->
+<section id="locations">
+<div class="container">
+<h2 class="section-title reveal" data-en="KEY LOCATIONS" data-zh="&#20851;&#38190;&#22320;&#28857;">KEY LOCATIONS</h2>
+<div class="locations-grid">
+<div class="location-card reveal">
+<div class="location-name" data-en="Tyrell Pyramid" data-zh="&#27888;&#29790;&#23572;&#37329;&#23383;&#22612;">Tyrell Pyramid</div>
+<div class="location-desc" data-en="Colossal golden ziggurat rising above the smog. Corporate headquarters and Tyrell's private residence. Owl-filled chambers of cold opulence." data-zh="&#24040;&#22823;&#30340;&#37329;&#33394;&#37329;&#23383;&#22612;&#32824;&#31435;&#22312;&#28895;&#38654;&#20043;&#19978;&#12290;&#20844;&#21496;&#24635;&#37096;&#20860;&#27888;&#29790;&#23572;&#30340;&#31169;&#20154;&#20303;&#25152;&#12290;&#20805;&#28385;&#29483;&#22836;&#40560;&#30340;&#20912;&#20919;&#22882;&#21326;&#22823;&#21381;&#12290;">Colossal golden ziggurat rising above the smog. Corporate headquarters and Tyrell's private residence. Owl-filled chambers of cold opulence.</div>
+</div>
+<div class="location-card reveal">
+<div class="location-name" data-en="Bradbury Building" data-zh="&#24067;&#25289;&#24503;&#20271;&#37324;&#22823;&#27004;">Bradbury Building</div>
+<div class="location-desc" data-en="J.F. Sebastian's decaying Victorian apartment building. Ornate ironwork, broken skylights, rain pouring through. Home to Sebastian's handmade genetic toys." data-zh="J.F.&#22622;&#24052;&#26031;&#33922;&#23433;&#30340;&#34928;&#36133;&#32500;&#22810;&#21033;&#20122;&#24335;&#20844;&#23507;&#27004;&#12290;&#21326;&#20029;&#30340;&#38081;&#33402;&#35013;&#39280;&#12289;&#30772;&#30862;&#30340;&#22825;&#31383;&#12289;&#38632;&#27700;&#20542;&#27900;&#32780;&#20837;&#12290;&#22622;&#24052;&#26031;&#33922;&#23433;&#25163;&#24037;&#22522;&#22240;&#29609;&#20855;&#30340;&#23478;&#12290;">J.F. Sebastian's decaying Victorian apartment building. Ornate ironwork, broken skylights, rain pouring through. Home to Sebastian's handmade genetic toys.</div>
+</div>
+<div class="location-card reveal">
+<div class="location-name" data-en="Deckard's Apartment" data-zh="&#25140;&#20811;&#30340;&#20844;&#23507;">Deckard's Apartment</div>
+<div class="location-desc" data-en="97th floor. Blue-lit brutalist interior. Piano, bourbon, and photographs. The Esper machine. Window views of endless rain and city lights." data-zh="97&#23618;&#12290;&#34013;&#33394;&#28783;&#20809;&#30340;&#31895;&#37326;&#20027;&#20041;&#23460;&#20869;&#12290;&#38050;&#29748;&#12289;&#27874;&#26412;&#23041;&#22763;&#24524;&#21644;&#29031;&#29255;&#12290;Esper&#26426;&#22120;&#12290;&#31383;&#22806;&#26159;&#26080;&#23613;&#30340;&#38632;&#27700;&#21644;&#22478;&#24066;&#28783;&#28779;&#12290;">97th floor. Blue-lit brutalist interior. Piano, bourbon, and photographs. The Esper machine. Window views of endless rain and city lights.</div>
+</div>
+<div class="location-card reveal">
+<div class="location-name" data-en="Snake Pit / Taffey Lewis's" data-zh="&#34503;&#31348; / &#22612;&#33778;&#183;&#21016;&#26131;&#26031;&#37202;&#21543;">Snake Pit / Taffey Lewis's</div>
+<div class="location-desc" data-en="Neon-drenched nightclub in the city's underbelly. Where Zhora performs with her synthetic snake. Smoke, noise, sweat, and neon reflections on wet floors." data-zh="&#22478;&#24066;&#24213;&#23618;&#30340;&#38678;&#34425;&#28783;&#22812;&#24635;&#20250;&#12290;&#20304;&#25289;&#19982;&#22905;&#30340;&#21512;&#25104;&#34503;&#34920;&#28436;&#30340;&#22320;&#26041;&#12290;&#28895;&#38654;&#12289;&#22122;&#38899;&#12289;&#27735;&#27700;&#21644;&#28287;&#28369;&#22320;&#38754;&#19978;&#30340;&#38678;&#34425;&#20498;&#24433;&#12290;">Neon-drenched nightclub in the city's underbelly. Where Zhora performs with her synthetic snake. Smoke, noise, sweat, and neon reflections on wet floors.</div>
+</div>
+<div class="location-card reveal">
+<div class="location-name" data-en="Animoid Row" data-zh="&#20223;&#29983;&#34903;">Animoid Row</div>
+<div class="location-desc" data-en="Open-air market for artificial animals. Neon-lit stalls, vendors shouting in Cityspeak. Where Deckard traces the scale to the snake maker." data-zh="&#20154;&#36896;&#21160;&#29289;&#38706;&#22825;&#24066;&#22330;&#12290;&#38678;&#34425;&#28783;&#25674;&#20301;&#65292;&#23567;&#36137;&#29992;&#22478;&#24066;&#35821;&#21898;&#21483;&#12290;&#25140;&#20811;&#22312;&#36825;&#37324;&#36861;&#36394;&#34503;&#40158;&#25214;&#21040;&#20102;&#34503;&#30340;&#21046;&#36896;&#32773;&#12290;">Open-air market for artificial animals. Neon-lit stalls, vendors shouting in Cityspeak. Where Deckard traces the scale to the snake maker.</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- TEARS IN RAIN -->
+<section class="tears-section">
+<div class="container">
+<div class="reveal">
+<div class="tears-border"></div>
+<blockquote class="tears-quote" data-en="I've seen things you people wouldn't believe. Attack ships on fire off the shoulder of Orion. I watched C-beams glitter in the dark near the Tannhauser Gate. All those moments will be lost in time, like tears in rain. Time to die." data-zh="&#25105;&#35265;&#36807;&#20320;&#20204;&#20154;&#31867;&#26080;&#27861;&#30456;&#20449;&#30340;&#20107;&#29289;&#12290;&#25112;&#33337;&#22312;&#29454;&#25143;&#24231;&#32937;&#22836;&#29123;&#28903;&#12290;&#25105;&#30475;&#30528;C&#23556;&#32447;&#22312;&#21776;&#35946;&#27901;&#20043;&#38376;&#38468;&#36817;&#30340;&#40657;&#26263;&#20013;&#38378;&#32768;&#12290;&#25152;&#26377;&#37027;&#20123;&#26102;&#21051;&#37117;&#23558;&#28040;&#22833;&#22312;&#26102;&#38388;&#20013;&#65292;&#22914;&#21516;&#38632;&#20013;&#30340;&#27882;&#27700;&#12290;&#27515;&#20129;&#30340;&#26102;&#21051;&#21040;&#20102;&#12290;">I've seen things you people wouldn't believe. Attack ships on fire off the shoulder of Orion. I watched C-beams glitter in the dark near the Tannhauser Gate. All those moments will be lost in time, like tears in rain. Time to die.</blockquote>
+<div class="tears-border"></div>
+<div class="tears-attr" data-en="Roy Batty &mdash; Nexus-6 Combat Model" data-zh="&#32599;&#20234;&middot;&#24052;&#33922; &mdash; Nexus-6 &#25112;&#26007;&#22411;&#21495;">Roy Batty &mdash; Nexus-6 Combat Model</div>
+</div>
+</div>
+</section>
+
+<!-- ORIGAMI -->
+<section id="origami">
+<div class="container">
+<h2 class="section-title reveal" data-en="GAFF'S ORIGAMI" data-zh="&#21152;&#22827;&#30340;&#25240;&#32440;">GAFF'S ORIGAMI</h2>
+<div class="origami-grid">
+<div class="origami-card reveal">
+<div class="origami-shape"><div class="origami-chicken"></div></div>
+<div class="origami-label" data-en="Chicken" data-zh="&#40481;">Chicken</div>
+<div class="origami-meaning" data-en="Deckard is a coward for refusing the assignment. A taunt. &ldquo;You're afraid to do the job.&rdquo;" data-zh="&#25140;&#20811;&#22240;&#25298;&#32477;&#20219;&#21153;&#32780;&#26159;&#20010;&#25078;&#22827;&#12290;&#19968;&#31181;&#22066;&#35767;&#12290;&#8220;&#20320;&#23475;&#24597;&#20570;&#36825;&#20221;&#24037;&#20316;&#12290;&#8221;">Deckard is a coward for refusing the assignment. A taunt. &ldquo;You're afraid to do the job.&rdquo;</div>
+</div>
+<div class="origami-card reveal">
+<div class="origami-shape"><div class="origami-man"></div></div>
+<div class="origami-label" data-en="Matchstick Man" data-zh="&#28779;&#26612;&#20154;">Matchstick Man</div>
+<div class="origami-meaning" data-en="Found at Leon's hotel. Gaff was there. He knows. A message: &ldquo;I've been here. I'm watching.&rdquo;" data-zh="&#22312;&#33713;&#26114;&#30340;&#37202;&#24215;&#21457;&#29616;&#12290;&#21152;&#22827;&#26469;&#36807;&#36825;&#37324;&#12290;&#20182;&#30693;&#36947;&#12290;&#19968;&#26465;&#20449;&#24687;&#65306;&#8220;&#25105;&#26469;&#36807;&#36825;&#37324;&#12290;&#25105;&#22312;&#30417;&#35270;&#12290;&#8221;">Found at Leon's hotel. Gaff was there. He knows. A message: &ldquo;I've been here. I'm watching.&rdquo;</div>
+</div>
+<div class="origami-card reveal">
+<div class="origami-shape"><div class="origami-unicorn"></div></div>
+<div class="origami-label" data-en="Unicorn" data-zh="&#29420;&#35282;&#20861;">Unicorn</div>
+<div class="origami-meaning" data-en="Left at Deckard's door. Gaff knows about the unicorn dream. The implication: Deckard's memories are implants. &ldquo;It's too bad she won't live. But then again, who does?&rdquo;" data-zh="&#30041;&#22312;&#25140;&#20811;&#38376;&#21475;&#12290;&#21152;&#22827;&#30693;&#36947;&#29420;&#35282;&#20861;&#30340;&#26790;&#12290;&#35328;&#22806;&#20043;&#24847;&#65306;&#25140;&#20811;&#30340;&#35760;&#24518;&#26159;&#26893;&#20837;&#30340;&#12290;&#8220;&#22905;&#27963;&#19981;&#20102;&#22826;&#20037;&#20102;&#65292;&#30495;&#21487;&#24796;&#12290;&#20294;&#35805;&#35828;&#22238;&#26469;&#65292;&#35841;&#21448;&#33021;&#21602;&#65311;&#8221;">Left at Deckard's door. Gaff knows about the unicorn dream. The implication: Deckard's memories are implants. &ldquo;It's too bad she won't live. But then again, who does?&rdquo;</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+<div class="container reveal">
+<div class="neon-sign blue neon-flicker" style="margin-bottom:30px;display:inline-block" data-en="MORE HUMAN THAN HUMAN" data-zh="&#27604;&#20154;&#31867;&#26356;&#20154;&#31867;">MORE HUMAN THAN HUMAN</div>
+<div class="cta-title" data-en="TYRELL CORPORATION" data-zh="&#27888;&#29790;&#23572;&#20844;&#21496;">TYRELL CORPORATION</div>
+<div class="cta-motto" data-en="Genetic Replicant Manufacture" data-zh="&#22522;&#22240;&#22797;&#21046;&#20154;&#21046;&#36896;">Genetic Replicant Manufacture</div>
+<div class="cta-buttons">
+<button class="cta-btn primary" data-en="RETIRE REPLICANTS" data-zh="&#36864;&#24441;&#22797;&#21046;&#20154;">RETIRE REPLICANTS</button>
+<button class="cta-btn secondary" data-en="JOIN TYRELL CORP" data-zh="&#21152;&#20837;&#27888;&#29790;&#23572;">JOIN TYRELL CORP</button>
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+<div class="footer-unicorn"></div>
+<div class="footer-city" data-en="2019 &bull; LOS ANGELES" data-zh="2019 &bull; &#27931;&#26441;&#30710;">2019 &bull; LOS ANGELES</div>
+<div class="footer-motto" data-en="MORE HUMAN THAN HUMAN" data-zh="&#27604;&#20154;&#31867;&#26356;&#20154;&#31867;">MORE HUMAN THAN HUMAN</div>
+<div class="footer-copy" data-en="Tyrell Corporation &copy; All Rights Reserved" data-zh="&#27888;&#29790;&#23572;&#20844;&#21496; &copy; &#29256;&#26435;&#25152;&#26377;">Tyrell Corporation &copy; All Rights Reserved</div>
+</div>
+</footer>
+
+<script>
+// --- LANGUAGE TOGGLE ---
+function toggleLang(){
+const html=document.documentElement;
+const lang=html.getAttribute('data-lang')==='en'?'zh':'en';
+html.setAttribute('data-lang',lang);
+document.getElementById('langToggle').textContent=lang.toUpperCase();
+document.querySelectorAll('[data-en]').forEach(el=>{
+const t=el.getAttribute('data-'+lang);
+if(t)el.innerHTML=t;
+});
+}
+
+// --- THEME TOGGLE ---
+function toggleTheme(){
+const html=document.documentElement;
+const theme=html.getAttribute('data-theme')==='dark'?'light':'dark';
+html.setAttribute('data-theme',theme);
+document.getElementById('themeToggle').innerHTML=theme==='dark'?'&#9790;':'&#9788;';
+}
+
+// --- RAIN + STEAM + LENS FLARE CANVAS ---
+const canvas=document.getElementById('rain-canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+
+class Drop{
+constructor(){this.reset()}
+reset(){
+this.x=Math.random()*W;
+this.y=Math.random()*-H;
+this.len=12+Math.random()*28;
+this.speed=8+Math.random()*14;
+this.thick=0.5+Math.random()*1.2;
+this.alpha=0.08+Math.random()*0.18;
+this.wind=-1.5;
+}
+update(){
+this.y+=this.speed;
+this.x+=this.wind;
+if(this.y>H+20)this.reset();
+}
+draw(){
+ctx.beginPath();
+ctx.moveTo(this.x,this.y);
+ctx.lineTo(this.x+this.wind*2,this.y+this.len);
+ctx.strokeStyle=`rgba(160,180,220,${this.alpha})`;
+ctx.lineWidth=this.thick;
+ctx.stroke();
+}
+}
+
+class Splash{
+constructor(x,y){
+this.x=x;this.y=y;this.life=0;this.maxLife=8+Math.random()*6;
+this.size=1+Math.random()*2;
+}
+update(){this.life++;return this.life<this.maxLife}
+draw(){
+const a=1-this.life/this.maxLife;
+ctx.beginPath();
+ctx.arc(this.x,this.y,this.size*(this.life/this.maxLife*3),0,Math.PI*2);
+ctx.strokeStyle=`rgba(160,180,220,${a*0.15})`;
+ctx.lineWidth=0.5;
+ctx.stroke();
+}
+}
+
+class SteamWisp{
+constructor(){this.reset()}
+reset(){
+this.x=Math.random()*W;
+this.y=H+20;
+this.size=30+Math.random()*60;
+this.speed=0.3+Math.random()*0.8;
+this.alpha=0;this.maxAlpha=0.02+Math.random()*0.04;
+this.drift=(Math.random()-0.5)*0.3;
+this.life=0;this.maxLife=200+Math.random()*200;
+}
+update(){
+this.y-=this.speed;
+this.x+=this.drift+Math.sin(this.life*0.02)*0.3;
+this.life++;
+if(this.life<this.maxLife*0.2)this.alpha=this.maxAlpha*(this.life/(this.maxLife*0.2));
+else if(this.life>this.maxLife*0.6)this.alpha=this.maxAlpha*(1-(this.life-this.maxLife*0.6)/(this.maxLife*0.4));
+else this.alpha=this.maxAlpha;
+this.size+=0.15;
+if(this.life>this.maxLife)this.reset();
+}
+draw(){
+const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.size);
+g.addColorStop(0,`rgba(180,180,190,${this.alpha})`);
+g.addColorStop(1,'rgba(180,180,190,0)');
+ctx.fillStyle=g;
+ctx.fillRect(this.x-this.size,this.y-this.size,this.size*2,this.size*2);
+}
+}
+
+const drops=[];
+for(let i=0;i<500;i++)drops.push(new Drop());
+const splashes=[];
+const wisps=[];
+for(let i=0;i<12;i++){const w=new SteamWisp();w.life=Math.random()*w.maxLife;wisps.push(w)}
+
+let flareTimer=0;
+let flareActive=false;
+const flareEl=document.getElementById('lensFlare');
+
+function animate(){
+ctx.clearRect(0,0,W,H);
+
+// rain
+for(const d of drops){
+d.update();d.draw();
+if(d.y>=H-5&&Math.random()<0.15){
+splashes.push(new Splash(d.x+d.wind*2,H-2));
+}
+}
+
+// splashes
+for(let i=splashes.length-1;i>=0;i--){
+splashes[i].draw();
+if(!splashes[i].update())splashes.splice(i,1);
+}
+
+// steam
+for(const w of wisps){w.update();w.draw()}
+
+// lens flare
+flareTimer++;
+if(!flareActive&&flareTimer>400+Math.random()*600){
+flareActive=true;flareTimer=0;
+flareEl.style.top=(10+Math.random()*80)+'%';
+flareEl.classList.add('active');
+setTimeout(()=>{flareEl.classList.remove('active');flareActive=false},150+Math.random()*300);
+}
+
+requestAnimationFrame(animate);
+}
+animate();
+
+// --- SCROLL REVEAL ---
+const revealEls=document.querySelectorAll('.reveal');
+const obs=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+revealEls.forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

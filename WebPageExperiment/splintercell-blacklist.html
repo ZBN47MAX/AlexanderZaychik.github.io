@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tom Clancy's Splinter Cell: Blacklist | SMI</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+--bg-primary:#060a08;--bg-secondary:#0a100c;--bg-panel:rgba(0,220,100,0.04);
+--cyan:#00e868;--cyan-dark:#00b850;--cyan-glow:rgba(0,232,104,0.18);
+--orange:#ff8800;--red:#e02020;--green:#00ff66;
+--yellow:#e6b800;--panther:#e09020;
+--nv-green:#00ff41;--nv-glow:rgba(0,255,65,0.25);
+--text-primary:#c0e8d0;--text-secondary:#6a9a7a;--text-dim:#3a6a4a;
+--border:rgba(0,232,104,0.18);--border-bright:rgba(0,255,102,0.45);
+--font-main:'Rajdhani',sans-serif;--font-mono:'Share Tech Mono',monospace;--font-cn:'Noto Sans SC',sans-serif;
+--scanline:rgba(0,255,65,0.03);
+}
+[data-theme="light"]{
+--bg-primary:#e4ece8;--bg-secondary:#d8e2dc;--bg-panel:rgba(0,140,80,0.06);
+--text-primary:#0a2018;--text-secondary:#3a5a48;--text-dim:#7a9a88;
+--border:rgba(0,140,80,0.2);--border-bright:rgba(0,180,100,0.5);
+--cyan:#008848;--cyan-dark:#006838;--cyan-glow:rgba(0,140,80,0.1);
+--nv-green:#006830;--nv-glow:rgba(0,104,48,0.12);
+--green:#00aa44;
+--scanline:rgba(0,100,60,0.04);
+}
+html{scroll-behavior:smooth;font-size:16px;}
+body{
+font-family:var(--font-main);background:var(--bg-primary);color:var(--text-primary);
+overflow-x:hidden;line-height:1.6;
+}
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg-primary);}
+::-webkit-scrollbar-thumb{background:var(--cyan-dark);border-radius:3px;}
+
+/* ===== NV Goggle Viewport Overlay ===== */
+.nv-viewport{
+position:fixed;inset:0;z-index:3;pointer-events:none;
+background:radial-gradient(ellipse at center,transparent 55%,rgba(0,20,8,0.6) 100%);
+}
+.nv-viewport::before{
+content:'●●●';
+position:fixed;top:16px;left:50%;transform:translateX(-50%);
+font-size:12px;letter-spacing:8px;color:var(--nv-green);
+text-shadow:0 0 10px var(--nv-green),0 0 20px var(--nv-glow);
+opacity:0.35;z-index:4;
+}
+/* NV green tint overlay */
+.nv-tint{
+position:fixed;inset:0;z-index:1;pointer-events:none;
+background:rgba(0,40,16,0.08);
+mix-blend-mode:screen;
+}
+/* Corner goggle brackets */
+.nv-bracket{
+position:fixed;z-index:4;pointer-events:none;
+width:40px;height:40px;
+border-color:var(--nv-green);border-style:solid;border-width:0;
+opacity:0.15;
+}
+.nv-bracket.tl{top:60px;left:16px;border-top-width:2px;border-left-width:2px;}
+.nv-bracket.tr{top:60px;right:16px;border-top-width:2px;border-right-width:2px;}
+.nv-bracket.bl{bottom:16px;left:16px;border-bottom-width:2px;border-left-width:2px;}
+.nv-bracket.br{bottom:16px;right:16px;border-bottom-width:2px;border-right-width:2px;}
+/* Canvas */
+#smi-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.5;}
+/* Scanlines overlay */
+.scanlines{
+position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;
+background:repeating-linear-gradient(0deg,var(--scanline) 0px,transparent 1px,transparent 3px);
+}
+/* Utility */
+.container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:2;}
+section{padding:80px 0;position:relative;z-index:2;}
+/* Reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+/* SMI Panel */
+.smi-panel{
+background:var(--bg-panel);border:1px solid var(--border);position:relative;
+padding:28px;border-radius:2px;overflow:hidden;
+backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.smi-panel::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(--nv-green),transparent);
+box-shadow:0 0 8px var(--nv-glow);
+}
+.smi-panel::after{
+content:'';position:absolute;bottom:0;left:0;right:0;top:0;pointer-events:none;
+background:repeating-linear-gradient(0deg,transparent,transparent 2px,var(--scanline) 2px,var(--scanline) 4px);
+}
+.smi-panel:hover{border-color:var(--border-bright);box-shadow:0 0 20px var(--cyan-glow);}
+/* Section titles */
+.section-tag{
+font-family:var(--font-mono);font-size:0.7rem;letter-spacing:4px;text-transform:uppercase;
+color:var(--cyan);margin-bottom:6px;display:flex;align-items:center;gap:10px;
+}
+.section-tag::before{content:'●●●';color:var(--nv-green);text-shadow:0 0 6px var(--nv-green);font-size:0.5rem;letter-spacing:2px;}
+.section-title{
+font-family:var(--font-main);font-size:2.2rem;font-weight:700;
+color:var(--text-primary);margin-bottom:8px;letter-spacing:1px;
+}
+.section-subtitle{color:var(--text-secondary);font-size:1rem;margin-bottom:40px;font-weight:300;}
+/* Goggles motif */
+.goggles{display:inline-flex;gap:5px;font-size:inherit;color:var(--nv-green);}
+.goggles span{
+width:12px;height:12px;border-radius:50%;background:var(--nv-green);display:inline-block;
+box-shadow:0 0 8px var(--nv-green),0 0 16px var(--nv-glow);
+animation:goggle-breathe 3s ease-in-out infinite;
+}
+.goggles span:nth-child(2){animation-delay:0.2s;}
+.goggles span:nth-child(3){animation-delay:0.4s;}
+@keyframes goggle-breathe{0%,100%{box-shadow:0 0 8px var(--nv-green),0 0 16px var(--nv-glow);opacity:0.8;}50%{box-shadow:0 0 14px var(--nv-green),0 0 28px var(--nv-glow);opacity:1;}}
+/* Top bar */
+.top-bar{
+position:fixed;top:0;left:0;right:0;z-index:100;
+background:rgba(10,12,18,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;
+}
+[data-theme="light"] .top-bar{background:rgba(232,236,242,0.92);}
+.top-bar .container{display:flex;align-items:center;justify-content:space-between;width:100%;}
+.top-bar-left{display:flex;align-items:center;gap:14px;}
+.top-bar-logo{
+font-family:var(--font-main);font-weight:700;font-size:1.1rem;letter-spacing:2px;
+text-transform:uppercase;color:var(--text-primary);
+}
+.top-bar-logo .ec{color:var(--cyan);font-family:var(--font-mono);font-size:0.75rem;
+border:1px solid var(--cyan);padding:1px 6px;margin-left:8px;vertical-align:middle;}
+.top-bar-right{display:flex;align-items:center;gap:16px;}
+.toggle-btn{
+background:none;border:1px solid var(--border);color:var(--text-secondary);
+padding:4px 12px;font-family:var(--font-mono);font-size:0.72rem;cursor:pointer;
+letter-spacing:1px;transition:all 0.3s;border-radius:1px;
+}
+.toggle-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{
+color:var(--text-secondary);text-decoration:none;font-family:var(--font-mono);
+font-size:0.7rem;letter-spacing:1px;padding:6px 10px;transition:color 0.3s;
+text-transform:uppercase;
+}
+.nav-links a:hover{color:var(--cyan);}
+
+/* HERO */
+.hero{
+min-height:100vh;display:flex;align-items:center;justify-content:center;
+position:relative;padding-top:56px;
+}
+.hero-overlay{
+position:absolute;inset:0;
+background:radial-gradient(ellipse at 50% 40%,rgba(0,255,65,0.08) 0%,transparent 60%),
+radial-gradient(ellipse at 80% 20%,rgba(0,255,65,0.05) 0%,transparent 40%),
+radial-gradient(ellipse at 20% 70%,rgba(0,200,80,0.04) 0%,transparent 35%);
+}
+.hero-content{text-align:center;position:relative;z-index:2;}
+.hero-boot{font-family:var(--font-mono);color:var(--cyan);font-size:0.75rem;letter-spacing:2px;margin-bottom:24px;}
+.hero-boot .blink{animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.hero-goggles{
+display:flex;justify-content:center;gap:16px;margin-bottom:36px;
+}
+.hero-goggles .lens{
+width:44px;height:44px;border-radius:50%;border:3px solid var(--nv-green);
+background:radial-gradient(circle,rgba(0,255,65,0.25) 0%,rgba(0,255,65,0.05) 60%,transparent 100%);
+box-shadow:0 0 20px var(--nv-green),0 0 40px var(--nv-glow),inset 0 0 12px rgba(0,255,65,0.15);
+animation:pulse-lens 2.5s ease-in-out infinite;
+position:relative;
+}
+.hero-goggles .lens::before{
+content:'';position:absolute;inset:6px;border-radius:50%;
+border:1px solid rgba(0,255,65,0.3);
+}
+.hero-goggles .lens::after{
+content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:6px;height:6px;border-radius:50%;background:var(--nv-green);
+box-shadow:0 0 6px var(--nv-green);
+}
+.hero-goggles .lens:nth-child(2){animation-delay:0.3s;width:48px;height:48px;}
+.hero-goggles .lens:nth-child(3){animation-delay:0.6s;}
+@keyframes pulse-lens{
+0%,100%{box-shadow:0 0 20px var(--nv-green),0 0 40px var(--nv-glow),inset 0 0 12px rgba(0,255,65,0.15);}
+50%{box-shadow:0 0 30px var(--nv-green),0 0 60px var(--nv-glow),inset 0 0 20px rgba(0,255,65,0.25);}
+}
+.hero-title{
+font-family:var(--font-main);font-size:clamp(2.4rem,6vw,4.5rem);font-weight:700;
+letter-spacing:6px;text-transform:uppercase;line-height:1.1;margin-bottom:8px;
+}
+.hero-title .sc{color:var(--cyan);}
+.hero-subtitle{
+font-family:var(--font-main);font-size:clamp(1.2rem,3vw,2rem);font-weight:300;
+letter-spacing:12px;text-transform:uppercase;color:var(--orange);margin-bottom:20px;
+}
+.hero-tagline{font-family:var(--font-mono);color:var(--text-secondary);font-size:0.8rem;letter-spacing:2px;margin-bottom:36px;}
+.hero-timer{
+display:flex;justify-content:center;gap:20px;margin-bottom:40px;
+}
+.timer-block{text-align:center;}
+.timer-val{
+font-family:var(--font-mono);font-size:2rem;color:var(--red);
+border:1px solid rgba(224,32,32,0.3);padding:6px 14px;min-width:60px;
+background:rgba(224,32,32,0.05);
+}
+.timer-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-top:4px;}
+.hero-status{
+display:flex;justify-content:center;gap:30px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);
+}
+.hero-status .online{color:var(--green);}
+
+/* FOURTH ECHELON TEAM */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+.team-card{
+position:relative;overflow:hidden;transition:transform 0.3s;
+}
+.team-card:hover{transform:translateY(-4px);}
+.team-card .rank{
+font-family:var(--font-mono);font-size:0.65rem;color:var(--cyan);letter-spacing:2px;
+margin-bottom:4px;
+}
+.team-card .name{font-size:1.4rem;font-weight:700;margin-bottom:2px;letter-spacing:1px;}
+.team-card .role{color:var(--orange);font-size:0.85rem;font-weight:500;margin-bottom:10px;}
+.team-card .bio{color:var(--text-secondary);font-size:0.85rem;font-weight:300;line-height:1.6;}
+.team-card .callsign{
+position:absolute;top:12px;right:12px;font-family:var(--font-mono);
+font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;
+}
+.team-card[data-member="sam"] .name{color:var(--green);}
+.team-card[data-member="briggs"] .name{color:var(--cyan);}
+.team-card[data-member="grim"] .name{color:var(--orange);}
+.team-card[data-member="charlie"] .name{color:var(--yellow);}
+
+/* PLAYSTYLES */
+.playstyle-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;}
+.playstyle-card{padding:32px 28px;text-align:center;transition:transform 0.3s;}
+.playstyle-card:hover{transform:translateY(-4px);}
+.playstyle-icon{font-size:2.4rem;margin-bottom:12px;}
+.playstyle-card[data-style="ghost"]{border-top:3px solid var(--green);}
+.playstyle-card[data-style="ghost"] .playstyle-name{color:var(--green);}
+.playstyle-card[data-style="panther"]{border-top:3px solid var(--panther);}
+.playstyle-card[data-style="panther"] .playstyle-name{color:var(--panther);}
+.playstyle-card[data-style="assault"]{border-top:3px solid var(--red);}
+.playstyle-card[data-style="assault"] .playstyle-name{color:var(--red);}
+.playstyle-name{font-size:1.5rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.playstyle-score{
+font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px;margin-bottom:14px;
+color:var(--text-dim);
+}
+.playstyle-desc{color:var(--text-secondary);font-size:0.88rem;font-weight:300;line-height:1.7;}
+.playstyle-bar{
+height:3px;margin-top:18px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,0.05);
+}
+.playstyle-bar-fill{height:100%;border-radius:2px;width:0;transition:width 1.5s ease;}
+.playstyle-card[data-style="ghost"] .playstyle-bar-fill{background:var(--green);}
+.playstyle-card[data-style="panther"] .playstyle-bar-fill{background:var(--panther);}
+.playstyle-card[data-style="assault"] .playstyle-bar-fill{background:var(--red);}
+.visible .playstyle-bar-fill{width:var(--bar-w);}
+
+/* BLACKLIST TARGETS */
+.blacklist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.bl-card{
+text-align:center;padding:24px 14px;position:relative;overflow:hidden;
+cursor:default;transition:transform 0.3s,border-color 0.3s;
+}
+.bl-card:hover{transform:scale(1.04);border-color:var(--red);}
+.bl-num{
+font-family:var(--font-mono);font-size:2.6rem;font-weight:700;color:var(--red);
+line-height:1;margin-bottom:6px;text-shadow:0 0 20px rgba(224,32,32,0.3);
+}
+.bl-codename{
+font-family:var(--font-mono);font-size:0.72rem;letter-spacing:2px;color:var(--orange);
+text-transform:uppercase;margin-bottom:4px;
+}
+.bl-status{font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;}
+.bl-status.active{color:var(--red);animation:blink 1.5s step-end infinite;}
+
+/* PALADIN */
+.paladin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;}
+.paladin-sys{padding:22px;transition:transform 0.3s;}
+.paladin-sys:hover{transform:translateY(-3px);}
+.paladin-sys .sys-icon{font-size:1.6rem;margin-bottom:10px;}
+.paladin-sys .sys-name{
+font-family:var(--font-mono);font-size:0.8rem;letter-spacing:2px;color:var(--cyan);
+text-transform:uppercase;margin-bottom:6px;
+}
+.paladin-sys .sys-desc{color:var(--text-secondary);font-size:0.82rem;font-weight:300;}
+.paladin-sys .sys-level{
+margin-top:10px;display:flex;gap:3px;
+}
+.paladin-sys .sys-level span{
+width:20px;height:4px;background:var(--border);border-radius:1px;
+}
+.paladin-sys .sys-level span.filled{background:var(--nv-green);box-shadow:0 0 4px var(--nv-glow);}
+
+/* EQUIPMENT */
+.equip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;}
+.equip-card{padding:22px;text-align:center;transition:transform 0.3s;}
+.equip-card:hover{transform:translateY(-3px);}
+.equip-card .eq-icon{font-size:2rem;margin-bottom:10px;}
+.equip-card .eq-name{font-size:0.95rem;font-weight:600;margin-bottom:4px;letter-spacing:1px;}
+.equip-card .eq-type{font-family:var(--font-mono);font-size:0.6rem;color:var(--cyan);letter-spacing:2px;margin-bottom:8px;}
+.equip-card .eq-desc{color:var(--text-secondary);font-size:0.78rem;font-weight:300;}
+
+/* THREAT MAP */
+.threat-map-container{position:relative;overflow:hidden;border-radius:2px;}
+.threat-map{
+width:100%;aspect-ratio:2/1;background:var(--bg-secondary);border:1px solid var(--border);
+position:relative;overflow:hidden;
+}
+.threat-map canvas{width:100%;height:100%;}
+.map-overlay{
+position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;
+background:
+repeating-linear-gradient(0deg,transparent,transparent 2px,var(--scanline) 2px,var(--scanline) 4px),
+radial-gradient(ellipse at center,transparent 40%,rgba(10,12,18,0.6));
+}
+.map-legend{
+position:absolute;bottom:12px;right:12px;font-family:var(--font-mono);font-size:0.6rem;
+color:var(--text-dim);display:flex;flex-direction:column;gap:4px;
+background:rgba(10,12,18,0.7);padding:8px 12px;border:1px solid var(--border);
+}
+.map-legend .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;}
+.map-legend .dot.r{background:var(--red);}
+.map-legend .dot.o{background:var(--orange);}
+.map-legend .dot.g{background:var(--green);}
+
+/* QUOTE */
+.quote-section{text-align:center;padding:100px 0;}
+.quote-text{
+font-size:clamp(1.3rem,3vw,2rem);font-weight:300;font-style:italic;
+color:var(--text-primary);max-width:700px;margin:0 auto 16px;line-height:1.5;
+}
+.quote-attr{font-family:var(--font-mono);color:var(--cyan);font-size:0.8rem;letter-spacing:2px;}
+/* Karambit decorative */
+.karambit{
+display:block;margin:24px auto;width:60px;height:60px;position:relative;
+}
+.karambit svg{width:100%;height:100%;fill:none;stroke:var(--cyan);stroke-width:1.5;opacity:0.4;}
+
+/* CTA */
+.cta-section{text-align:center;padding:80px 0;}
+.cta-btn{
+display:inline-block;padding:14px 48px;font-family:var(--font-main);font-size:1.1rem;
+font-weight:700;letter-spacing:6px;text-transform:uppercase;
+background:transparent;border:2px solid var(--cyan);color:var(--cyan);
+cursor:pointer;position:relative;overflow:hidden;transition:all 0.4s;text-decoration:none;
+}
+.cta-btn:hover{
+background:var(--cyan);color:var(--bg-primary);box-shadow:0 0 30px var(--cyan-glow);
+}
+.cta-btn::before{
+content:'';position:absolute;top:50%;left:-100%;width:100%;height:1px;
+background:var(--cyan);transition:left 0.4s;
+}
+.cta-btn:hover::before{left:100%;}
+.cta-sub{font-family:var(--font-mono);color:var(--text-dim);font-size:0.7rem;margin-top:14px;letter-spacing:2px;}
+
+/* FOOTER */
+footer{
+border-top:1px solid var(--border);padding:40px 0;text-align:center;position:relative;z-index:2;
+}
+footer .footer-goggles{margin-bottom:12px;}
+footer p{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;}
+footer .legal{font-size:0.55rem;color:var(--text-dim);opacity:0.6;max-width:600px;margin:10px auto 0;}
+
+/* Responsive */
+@media(max-width:768px){
+.nav-links{display:none;}
+.hero-timer{gap:10px;}
+.timer-val{font-size:1.4rem;padding:4px 10px;min-width:45px;}
+section{padding:50px 0;}
+.section-title{font-size:1.7rem;}
+.blacklist-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+}
+@media(max-width:480px){
+.hero-title{letter-spacing:3px;}
+.hero-subtitle{letter-spacing:6px;}
+.team-grid,.playstyle-grid{grid-template-columns:1fr;}
+}
+
+/* Language toggle */
+[data-lang="en"] .cn{display:none;}
+[data-lang="cn"] .en{display:none;}
+</style>
+</head>
+<body>
+
+<canvas id="smi-canvas"></canvas>
+<div class="scanlines"></div>
+<div class="nv-viewport"></div>
+<div class="nv-tint"></div>
+<div class="nv-bracket tl"></div>
+<div class="nv-bracket tr"></div>
+<div class="nv-bracket bl"></div>
+<div class="nv-bracket br"></div>
+
+<!-- TOP BAR -->
+<nav class="top-bar">
+<div class="container">
+<div class="top-bar-left">
+<div class="top-bar-logo">
+Splinter Cell<span class="ec">4E</span>
+</div>
+<div class="nav-links">
+<a href="#team"><span class="en">Team</span><span class="cn">团队</span></a>
+<a href="#playstyles"><span class="en">Playstyles</span><span class="cn">风格</span></a>
+<a href="#blacklist"><span class="en">Blacklist</span><span class="cn">黑名单</span></a>
+<a href="#paladin"><span class="en">Paladin</span><span class="cn">圣骑士</span></a>
+<a href="#equipment"><span class="en">Equipment</span><span class="cn">装备</span></a>
+</div>
+</div>
+<div class="top-bar-right">
+<button class="toggle-btn" id="lang-toggle" onclick="toggleLang()">中/EN</button>
+<button class="toggle-btn" id="theme-toggle" onclick="toggleTheme()">
+<span class="en">LIGHT</span><span class="cn">明亮</span>
+</button>
+</div>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+<div class="hero-overlay"></div>
+<div class="hero-content">
+<div class="hero-boot">
+<span class="en">STRATEGIC MISSION INTERFACE v4.7 // INITIALIZING<span class="blink">_</span></span>
+<span class="cn">战略任务界面 v4.7 // 初始化中<span class="blink">_</span></span>
+</div>
+<div class="hero-goggles">
+<div class="lens"></div><div class="lens"></div><div class="lens"></div>
+</div>
+<h1 class="hero-title">
+<span class="sc">SPLINTER</span> CELL
+</h1>
+<div class="hero-subtitle">
+<span class="en">Blacklist</span><span class="cn">黑名单</span>
+</div>
+<p class="hero-tagline">
+<span class="en">FOURTH ECHELON // THE BLACKLIST COUNTDOWN HAS BEGUN</span>
+<span class="cn">第四梯队 // 黑名单倒计时已经开始</span>
+</p>
+<div class="hero-timer">
+<div class="timer-block"><div class="timer-val" id="t-d">00</div><div class="timer-label">DAYS</div></div>
+<div class="timer-block"><div class="timer-val" id="t-h">00</div><div class="timer-label">HRS</div></div>
+<div class="timer-block"><div class="timer-val" id="t-m">00</div><div class="timer-label">MIN</div></div>
+<div class="timer-block"><div class="timer-val" id="t-s">00</div><div class="timer-label">SEC</div></div>
+</div>
+<div class="hero-status">
+<span><span class="online">●</span> SMI ONLINE</span>
+<span>PALADIN AIRBORNE</span>
+<span>THREAT LEVEL: <span style="color:var(--red);">CRITICAL</span></span>
+</div>
+</div>
+</section>
+
+<!-- FOURTH ECHELON -->
+<section id="team">
+<div class="container">
+<div class="reveal">
+<div class="section-tag"><span class="en">PERSONNEL</span><span class="cn">人员</span></div>
+<h2 class="section-title">
+<span class="en">Fourth Echelon <span class="goggles"><span></span><span></span><span></span></span></span>
+<span class="cn">第四梯队 <span class="goggles"><span></span><span></span><span></span></span></span>
+</h2>
+<p class="section-subtitle">
+<span class="en">Presidential directive. Off-the-books. Answerable only to the President of the United States.</span>
+<span class="cn">总统指令。秘密行动。仅对美国总统负责。</span>
+</p>
+</div>
+<div class="team-grid">
+<div class="smi-panel team-card reveal" data-member="sam">
+<div class="callsign">PANTHER-1</div>
+<div class="rank">COMMANDING OFFICER</div>
+<div class="name"><span class="en">Sam Fisher</span><span class="cn">山姆·费舍尔</span></div>
+<div class="role"><span class="en">4th Echelon Commander</span><span class="cn">第四梯队指挥官</span></div>
+<p class="bio">
+<span class="en">Former Third Echelon Splinter Cell. Veteran covert operative handpicked by the President to lead Fourth Echelon and stop the Blacklist attacks. Commands operations from the Paladin's SMI.</span>
+<span class="cn">前第三梯队分裂细胞特工。资深秘密行动人员，由总统亲自挑选领导第四梯队，阻止黑名单攻击。从圣骑士号的SMI指挥行动。</span>
+</p>
+</div>
+<div class="smi-panel team-card reveal" data-member="briggs">
+<div class="callsign">SHADOW-2</div>
+<div class="rank">FIELD OPERATIVE</div>
+<div class="name"><span class="en">Isaac Briggs</span><span class="cn">艾萨克·布里格斯</span></div>
+<div class="role"><span class="en">CIA Liaison / Co-Op Partner</span><span class="cn">CIA联络员 / 协同搭档</span></div>
+<p class="bio">
+<span class="en">Former CIA Special Activities Division. Assigned to Fourth Echelon as Sam's partner in the field. Young, disciplined, by-the-book — the perfect counterbalance to Fisher's instincts.</span>
+<span class="cn">前CIA特别活动部门成员。被分配到第四梯队担任山姆的战场搭档。年轻、自律、循规蹈矩——与费舍尔的直觉形成完美互补。</span>
+</p>
+</div>
+<div class="smi-panel team-card reveal" data-member="grim">
+<div class="callsign">OVERWATCH</div>
+<div class="rank">TECHNICAL OPERATIONS</div>
+<div class="name"><span class="en">Anna Grímsdóttir</span><span class="cn">安娜·格里姆斯多蒂尔</span></div>
+<div class="role"><span class="en">Operations Manager</span><span class="cn">行动经理</span></div>
+<p class="bio">
+<span class="en">Fourth Echelon's operational backbone. Grim coordinates intelligence, manages mission logistics, and runs the SMI. Former Third Echelon technical director with decades of experience.</span>
+<span class="cn">第四梯队的行动支柱。格里姆负责协调情报、管理任务后勤并运行SMI。前第三梯队技术总监，拥有数十年经验。</span>
+</p>
+</div>
+<div class="smi-panel team-card reveal" data-member="charlie">
+<div class="callsign">TECHNO</div>
+<div class="rank">R&D / ENGINEERING</div>
+<div class="name"><span class="en">Charlie Cole</span><span class="cn">查理·科尔</span></div>
+<div class="role"><span class="en">Tech Specialist</span><span class="cn">技术专家</span></div>
+<p class="bio">
+<span class="en">Former hacker turned Fourth Echelon engineer. Designs and upgrades gadgets, drones, and the Paladin's systems. His unorthodox methods and humor mask a brilliant technical mind.</span>
+<span class="cn">前黑客转型为第四梯队工程师。设计和升级装备、无人机和圣骑士号的系统。他非正统的方法和幽默掩盖了出色的技术头脑。</span>
+</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- PLAYSTYLES -->
+<section id="playstyles">
+<div class="container">
+<div class="reveal">
+<div class="section-tag"><span class="en">ENGAGEMENT</span><span class="cn">交战方式</span></div>
+<h2 class="section-title">
+<span class="en">Playstyles</span><span class="cn">游戏风格</span>
+</h2>
+<p class="section-subtitle">
+<span class="en">Every action is scored. Ghost. Panther. Assault. Choose your approach.</span>
+<span class="cn">每个行动都会被评分。幽灵。猎豹。突击。选择你的方式。</span>
+</p>
+</div>
+<div class="playstyle-grid">
+<div class="smi-panel playstyle-card reveal" data-style="ghost">
+<div class="playstyle-icon">👻</div>
+<div class="playstyle-name"><span class="en">Ghost</span><span class="cn">幽灵</span></div>
+<div class="playstyle-score">MAX SCORE: 900 PTS/ENEMY</div>
+<p class="playstyle-desc">
+<span class="en">Complete invisibility. Bypass every enemy without detection or engagement. Non-lethal takedowns only. No alarms. No bodies found. The purest form of stealth — you were never there.</span>
+<span class="cn">完全隐形。绕过每个敌人而不被发现或交战。仅使用非致命制服。无警报。无尸体被发现。最纯粹的潜行形式——你从未在那里。</span>
+</p>
+<div class="playstyle-bar"><div class="playstyle-bar-fill" style="--bar-w:95%;"></div></div>
+</div>
+<div class="smi-panel playstyle-card reveal" data-style="panther">
+<div class="playstyle-icon">🐾</div>
+<div class="playstyle-name"><span class="en">Panther</span><span class="cn">猎豹</span></div>
+<div class="playstyle-score">MAX SCORE: 750 PTS/ENEMY</div>
+<p class="playstyle-desc">
+<span class="en">Silent predator. Eliminate targets from the shadows using lethal takedowns, silenced weapons, and Mark & Execute. Undetected but deadly — a ghost that kills.</span>
+<span class="cn">沉默的掠食者。使用致命制服、消音武器和标记处决从暗处消灭目标。不被发现但致命——一个会杀人的幽灵。</span>
+</p>
+<div class="playstyle-bar"><div class="playstyle-bar-fill" style="--bar-w:80%;"></div></div>
+</div>
+<div class="smi-panel playstyle-card reveal" data-style="assault">
+<div class="playstyle-icon">💥</div>
+<div class="playstyle-name"><span class="en">Assault</span><span class="cn">突击</span></div>
+<div class="playstyle-score">MAX SCORE: 450 PTS/ENEMY</div>
+<p class="playstyle-desc">
+<span class="en">Direct combat engagement. Overwhelm enemies with firepower, explosives, and aggressive tactics. Trigger every alarm, survive every firefight. Brute force gets the job done.</span>
+<span class="cn">直接战斗交战。用火力、爆炸物和激进战术压制敌人。触发每一个警报，在每次交火中存活。蛮力完成任务。</span>
+</p>
+<div class="playstyle-bar"><div class="playstyle-bar-fill" style="--bar-w:60%;"></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- BLACKLIST TARGETS -->
+<section id="blacklist">
+<div class="container">
+<div class="reveal">
+<div class="section-tag"><span class="en">THREAT MATRIX</span><span class="cn">威胁矩阵</span></div>
+<h2 class="section-title">
+<span class="en">The Blacklist</span><span class="cn">黑名单</span>
+</h2>
+<p class="section-subtitle">
+<span class="en">The Engineers have issued twelve escalating attacks on U.S. interests. The countdown has begun. Stop them all — or watch them fall.</span>
+<span class="cn">工程师组织已对美国利益发动了十二次不断升级的攻击。倒计时已经开始。阻止他们——否则看着一切崩塌。</span>
+</p>
+</div>
+<div class="blacklist-grid">
+<div class="smi-panel bl-card reveal"><div class="bl-num">01</div><div class="bl-codename">SAFEHOUSE</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">02</div><div class="bl-codename">AMERICAN CONSUMPTION</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">03</div><div class="bl-codename">AMERICAN FUEL</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">04</div><div class="bl-codename">AMERICAN FREEDOM</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">05</div><div class="bl-codename">AMERICAN BLOOD</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">06</div><div class="bl-codename">AMERICAN DUST</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">07</div><div class="bl-codename">SPECIAL MISSION</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">08</div><div class="bl-codename">TRANSIT</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">09</div><div class="bl-codename">HIGHRISE</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">10</div><div class="bl-codename">ABANDONED MILL</div><div class="bl-status en">NEUTRALIZED</div><div class="bl-status cn">已消除</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">11</div><div class="bl-codename">SITE F</div><div class="bl-status active en">ACTIVE THREAT</div><div class="bl-status active cn">活跃威胁</div></div>
+<div class="smi-panel bl-card reveal"><div class="bl-num">12</div><div class="bl-codename">NOURI</div><div class="bl-status active en">FINAL TARGET</div><div class="bl-status active cn">最终目标</div></div>
+</div>
+</div>
+</section>
+
+<!-- THE PALADIN -->
+<section id="paladin">
+<div class="container">
+<div class="reveal">
+<div class="section-tag"><span class="en">MOBILE HQ</span><span class="cn">移动总部</span></div>
+<h2 class="section-title">
+<span class="en">The Paladin C-147B</span><span class="cn">圣骑士 C-147B</span>
+</h2>
+<p class="section-subtitle">
+<span class="en">Fourth Echelon's mobile headquarters. A heavily modified cargo aircraft serving as command center, armory, and forward operating base — always airborne, always untraceable.</span>
+<span class="cn">第四梯队的移动总部。一架经过大幅改装的货运飞机，充当指挥中心、武器库和前沿作战基地——始终在空中，始终无法追踪。</span>
+</p>
+</div>
+<div class="paladin-grid">
+<div class="smi-panel paladin-sys reveal">
+<div class="sys-icon">🖥️</div>
+<div class="sys-name">SMI TABLE</div>
+<p class="sys-desc en">Strategic Mission Interface. Holographic planning table for selecting missions, viewing global threats, and coordinating strikes.</p>
+<p class="sys-desc cn">战略任务界面。全息规划台，用于选择任务、查看全球威胁和协调打击。</p>
+<div class="sys-level"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div>
+</div>
+<div class="smi-panel paladin-sys reveal">
+<div class="sys-icon">📡</div>
+<div class="sys-name">RADAR</div>
+<p class="sys-desc en">Upgraded radar and communications suite. Intercept enemy signals, decrypt transmissions, and maintain secure links worldwide.</p>
+<p class="sys-desc cn">升级的雷达和通信套件。截获敌方信号、解密传输并在全球范围内保持安全链接。</p>
+<div class="sys-level"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span></div>
+</div>
+<div class="smi-panel paladin-sys reveal">
+<div class="sys-icon">🛡️</div>
+<div class="sys-name">DEFENSE</div>
+<p class="sys-desc en">Countermeasures, electronic warfare, and stealth shielding. Keeps the Paladin invisible to hostile radar and protected from surface-to-air threats.</p>
+<p class="sys-desc cn">反制措施、电子战和隐身防护。使圣骑士号对敌方雷达不可见，并防御地对空威胁。</p>
+<div class="sys-level"><span class="filled"></span><span class="filled"></span><span></span><span></span><span></span></div>
+</div>
+<div class="smi-panel paladin-sys reveal">
+<div class="sys-icon">✈️</div>
+<div class="sys-name">ENGINES</div>
+<p class="sys-desc en">Propulsion and fuel efficiency upgrades. Extended range, faster transit between mission zones, and enhanced VTOL capability for covert insertions.</p>
+<p class="sys-desc cn">推进和燃油效率升级。扩展航程、更快的任务区域间转移以及增强的垂直起降能力，用于秘密渗透。</p>
+<div class="sys-level"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span></div>
+</div>
+<div class="smi-panel paladin-sys reveal">
+<div class="sys-icon">🔧</div>
+<div class="sys-name">CARGO BAY</div>
+<p class="sys-desc en">Equipment workshop and Charlie's lab. Gadget prototyping, drone maintenance, and weapon customization all happen here.</p>
+<p class="sys-desc cn">装备车间和查理的实验室。装备原型制作、无人机维护和武器定制都在这里进行。</p>
+<div class="sys-level"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span></div>
+</div>
+<div class="smi-panel paladin-sys reveal">
+<div class="sys-icon">🏥</div>
+<div class="sys-name">MEDICAL BAY</div>
+<p class="sys-desc en">Field medical station for treating injuries sustained during operations. Upgraded for faster recovery between consecutive missions.</p>
+<p class="sys-desc cn">战地医疗站，用于治疗行动中受到的伤害。升级后可在连续任务之间更快恢复。</p>
+<div class="sys-level"><span class="filled"></span><span class="filled"></span><span></span><span></span><span></span></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- EQUIPMENT -->
+<section id="equipment">
+<div class="container">
+<div class="reveal">
+<div class="section-tag"><span class="en">LOADOUT</span><span class="cn">装备配置</span></div>
+<h2 class="section-title">
+<span class="en">Equipment</span><span class="cn">装备</span>
+</h2>
+<p class="section-subtitle">
+<span class="en">Field-tested gadgets designed by Charlie Cole. Each tool fits a different playstyle.</span>
+<span class="cn">由查理·科尔设计的经过实战测试的装备。每种工具适合不同的游戏风格。</span>
+</p>
+</div>
+<div class="equip-grid">
+<div class="smi-panel equip-card reveal">
+<div class="eq-icon">🥽</div>
+<div class="eq-name"><span class="en">Sonar Goggles</span><span class="cn">声纳护目镜</span></div>
+<div class="eq-type" style="color:var(--green);">GHOST / PANTHER</div>
+<p class="eq-desc en">See enemies through walls via sonar pulse. The triple-lens signature of the Splinter Cell.</p>
+<p class="eq-desc cn">通过声纳脉冲透视墙壁看到敌人。分裂细胞标志性的三镜头设计。</p>
+</div>
+<div class="smi-panel equip-card reveal">
+<div class="eq-icon">🎯</div>
+<div class="eq-name"><span class="en">Tri-Rotor Drone</span><span class="cn">三旋翼无人机</span></div>
+<div class="eq-type" style="color:var(--green);">GHOST</div>
+<p class="eq-desc en">Remote-controlled aerial drone for scouting, tagging enemies, and delivering non-lethal shocks.</p>
+<p class="eq-desc cn">遥控空中无人机，用于侦察、标记敌人和释放非致命电击。</p>
+</div>
+<div class="smi-panel equip-card reveal">
+<div class="eq-icon">💤</div>
+<div class="eq-name"><span class="en">Sleeping Gas</span><span class="cn">催眠气体</span></div>
+<div class="eq-type" style="color:var(--green);">GHOST</div>
+<p class="eq-desc en">Crossbow-launched gas grenades that silently incapacitate groups of enemies without lethal force.</p>
+<p class="eq-desc cn">弩发射的气体手榴弹，可以在不使用致命武力的情况下悄无声息地使敌群丧失行动能力。</p>
+</div>
+<div class="smi-panel equip-card reveal">
+<div class="eq-icon">⚡</div>
+<div class="eq-name"><span class="en">Sticky Shocker</span><span class="cn">粘性电击器</span></div>
+<div class="eq-type" style="color:var(--panther);">PANTHER</div>
+<p class="eq-desc en">Adhesive projectile that delivers a high-voltage shock to incapacitate a single target silently.</p>
+<p class="eq-desc cn">粘性弹头，释放高压电击，静默制服单个目标。</p>
+</div>
+<div class="smi-panel equip-card reveal">
+<div class="eq-icon">💣</div>
+<div class="eq-name"><span class="en">Proximity Mine</span><span class="cn">接近感应地雷</span></div>
+<div class="eq-type" style="color:var(--red);">ASSAULT</div>
+<p class="eq-desc en">Motion-triggered explosive for area denial. Devastating against groups of hostiles.</p>
+<p class="eq-desc cn">运动触发的爆炸物，用于区域封锁。对大群敌人具有毁灭性效果。</p>
+</div>
+<div class="smi-panel equip-card reveal">
+<div class="eq-icon">🔫</div>
+<div class="eq-name"><span class="en">Karambit Knife</span><span class="cn">爪形刀</span></div>
+<div class="eq-type" style="color:var(--panther);">PANTHER / ASSAULT</div>
+<p class="eq-desc en">Sam's signature curved combat blade. Used for lethal close-quarters takedowns and the iconic Mark & Execute chain.</p>
+<p class="eq-desc cn">山姆标志性的弯曲战斗刀刃。用于致命近距离制服和标志性的标记处决连锁。</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- GLOBAL THREAT MAP -->
+<section id="threatmap">
+<div class="container">
+<div class="reveal">
+<div class="section-tag"><span class="en">INTEL</span><span class="cn">情报</span></div>
+<h2 class="section-title">
+<span class="en">Global Threat Map</span><span class="cn">全球威胁地图</span>
+</h2>
+<p class="section-subtitle">
+<span class="en">Active threat zones and Fourth Echelon operational areas monitored in real-time from the Paladin's SMI.</span>
+<span class="cn">从圣骑士号SMI实时监控的活跃威胁区域和第四梯队行动区域。</span>
+</p>
+</div>
+<div class="threat-map-container reveal">
+<div class="threat-map">
+<canvas id="map-canvas"></canvas>
+<div class="map-overlay"></div>
+<div class="map-legend">
+<span><span class="dot r"></span><span class="en">ACTIVE THREAT</span><span class="cn">活跃威胁</span></span>
+<span><span class="dot o"></span><span class="en">MONITORING</span><span class="cn">监控中</span></span>
+<span><span class="dot g"></span><span class="en">NEUTRALIZED</span><span class="cn">已消除</span></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote-section">
+<div class="container reveal">
+<div class="karambit">
+<svg viewBox="0 0 60 60"><path d="M30 10 C35 10 42 14 44 22 C46 30 42 38 36 42 C32 44 28 42 26 38 C24 34 26 28 30 26 C34 24 38 28 36 32" /><line x1="30" y1="10" x2="25" y2="5" /><circle cx="25" cy="5" r="2"/></svg>
+</div>
+<blockquote class="quote-text">
+<span class="en">"The Blacklist attacks are a countdown. Each one worse than the last. We stop them all, or we don't stop any."</span>
+<span class="cn">"黑名单攻击是一个倒计时。每一次都比上一次更糟糕。我们要么全部阻止，要么一个也阻止不了。"</span>
+</blockquote>
+<div class="quote-attr">
+— SAM FISHER // <span class="en">4TH ECHELON COMMANDER</span><span class="cn">第四梯队指挥官</span>
+</div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+<div class="container reveal">
+<div class="hero-goggles" style="margin-bottom:28px;">
+<div class="lens"></div><div class="lens"></div><div class="lens"></div>
+</div>
+<a href="#" class="cta-btn" onclick="return false;">
+<span class="en">DEPLOY</span><span class="cn">部署</span>
+</a>
+<p class="cta-sub">
+<span class="en">/// FOURTH ECHELON FIELD OPERATIONS — AUTHORIZATION REQUIRED ///</span>
+<span class="cn">/// 第四梯队外勤行动 — 需要授权 ///</span>
+</p>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+<div class="footer-goggles">
+<span class="goggles"><span></span><span></span><span></span></span>
+</div>
+<p>FOURTH ECHELON // STRATEGIC MISSION INTERFACE</p>
+<p><span class="en">TOM CLANCY'S SPLINTER CELL: BLACKLIST (2013)</span><span class="cn">汤姆·克兰西的细胞分裂：黑名单 (2013)</span></p>
+<p class="legal">
+<span class="en">This is a fan-made tribute page. Tom Clancy's Splinter Cell: Blacklist is a trademark of Ubisoft Entertainment. All rights reserved. This page is not affiliated with or endorsed by Ubisoft.</span>
+<span class="cn">这是一个粉丝制作的致敬页面。汤姆·克兰西的细胞分裂：黑名单是育碧娱乐的商标。版权所有。本页面与育碧无关，也未得到其认可。</span>
+</p>
+</div>
+</footer>
+
+<script>
+/* ===== THEME & LANG TOGGLES ===== */
+function toggleTheme(){
+const html=document.documentElement;
+const curr=html.getAttribute('data-theme');
+html.setAttribute('data-theme',curr==='dark'?'light':'dark');
+const btn=document.getElementById('theme-toggle');
+if(curr==='dark'){
+btn.querySelector('.en').textContent='DARK';
+btn.querySelector('.cn').textContent='暗色';
+}else{
+btn.querySelector('.en').textContent='LIGHT';
+btn.querySelector('.cn').textContent='明亮';
+}
+}
+function toggleLang(){
+const html=document.documentElement;
+const curr=html.getAttribute('data-lang');
+html.setAttribute('data-lang',curr==='en'?'cn':'en');
+}
+
+/* ===== COUNTDOWN TIMER ===== */
+function updateTimer(){
+// Countdown to a future date for dramatic effect
+const target=new Date();
+target.setDate(target.getDate()+3);
+target.setHours(0,0,0,0);
+const now=new Date();
+let diff=target-now;
+if(diff<0)diff=0;
+const d=Math.floor(diff/86400000);
+const h=Math.floor((diff%86400000)/3600000);
+const m=Math.floor((diff%3600000)/60000);
+const s=Math.floor((diff%60000)/1000);
+document.getElementById('t-d').textContent=String(d).padStart(2,'0');
+document.getElementById('t-h').textContent=String(h).padStart(2,'0');
+document.getElementById('t-m').textContent=String(m).padStart(2,'0');
+document.getElementById('t-s').textContent=String(s).padStart(2,'0');
+}
+updateTimer();
+setInterval(updateTimer,1000);
+
+/* ===== SCROLL REVEAL ===== */
+const reveals=document.querySelectorAll('.reveal');
+const revealObs=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}});
+},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+reveals.forEach(el=>revealObs.observe(el));
+
+/* ===== SMI HOLOGRAPHIC PARTICLES ===== */
+(function(){
+const canvas=document.getElementById('smi-canvas');
+const ctx=canvas.getContext('2d');
+let w,h;
+function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;}
+resize();
+window.addEventListener('resize',resize);
+
+const particles=[];
+const COUNT=80;
+for(let i=0;i<COUNT;i++){
+particles.push({
+x:Math.random()*2000,y:Math.random()*2000,
+vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.2,
+r:Math.random()*1.5+0.5,
+a:Math.random()*0.5+0.1,
+pulse:Math.random()*Math.PI*2
+});
+}
+
+function draw(){
+ctx.clearRect(0,0,w,h);
+const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+for(const p of particles){
+p.x+=p.vx;p.y+=p.vy;
+p.pulse+=0.02;
+if(p.x<0)p.x=w;if(p.x>w)p.x=0;
+if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+const alpha=p.a*(0.6+0.4*Math.sin(p.pulse));
+if(isDark){
+ctx.fillStyle=`rgba(0,232,104,${alpha})`;
+}else{
+ctx.fillStyle=`rgba(0,140,80,${alpha})`;
+}
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fill();
+}
+
+// Draw some faint connection lines
+for(let i=0;i<particles.length;i++){
+for(let j=i+1;j<particles.length;j++){
+const dx=particles[i].x-particles[j].x;
+const dy=particles[i].y-particles[j].y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<120){
+const la=0.04*(1-dist/120);
+if(isDark){
+ctx.strokeStyle=`rgba(0,232,104,${la})`;
+}else{
+ctx.strokeStyle=`rgba(0,140,80,${la})`;
+}
+ctx.lineWidth=0.5;
+ctx.beginPath();
+ctx.moveTo(particles[i].x,particles[i].y);
+ctx.lineTo(particles[j].x,particles[j].y);
+ctx.stroke();
+}
+}
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+/* ===== THREAT MAP CANVAS ===== */
+(function(){
+const canvas=document.getElementById('map-canvas');
+const ctx=canvas.getContext('2d');
+let w,h;
+function resize(){
+const rect=canvas.parentElement.getBoundingClientRect();
+w=canvas.width=rect.width;h=canvas.height=rect.height;
+}
+resize();
+window.addEventListener('resize',resize);
+
+// Simplified world map outlines (rough continent shapes)
+const continents=[
+// North America
+[[0.12,0.18],[0.08,0.22],[0.05,0.28],[0.06,0.35],[0.1,0.42],[0.14,0.48],[0.18,0.55],[0.22,0.58],[0.25,0.52],[0.22,0.42],[0.2,0.35],[0.24,0.3],[0.22,0.22],[0.18,0.18],[0.12,0.18]],
+// South America
+[[0.22,0.58],[0.24,0.62],[0.28,0.7],[0.3,0.78],[0.28,0.85],[0.24,0.9],[0.22,0.85],[0.2,0.75],[0.21,0.65],[0.22,0.58]],
+// Europe
+[[0.42,0.2],[0.44,0.18],[0.48,0.16],[0.52,0.18],[0.54,0.22],[0.52,0.28],[0.48,0.32],[0.44,0.3],[0.42,0.25],[0.42,0.2]],
+// Africa
+[[0.44,0.35],[0.48,0.32],[0.52,0.35],[0.54,0.42],[0.55,0.52],[0.54,0.62],[0.5,0.7],[0.46,0.65],[0.44,0.55],[0.43,0.45],[0.44,0.35]],
+// Asia
+[[0.54,0.18],[0.58,0.15],[0.65,0.14],[0.72,0.16],[0.78,0.2],[0.82,0.25],[0.85,0.3],[0.82,0.35],[0.78,0.38],[0.72,0.4],[0.65,0.42],[0.6,0.38],[0.56,0.32],[0.54,0.25],[0.54,0.18]],
+// Australia
+[[0.78,0.62],[0.82,0.58],[0.88,0.6],[0.9,0.65],[0.88,0.72],[0.82,0.74],[0.78,0.7],[0.78,0.62]],
+];
+
+// Threat markers
+const markers=[
+{x:0.15,y:0.35,type:'g',label:'Washington DC'},
+{x:0.12,y:0.42,type:'o',label:'Guantanamo'},
+{x:0.48,y:0.22,type:'g',label:'London'},
+{x:0.56,y:0.38,type:'r',label:'Iraq'},
+{x:0.62,y:0.32,type:'r',label:'Iran'},
+{x:0.52,y:0.28,type:'o',label:'Georgia'},
+{x:0.68,y:0.35,type:'o',label:'Pakistan'},
+{x:0.58,y:0.25,type:'g',label:'Turkey'},
+{x:0.46,y:0.45,type:'r',label:'Libya'},
+{x:0.78,y:0.3,type:'o',label:'Shanghai'},
+{x:0.25,y:0.48,type:'g',label:'Mexico'},
+];
+
+let time=0;
+function draw(){
+ctx.clearRect(0,0,w,h);
+const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+
+// Background grid
+ctx.strokeStyle=isDark?'rgba(0,232,104,0.04)':'rgba(0,140,80,0.06)';
+ctx.lineWidth=0.5;
+for(let x=0;x<w;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+for(let y=0;y<h;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+
+// Draw continents
+ctx.strokeStyle=isDark?'rgba(0,232,104,0.2)':'rgba(0,140,80,0.25)';
+ctx.fillStyle=isDark?'rgba(0,232,104,0.03)':'rgba(0,140,80,0.05)';
+ctx.lineWidth=1;
+for(const cont of continents){
+ctx.beginPath();
+for(let i=0;i<cont.length;i++){
+const px=cont[i][0]*w,py=cont[i][1]*h;
+if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+}
+ctx.closePath();ctx.fill();ctx.stroke();
+}
+
+// Draw markers
+time+=0.02;
+for(const m of markers){
+const mx=m.x*w,my=m.y*h;
+let color;
+if(m.type==='r')color=isDark?'rgba(224,32,32,':'rgba(200,20,20,';
+else if(m.type==='o')color=isDark?'rgba(255,136,0,':'rgba(200,100,0,';
+else color=isDark?'rgba(0,204,102,':'rgba(0,160,80,';
+
+// Pulse ring
+const pulse=(Math.sin(time*2+m.x*10)*0.5+0.5);
+ctx.beginPath();
+ctx.arc(mx,my,6+pulse*8,0,Math.PI*2);
+ctx.strokeStyle=color+(0.15+pulse*0.15)+')';
+ctx.lineWidth=1;
+ctx.stroke();
+
+// Dot
+ctx.beginPath();
+ctx.arc(mx,my,3,0,Math.PI*2);
+ctx.fillStyle=color+'0.8)';
+ctx.fill();
+}
+
+// Sweeping scan line
+const scanX=(time*40)%w;
+ctx.strokeStyle=isDark?'rgba(0,232,104,0.08)':'rgba(0,140,80,0.1)';
+ctx.lineWidth=1;
+ctx.beginPath();ctx.moveTo(scanX,0);ctx.lineTo(scanX,h);ctx.stroke();
+
+requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+</body>
+</html>

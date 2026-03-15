@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splinter Cell: Chaos Theory — Third Echelon Operations</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--nv-green:#00ff41;--nv-green2:#00cc33;--nv-dim:#00aa22;--nv-dark:#004d15;
+--bg-primary:#050505;--bg-secondary:#0a0a0a;--bg-tertiary:#0f0f0f;--bg-panel:#0a120a;
+--text-primary:#00ff41;--text-secondary:#00cc33;--text-dim:#007722;
+--thermal-orange:#ff6600;--thermal-purple:#9900cc;--thermal-red:#cc3300;--thermal-yellow:#ffaa00;
+--glow-sm:0 0 5px #00ff41;--glow-md:0 0 10px #00ff41,0 0 20px #00ff4155;
+--glow-lg:0 0 10px #00ff41,0 0 30px #00ff4155,0 0 60px #00ff4133;
+--glow-dot:0 0 8px #00ff41,0 0 16px #00ff41aa,0 0 32px #00ff4155;
+--font-mono:'Share Tech Mono',monospace;--font-raj:'Rajdhani',sans-serif;--font-cn:'Noto Sans SC',sans-serif;
+--border-green:#00ff4133;
+}
+[data-theme="light"]{
+--bg-primary:#1a0a1f;--bg-secondary:#200e28;--bg-tertiary:#2a1233;--bg-panel:#1f0a25;
+--text-primary:#ff6600;--text-secondary:#ffaa00;--text-dim:#cc5500;
+--nv-green:#ff6600;--nv-green2:#ff8833;--nv-dim:#cc5500;--nv-dark:#662a00;
+--glow-sm:0 0 5px #ff6600;--glow-md:0 0 10px #ff6600,0 0 20px #ff660055;
+--glow-lg:0 0 10px #ff6600,0 0 30px #ff660055,0 0 60px #ff660033;
+--glow-dot:0 0 8px #ff6600,0 0 16px #ff6600aa,0 0 32px #ff660055;
+--border-green:#ff660033;
+}
+html{scroll-behavior:smooth;background:var(--bg-primary)}
+body{
+font-family:var(--font-raj);color:var(--text-primary);background:var(--bg-primary);
+overflow-x:hidden;line-height:1.6;position:relative;
+}
+canvas#nvCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;opacity:.12}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-primary)}
+::-webkit-scrollbar-thumb{background:var(--nv-dark);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--nv-dim)}
+
+/* GRID OVERLAY */
+body::before{
+content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+background:
+  linear-gradient(var(--border-green) 1px,transparent 1px),
+  linear-gradient(90deg,var(--border-green) 1px,transparent 1px);
+background-size:60px 60px;
+pointer-events:none;z-index:1;opacity:.15;
+}
+
+/* TOP NAV */
+.top-bar{
+position:fixed;top:0;left:0;right:0;z-index:1000;
+background:var(--bg-primary)ee;backdrop-filter:blur(8px);
+border-bottom:1px solid var(--border-green);
+display:flex;justify-content:space-between;align-items:center;
+padding:8px 30px;font-family:var(--font-mono);font-size:12px;
+}
+.top-bar .logo-area{display:flex;align-items:center;gap:15px}
+.top-bar .triple-dot{color:var(--nv-green);font-size:18px;letter-spacing:4px;text-shadow:var(--glow-dot)}
+.top-bar .logo-text{color:var(--text-secondary);text-transform:uppercase;letter-spacing:3px;font-size:11px}
+.top-bar .controls{display:flex;gap:12px;align-items:center}
+.toggle-btn{
+background:transparent;border:1px solid var(--border-green);color:var(--text-dim);
+padding:4px 10px;font-family:var(--font-mono);font-size:10px;cursor:pointer;
+text-transform:uppercase;letter-spacing:1px;transition:all .3s;
+}
+.toggle-btn:hover{border-color:var(--nv-green);color:var(--text-primary);box-shadow:var(--glow-sm)}
+.nav-links{display:flex;gap:20px;list-style:none}
+.nav-links a{
+color:var(--text-dim);text-decoration:none;font-family:var(--font-mono);font-size:11px;
+text-transform:uppercase;letter-spacing:2px;transition:all .3s;position:relative;
+}
+.nav-links a:hover{color:var(--text-primary);text-shadow:var(--glow-sm)}
+.nav-links a::before{content:'● ';opacity:0;transition:opacity .3s}
+.nav-links a:hover::before{opacity:1}
+
+/* SCAN LINE */
+@keyframes scanLine{
+0%{top:-2px}100%{top:100%}
+}
+.scan-line{
+position:fixed;left:0;width:100%;height:2px;
+background:linear-gradient(90deg,transparent,var(--nv-green)44,var(--nv-green)88,var(--nv-green)44,transparent);
+z-index:9998;pointer-events:none;animation:scanLine 8s linear infinite;opacity:.4;
+}
+
+/* SECTION BASE */
+section{position:relative;z-index:2;padding:100px 0}
+.container{max-width:1200px;margin:0 auto;padding:0 30px}
+
+/* HERO */
+.hero{
+min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+text-align:center;position:relative;padding-top:60px;
+}
+.hero-bg{
+position:absolute;top:0;left:0;right:0;bottom:0;
+background:radial-gradient(ellipse at center,var(--bg-tertiary) 0%,var(--bg-primary) 70%);
+}
+.hero-content{position:relative;z-index:5}
+/* NV GOGGLES */
+.nv-goggles{
+display:flex;gap:30px;margin-bottom:50px;justify-content:center;align-items:center;
+}
+.nv-dot{
+width:28px;height:28px;border-radius:50%;
+background:var(--nv-dark);
+transition:all .6s ease;position:relative;
+}
+.nv-dot.active{
+background:var(--nv-green);
+box-shadow:var(--glow-dot);
+}
+.nv-dot::after{
+content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.1);
+}
+.nv-dot.active::after{background:rgba(255,255,255,.4)}
+/* Goggles frame */
+.goggles-frame{
+display:flex;align-items:center;gap:0;padding:15px 40px;
+border:2px solid var(--border-green);border-radius:40px;
+background:var(--bg-primary)cc;position:relative;
+}
+.goggles-frame::before,.goggles-frame::after{
+content:'';position:absolute;top:50%;width:60px;height:2px;
+background:var(--border-green);
+}
+.goggles-frame::before{left:-60px}
+.goggles-frame::after{right:-60px}
+
+.hero-title{
+font-family:var(--font-raj);font-size:clamp(36px,6vw,72px);font-weight:700;
+text-transform:uppercase;letter-spacing:8px;color:var(--text-primary);
+text-shadow:var(--glow-lg);margin-bottom:5px;line-height:1.1;
+}
+.hero-subtitle{
+font-family:var(--font-mono);font-size:clamp(12px,2vw,16px);
+color:var(--text-dim);letter-spacing:6px;text-transform:uppercase;margin-bottom:30px;
+}
+.hero-cn{
+font-family:var(--font-cn);font-size:clamp(16px,2.5vw,24px);
+color:var(--text-secondary);letter-spacing:4px;margin-bottom:40px;
+text-shadow:var(--glow-sm);font-weight:300;
+}
+.hero-tagline{
+font-family:var(--font-mono);font-size:13px;color:var(--text-dim);
+max-width:600px;margin:0 auto 30px;line-height:1.8;letter-spacing:1px;
+}
+/* Light Meter Hero */
+.hero-light-meter{
+display:flex;align-items:center;gap:10px;justify-content:center;margin-top:20px;
+}
+.hero-light-meter .label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px}
+.light-bar{
+display:flex;gap:2px;
+}
+.light-bar .seg{
+width:8px;height:20px;background:var(--nv-dark);transition:background .3s;
+}
+.light-bar .seg.lit{background:var(--nv-green);box-shadow:var(--glow-sm)}
+
+/* OPSAT PANEL STYLE */
+.opsat-panel{
+background:var(--bg-panel);border:1px solid var(--border-green);
+padding:30px;position:relative;font-family:var(--font-mono);
+margin-bottom:30px;
+}
+.opsat-panel::before{
+content:'●●● OPSAT v3.7 — THIRD ECHELON';position:absolute;top:-1px;left:20px;
+background:var(--bg-panel);padding:0 10px;font-size:10px;color:var(--text-dim);
+letter-spacing:2px;transform:translateY(-50%);
+}
+.opsat-panel::after{
+content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,.02) 2px,rgba(0,255,65,.02) 4px);
+pointer-events:none;
+}
+.opsat-header{
+font-size:14px;color:var(--text-primary);text-transform:uppercase;letter-spacing:3px;
+border-bottom:1px solid var(--border-green);padding-bottom:10px;margin-bottom:15px;
+text-shadow:var(--glow-sm);
+}
+.opsat-text{font-size:13px;color:var(--text-secondary);line-height:1.8;letter-spacing:.5px}
+.opsat-text .highlight{color:var(--nv-green);text-shadow:var(--glow-sm)}
+
+/* SECTION HEADERS */
+.section-header{text-align:center;margin-bottom:60px}
+.section-header .triple{
+font-size:24px;color:var(--nv-green);letter-spacing:8px;
+text-shadow:var(--glow-dot);margin-bottom:10px;
+}
+.section-header h2{
+font-family:var(--font-raj);font-size:clamp(28px,4vw,48px);font-weight:700;
+text-transform:uppercase;letter-spacing:6px;color:var(--text-primary);
+text-shadow:var(--glow-md);
+}
+.section-header .cn-sub{
+font-family:var(--font-cn);font-size:16px;color:var(--text-dim);
+margin-top:5px;letter-spacing:2px;
+}
+.section-header .line{
+width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--nv-green),transparent);
+margin:15px auto 0;
+}
+
+/* LIGHT & SOUND METERS */
+.meters-section{background:var(--bg-secondary)}
+.meters-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.meter-card{
+background:var(--bg-panel);border:1px solid var(--border-green);padding:30px;
+position:relative;
+}
+.meter-card .meter-title{
+font-family:var(--font-mono);font-size:12px;color:var(--text-dim);
+text-transform:uppercase;letter-spacing:3px;margin-bottom:20px;
+}
+.meter-card .meter-icon{
+font-size:11px;color:var(--text-dim);margin-bottom:10px;font-family:var(--font-mono);
+}
+/* Light meter */
+.light-meter-display{display:flex;gap:3px;align-items:flex-end;margin-bottom:15px}
+.light-meter-display .bar{
+width:100%;height:30px;background:var(--nv-dark);position:relative;overflow:hidden;
+border:1px solid var(--border-green);
+}
+.light-meter-display .bar .fill{
+height:100%;background:linear-gradient(90deg,var(--nv-dark),var(--nv-dim),var(--nv-green),var(--nv-green2),#ffff00);
+width:0%;transition:width 2s ease;
+}
+.light-meter-display .bar .indicator{
+position:absolute;top:0;bottom:0;width:2px;background:var(--text-primary);
+box-shadow:var(--glow-sm);left:25%;transition:left 3s ease;
+}
+.light-segments{display:flex;gap:2px;margin-top:10px}
+.light-segments .seg{
+flex:1;height:8px;background:var(--nv-dark);transition:all .5s;
+}
+.meter-label-row{display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);font-family:var(--font-mono);margin-top:5px}
+
+/* Sound meter / waveform */
+.waveform-display{display:flex;align-items:center;gap:2px;height:60px;margin-bottom:15px}
+.waveform-display .wave-bar{
+flex:1;background:var(--nv-green);min-width:3px;
+animation:waveAnim 1.5s ease-in-out infinite alternate;
+box-shadow:var(--glow-sm);
+}
+@keyframes waveAnim{
+0%{height:5px}
+50%{height:40px}
+100%{height:10px}
+}
+.sound-level-dots{display:flex;gap:4px;margin-top:10px}
+.sound-level-dots .dot{
+width:8px;height:8px;border-radius:50%;background:var(--nv-dark);
+}
+.sound-level-dots .dot.active{background:var(--nv-green);box-shadow:var(--glow-sm)}
+
+/* MISSIONS */
+.missions-section{background:var(--bg-primary)}
+.missions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:25px}
+.mission-card{
+background:var(--bg-panel);border:1px solid var(--border-green);
+position:relative;overflow:hidden;transition:all .4s;cursor:default;
+}
+.mission-card:hover{
+border-color:var(--nv-green);box-shadow:var(--glow-md);transform:translateY(-3px);
+}
+.mission-card .mission-header{
+padding:20px 20px 10px;display:flex;justify-content:space-between;align-items:flex-start;
+}
+.mission-card .mission-num{
+font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
+letter-spacing:2px;text-transform:uppercase;
+}
+.mission-card .mission-status{
+font-family:var(--font-mono);font-size:9px;padding:2px 8px;
+border:1px solid var(--nv-dim);color:var(--nv-dim);letter-spacing:1px;
+}
+.mission-card .mission-name{
+padding:0 20px;font-family:var(--font-raj);font-size:24px;font-weight:600;
+text-transform:uppercase;letter-spacing:3px;color:var(--text-primary);
+text-shadow:var(--glow-sm);
+}
+.mission-card .mission-cn{
+padding:0 20px;font-family:var(--font-cn);font-size:13px;color:var(--text-dim);margin-top:2px;
+}
+.mission-card .mission-body{
+padding:15px 20px 20px;font-family:var(--font-mono);font-size:11px;
+color:var(--text-secondary);line-height:1.7;
+}
+.mission-card .mission-meta{
+border-top:1px solid var(--border-green);padding:10px 20px;
+display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);
+}
+.mission-card .difficulty-bar{display:flex;gap:2px}
+.mission-card .difficulty-bar .db{width:12px;height:4px;background:var(--nv-dark)}
+.mission-card .difficulty-bar .db.filled{background:var(--nv-green);box-shadow:var(--glow-sm)}
+
+/* EQUIPMENT */
+.equipment-section{background:var(--bg-secondary)}
+.equipment-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.equip-card{
+background:var(--bg-panel);border:1px solid var(--border-green);padding:25px 20px;
+text-align:center;transition:all .4s;position:relative;
+}
+.equip-card:hover{border-color:var(--nv-green);box-shadow:var(--glow-sm)}
+.equip-card .equip-icon{
+font-size:32px;margin-bottom:12px;filter:drop-shadow(var(--glow-sm));
+}
+.equip-card .equip-name{
+font-family:var(--font-raj);font-size:16px;font-weight:600;
+text-transform:uppercase;letter-spacing:2px;color:var(--text-primary);
+text-shadow:var(--glow-sm);margin-bottom:5px;
+}
+.equip-card .equip-cn{
+font-family:var(--font-cn);font-size:12px;color:var(--text-dim);margin-bottom:8px;
+}
+.equip-card .equip-desc{
+font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);line-height:1.6;
+}
+.equip-card .equip-dots{
+margin-top:10px;color:var(--nv-dim);font-size:8px;letter-spacing:3px;
+}
+
+/* SC-20K SILHOUETTE */
+.rifle-silhouette{
+text-align:center;margin:50px 0 0;opacity:.15;
+font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
+letter-spacing:2px;white-space:pre;line-height:1;
+}
+
+/* CO-OP */
+.coop-section{background:var(--bg-primary)}
+.coop-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:40px}
+.coop-card{
+background:var(--bg-panel);border:1px solid var(--border-green);padding:25px;
+}
+.coop-card .coop-title{
+font-family:var(--font-raj);font-size:18px;font-weight:600;
+text-transform:uppercase;letter-spacing:2px;color:var(--text-primary);
+text-shadow:var(--glow-sm);margin-bottom:10px;
+}
+.coop-card .coop-desc{
+font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:1.7;
+}
+
+/* SOUNDTRACK VISUALIZER */
+.soundtrack-section{background:var(--bg-secondary);overflow:hidden}
+.freq-visualizer{
+display:flex;align-items:flex-end;justify-content:center;gap:3px;height:120px;
+margin:40px 0;padding:20px;background:var(--bg-panel);border:1px solid var(--border-green);
+position:relative;
+}
+.freq-visualizer::before{
+content:'●●● AMON TOBIN — CHAOS THEORY OST';
+position:absolute;top:8px;left:15px;font-family:var(--font-mono);
+font-size:9px;color:var(--text-dim);letter-spacing:2px;
+}
+.freq-bar{
+width:6px;background:var(--nv-green);box-shadow:var(--glow-sm);
+animation:freqPulse var(--dur,1s) ease-in-out infinite alternate;
+border-radius:1px 1px 0 0;
+}
+@keyframes freqPulse{
+0%{height:var(--h1,10px)}50%{height:var(--h2,60px)}100%{height:var(--h3,20px)}
+}
+.track-list{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;margin-top:30px;
+}
+.track-item{
+display:flex;align-items:center;gap:12px;padding:10px 15px;
+background:var(--bg-panel);border:1px solid var(--border-green);
+font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);
+transition:all .3s;
+}
+.track-item:hover{border-color:var(--nv-green);color:var(--text-primary)}
+.track-item .track-num{color:var(--text-dim);font-size:10px;min-width:24px}
+.track-item .track-dots{color:var(--nv-dim);font-size:6px;margin-left:auto}
+
+/* QUOTE */
+.quote-section{
+background:var(--bg-primary);text-align:center;padding:120px 0;
+position:relative;
+}
+.quote-section .big-dots{
+font-size:36px;color:var(--nv-green);letter-spacing:12px;
+text-shadow:var(--glow-dot);margin-bottom:30px;
+}
+.quote-text{
+font-family:var(--font-raj);font-size:clamp(20px,3.5vw,36px);font-weight:300;
+color:var(--text-primary);text-shadow:var(--glow-md);max-width:800px;margin:0 auto 20px;
+letter-spacing:2px;line-height:1.5;
+}
+.quote-attr{
+font-family:var(--font-mono);font-size:12px;color:var(--text-dim);
+letter-spacing:3px;text-transform:uppercase;
+}
+.quote-cn{
+font-family:var(--font-cn);font-size:16px;color:var(--text-dim);margin-top:15px;
+}
+
+/* CTA */
+.cta-section{background:var(--bg-secondary);text-align:center;padding:80px 0}
+.cta-title{
+font-family:var(--font-raj);font-size:clamp(24px,3vw,40px);font-weight:700;
+text-transform:uppercase;letter-spacing:5px;color:var(--text-primary);
+text-shadow:var(--glow-lg);margin-bottom:10px;
+}
+.cta-cn{font-family:var(--font-cn);font-size:16px;color:var(--text-dim);margin-bottom:30px}
+.cta-btn{
+display:inline-block;padding:14px 50px;border:2px solid var(--nv-green);
+background:transparent;color:var(--text-primary);font-family:var(--font-raj);
+font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:4px;
+cursor:pointer;transition:all .4s;position:relative;text-decoration:none;
+}
+.cta-btn:hover{
+background:var(--nv-green);color:var(--bg-primary);box-shadow:var(--glow-lg);
+}
+.cta-btn::before{content:'●●● ';font-size:8px;vertical-align:middle;letter-spacing:2px}
+
+/* FOOTER */
+footer{
+background:var(--bg-primary);border-top:1px solid var(--border-green);
+padding:40px 0 20px;
+}
+.footer-content{
+display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:30px;
+}
+.footer-col{flex:1;min-width:200px}
+.footer-col .ft-title{
+font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
+text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;
+}
+.footer-col .ft-text{font-family:var(--font-mono);font-size:10px;color:var(--nv-dark);line-height:1.8}
+.footer-bottom{
+text-align:center;margin-top:30px;padding-top:20px;border-top:1px solid var(--border-green);
+font-family:var(--font-mono);font-size:10px;color:var(--nv-dark);letter-spacing:2px;
+}
+.footer-bottom .ft-dots{color:var(--nv-dim);font-size:14px;letter-spacing:6px;margin-bottom:8px;text-shadow:var(--glow-sm)}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(30px);transition:all .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .meters-grid,.coop-grid{grid-template-columns:1fr}
+  .missions-grid{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .top-bar{padding:8px 15px}
+  .container{padding:0 15px}
+  section{padding:70px 0}
+  .goggles-frame{padding:12px 25px}
+  .nv-dot{width:22px;height:22px}
+  .goggles-frame::before,.goggles-frame::after{width:30px}
+  .footer-content{flex-direction:column}
+}
+@media(max-width:480px){
+  .equipment-grid{grid-template-columns:1fr 1fr}
+  .hero-title{letter-spacing:4px}
+}
+
+/* FISHEYE EFFECT on certain elements */
+.fisheye{
+border-radius:50%;overflow:hidden;border:2px solid var(--border-green);
+}
+
+/* LOADING OVERLAY */
+.loading-overlay{
+position:fixed;top:0;left:0;right:0;bottom:0;background:#000;
+z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;
+transition:opacity .8s;
+}
+.loading-overlay.done{opacity:0;pointer-events:none}
+.loading-dots{display:flex;gap:25px;margin-bottom:30px}
+.loading-dots .ld{
+width:24px;height:24px;border-radius:50%;background:#002200;
+transition:all .5s ease;
+}
+.loading-dots .ld.on{
+background:#00ff41;box-shadow:0 0 10px #00ff41,0 0 25px #00ff41aa,0 0 50px #00ff4155;
+}
+.loading-text{
+font-family:'Share Tech Mono',monospace;font-size:11px;color:#004d15;
+letter-spacing:3px;text-transform:uppercase;
+}
+
+/* Utility */
+.text-cn{display:none}
+[data-lang="cn"] .text-en{display:none}
+[data-lang="cn"] .text-cn{display:inline}
+[data-lang="cn"] .block-en{display:none!important}
+[data-lang="cn"] .block-cn{display:block!important}
+.block-cn{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-dots">
+    <div class="ld" id="ld1"></div>
+    <div class="ld" id="ld2"></div>
+    <div class="ld" id="ld3"></div>
+  </div>
+  <div class="loading-text" id="loadingText">Initializing Night Vision...</div>
+</div>
+
+<!-- NV GRAIN CANVAS -->
+<canvas id="nvCanvas"></canvas>
+
+<!-- SCAN LINE -->
+<div class="scan-line"></div>
+
+<!-- TOP BAR -->
+<nav class="top-bar">
+  <div class="logo-area">
+    <span class="triple-dot">●●●</span>
+    <span class="logo-text">
+      <span class="text-en">Third Echelon</span>
+      <span class="text-cn">第三梯队</span>
+    </span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#briefing"><span class="text-en">Briefing</span><span class="text-cn">简报</span></a></li>
+    <li><a href="#meters"><span class="text-en">Meters</span><span class="text-cn">仪表</span></a></li>
+    <li><a href="#missions"><span class="text-en">Missions</span><span class="text-cn">任务</span></a></li>
+    <li><a href="#equipment"><span class="text-en">Equipment</span><span class="text-cn">装备</span></a></li>
+    <li><a href="#coop"><span class="text-en">Co-Op</span><span class="text-cn">合作</span></a></li>
+    <li><a href="#soundtrack"><span class="text-en">Soundtrack</span><span class="text-cn">原声</span></a></li>
+  </ul>
+  <div class="controls">
+    <button class="toggle-btn" id="langToggle" onclick="toggleLang()">中/EN</button>
+    <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">
+      <span class="text-en">Thermal</span><span class="text-cn">热成像</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="nv-goggles">
+      <div class="goggles-frame">
+        <div class="nv-dot" id="nvDot1"></div>
+        <div style="width:20px"></div>
+        <div class="nv-dot" id="nvDot2"></div>
+        <div style="width:20px"></div>
+        <div class="nv-dot" id="nvDot3"></div>
+      </div>
+    </div>
+    <h1 class="hero-title">
+      <span class="text-en">Splinter Cell</span>
+      <span class="text-cn">细胞分裂</span>
+    </h1>
+    <div class="hero-subtitle">
+      <span class="text-en">Chaos Theory</span>
+      <span class="text-cn">混沌理论</span>
+    </div>
+    <div class="hero-cn">
+      <span class="text-en">细胞分裂：混沌理论 — 2005</span>
+      <span class="text-cn">Tom Clancy's Splinter Cell: Chaos Theory</span>
+    </div>
+    <div class="hero-tagline">
+      <span class="text-en">The definitive stealth experience. Third Echelon's most dangerous operative. One man in the dark, protecting the world from Information Warfare.</span>
+      <span class="text-cn">终极潜行体验。第三梯队最危险的特工。一人于暗处，守护世界免受信息战威胁。</span>
+    </div>
+    <div class="hero-light-meter">
+      <span class="label"><span class="text-en">Visibility</span><span class="text-cn">可见度</span></span>
+      <div class="light-bar" id="heroLightBar">
+        <div class="seg lit"></div><div class="seg lit"></div><div class="seg"></div>
+        <div class="seg"></div><div class="seg"></div><div class="seg"></div>
+        <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+      </div>
+      <span class="label" style="font-size:9px;color:var(--nv-dim)">●●●</span>
+    </div>
+  </div>
+</section>
+
+<!-- OPSAT BRIEFING -->
+<section id="briefing" style="background:var(--bg-secondary)">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="triple">●●●</div>
+      <h2><span class="text-en">OPSAT Briefing</span><span class="text-cn">OPSAT 简报</span></h2>
+      <div class="cn-sub"><span class="text-en">作战卫星通讯</span><span class="text-cn">Operational Satellite Uplink</span></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="opsat-panel reveal">
+      <div class="opsat-header">
+        <span class="text-en">●●● Mission Brief — Operation Chaos Theory</span>
+        <span class="text-cn">●●● 任务简报 — 混沌理论行动</span>
+      </div>
+      <div class="opsat-text">
+        <span class="text-en">
+          Agent: <span class="highlight">Sam Fisher</span> | Callsign: <span class="highlight">Panther</span><br>
+          Handler: <span class="highlight">Irving Lambert</span> | Tech: <span class="highlight">Anna Grímsdóttir</span><br><br>
+          In 2007, Information Warfare has become the new battlefield. A series of algorithmic attacks threatens to destabilize global infrastructure. The <span class="highlight">Masse Kernels</span> — weaponized algorithms — are being deployed against the United States and her allies. Japan, North Korea, and a shadowy PMC called <span class="highlight">Displace International</span> are all connected.<br><br>
+          Third Echelon deploys its most lethal operative, Sam Fisher, with full <span class="highlight">Fifth Freedom</span> authorization. Fisher is sanctioned to spy, steal, destroy, and assassinate to protect American interests. From the <span class="highlight">Lighthouse of Talara</span> to the <span class="highlight">Kokubo Sosho</span> war room — every shadow is his weapon.<br><br>
+          ●●● <span class="highlight">CLASSIFICATION: ULTRA BLACK</span> — EYES ONLY
+        </span>
+        <span class="text-cn">
+          特工：<span class="highlight">山姆·费舍尔</span> | 代号：<span class="highlight">黑豹</span><br>
+          指挥官：<span class="highlight">欧文·兰伯特</span> | 技术支援：<span class="highlight">安娜·格里姆斯多蒂尔</span><br><br>
+          2007年，信息战成为新战场。一系列算法攻击威胁着全球基础设施的稳定。<span class="highlight">马塞内核</span>——武器化算法——正被部署来对付美国及其盟友。日本、朝鲜以及一个名为<span class="highlight">Displace International</span>的神秘私人军事公司都牵涉其中。<br><br>
+          第三梯队派出其最致命的特工山姆·费舍尔，授予完全的<span class="highlight">第五自由</span>权限。费舍尔被授权从事间谍活动、窃取情报、摧毁目标和执行暗杀以保护美国利益。从<span class="highlight">塔拉拉灯塔</span>到<span class="highlight">国防总省</span>作战室——每一寸阴影都是他的武器。<br><br>
+          ●●● <span class="highlight">密级：超黑</span> — 仅限阅览
+        </span>
+      </div>
+    </div>
+
+    <div class="opsat-panel reveal">
+      <div class="opsat-header">
+        <span class="text-en">●●● Sam Fisher — Operative Profile</span>
+        <span class="text-cn">●●● 山姆·费舍尔 — 特工档案</span>
+      </div>
+      <div class="opsat-text">
+        <span class="text-en">
+          Name: <span class="highlight">Samuel Leo Fisher</span><br>
+          DOB: <span class="highlight">August 17, 1957</span> | Status: <span class="highlight">ACTIVE — FIELD</span><br>
+          Specialty: Infiltration, CQC, Electronic Warfare, SIGINT<br>
+          Service Record: CIA (SAD/SOG), Navy SEALs (DEVGRU), Third Echelon (Splinter Cell)<br><br>
+          Fisher is the prototype Splinter Cell — a lone operative who works in complete darkness, deniable by his own government. Chaos Theory represents his most complex operation: navigating a three-way geopolitical crisis between the US, Japan, and the Koreas while dismantling the Masse algorithm threat.<br><br>
+          ●●● Multi-Vision Goggles: Night Vision / Thermal / EEV capable
+        </span>
+        <span class="text-cn">
+          姓名：<span class="highlight">塞缪尔·利奥·费舍尔</span><br>
+          出生日期：<span class="highlight">1957年8月17日</span> | 状态：<span class="highlight">现役 — 外勤</span><br>
+          专长：潜入、近身格斗、电子战、信号情报<br>
+          服役记录：中央情报局（特别活动中心）、海豹突击队（DEVGRU）、第三梯队（细胞分裂）<br><br>
+          费舍尔是细胞分裂计划的原型特工——一名在完全黑暗中行动的独行特工，其政府可以否认其存在。混沌理论代表了他最复杂的行动：在美日韩三方地缘政治危机中穿行，同时瓦解马塞算法威胁。<br><br>
+          ●●● 多功能视觉护目镜：夜视 / 热成像 / 电磁波视觉
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIGHT & SOUND METERS -->
+<section class="meters-section" id="meters">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="triple">●●●</div>
+      <h2><span class="text-en">Stealth Meters</span><span class="text-cn">潜行仪表</span></h2>
+      <div class="cn-sub"><span class="text-en">光线与声音监测</span><span class="text-cn">Light & Sound Monitoring</span></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="meters-grid">
+      <div class="meter-card reveal">
+        <div class="meter-icon">●●● <span class="text-en">LIGHT METER</span><span class="text-cn">光线仪表</span></div>
+        <div class="meter-title"><span class="text-en">Ambient Light Detection</span><span class="text-cn">环境光检测</span></div>
+        <div class="light-meter-display">
+          <div class="bar">
+            <div class="fill" id="lightFill"></div>
+            <div class="indicator" id="lightIndicator"></div>
+          </div>
+        </div>
+        <div class="light-segments" id="lightSegments">
+          <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+          <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+          <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+        </div>
+        <div class="meter-label-row">
+          <span><span class="text-en">SHADOW</span><span class="text-cn">阴影</span></span>
+          <span>●●●</span>
+          <span><span class="text-en">EXPOSED</span><span class="text-cn">暴露</span></span>
+        </div>
+        <div class="opsat-text" style="margin-top:15px;font-size:10px">
+          <span class="text-en">The light meter is Sam Fisher's most critical tool. Stay in darkness — keep the bar low. When the meter fills, guards can see you. Shoot out lights, stick to shadows, move through the dark.</span>
+          <span class="text-cn">光线仪表是山姆·费舍尔最关键的工具。保持在黑暗中——让指示条保持低位。当仪表填满时，守卫就能看到你。打碎灯光，贴紧阴影，在黑暗中移动。</span>
+        </div>
+      </div>
+
+      <div class="meter-card reveal">
+        <div class="meter-icon">●●● <span class="text-en">SOUND METER</span><span class="text-cn">声音仪表</span></div>
+        <div class="meter-title"><span class="text-en">Acoustic Waveform Analysis</span><span class="text-cn">声学波形分析</span></div>
+        <div class="waveform-display" id="waveformDisplay"></div>
+        <div class="sound-level-dots" id="soundDots"></div>
+        <div class="meter-label-row">
+          <span><span class="text-en">SILENT</span><span class="text-cn">安静</span></span>
+          <span>●●●</span>
+          <span><span class="text-en">LOUD</span><span class="text-cn">噪音</span></span>
+        </div>
+        <div class="opsat-text" style="margin-top:15px;font-size:10px">
+          <span class="text-en">Ambient noise masks your movement. Walk slowly on hard surfaces. Use environmental sound — rain, machinery, music — to cover footsteps. The waveform shows real-time audio detection levels.</span>
+          <span class="text-cn">环境噪音可以掩盖你的行动。在硬质地面上缓慢行走。利用环境声音——雨声、机器声、音乐——来掩盖脚步声。波形显示实时音频检测水平。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSIONS -->
+<section class="missions-section" id="missions">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="triple">●●●</div>
+      <h2><span class="text-en">Key Missions</span><span class="text-cn">关键任务</span></h2>
+      <div class="cn-sub"><span class="text-en">作战任务总览</span><span class="text-cn">Operation Overview</span></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="missions-grid">
+      <!-- Mission 1: Lighthouse -->
+      <div class="mission-card reveal">
+        <div class="mission-header">
+          <span class="mission-num"><span class="text-en">Mission 01</span><span class="text-cn">任务 01</span></span>
+          <span class="mission-status"><span class="text-en">COMPLETE</span><span class="text-cn">完成</span></span>
+        </div>
+        <div class="mission-name"><span class="text-en">Lighthouse</span><span class="text-cn">灯塔</span></div>
+        <div class="mission-cn"><span class="text-en">灯塔 — 秘鲁塔拉拉</span><span class="text-cn">Lighthouse — Talara, Peru</span></div>
+        <div class="mission-body">
+          <span class="text-en">Infiltrate a Peruvian lighthouse where guerrilla forces hold Bruce Morgenholt — a Masse algorithm specialist. Extract intel on the weaponized algorithms before it's too late. The tutorial mission that sets the tone for perfection.</span>
+          <span class="text-cn">潜入秘鲁灯塔，游击队在此扣押马塞算法专家布鲁斯·摩根霍尔特。在为时已晚之前提取武器化算法情报。这个教学任务为完美潜行定下了基调。</span>
+        </div>
+        <div class="mission-meta">
+          <span><span class="text-en">Location: Peru</span><span class="text-cn">地点：秘鲁</span></span>
+          <span class="difficulty-bar"><span class="db filled"></span><span class="db filled"></span><span class="db"></span><span class="db"></span><span class="db"></span></span>
+        </div>
+      </div>
+
+      <!-- Mission 2: Cargo Ship -->
+      <div class="mission-card reveal">
+        <div class="mission-header">
+          <span class="mission-num"><span class="text-en">Mission 02</span><span class="text-cn">任务 02</span></span>
+          <span class="mission-status"><span class="text-en">COMPLETE</span><span class="text-cn">完成</span></span>
+        </div>
+        <div class="mission-name"><span class="text-en">Cargo Ship</span><span class="text-cn">货船</span></div>
+        <div class="mission-cn"><span class="text-en">货船 — 马六甲海峡</span><span class="text-cn">Cargo Ship — Strait of Malacca</span></div>
+        <div class="mission-body">
+          <span class="text-en">Board the Maria Narcissa in the Strait of Malacca. Navigate the rocking ship, avoid crew and armed guards, tap communications, and discover the connection between the cargo and the I-SDF's plans. Masterful level design with verticality and environmental storytelling.</span>
+          <span class="text-cn">登上马六甲海峡的玛利亚·纳西萨号。在摇摆的船上穿行，避开船员和武装警卫，窃听通讯，发现货物与I-SDF计划之间的联系。大师级的关卡设计，具有垂直空间感和环境叙事。</span>
+        </div>
+        <div class="mission-meta">
+          <span><span class="text-en">Location: Strait of Malacca</span><span class="text-cn">地点：马六甲海峡</span></span>
+          <span class="difficulty-bar"><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db"></span><span class="db"></span></span>
+        </div>
+      </div>
+
+      <!-- Mission 3: Bank -->
+      <div class="mission-card reveal">
+        <div class="mission-header">
+          <span class="mission-num"><span class="text-en">Mission 03</span><span class="text-cn">任务 03</span></span>
+          <span class="mission-status"><span class="text-en">LEGENDARY</span><span class="text-cn">传奇</span></span>
+        </div>
+        <div class="mission-name"><span class="text-en">Bank</span><span class="text-cn">银行</span></div>
+        <div class="mission-cn"><span class="text-en">银行 — 巴拿马</span><span class="text-cn">Bank — Panama City</span></div>
+        <div class="mission-body">
+          <span class="text-en">THE mission. Break into a Panamanian bank to access Abrahim Zherkezhi's vault. Laser grids, vault doors, security cameras, patrolling guards — this is stealth gameplay at its absolute peak. Often cited as the greatest stealth level ever designed. Pure perfection.</span>
+          <span class="text-cn">最经典的任务。闯入巴拿马银行，进入阿布拉希姆·谢尔凯齐的金库。激光网格、金库大门、安全摄像头、巡逻守卫——这是潜行游戏的巅峰之作。常被称为有史以来最伟大的潜行关卡。纯粹的完美。</span>
+        </div>
+        <div class="mission-meta">
+          <span><span class="text-en">Location: Panama</span><span class="text-cn">地点：巴拿马</span></span>
+          <span class="difficulty-bar"><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db"></span></span>
+        </div>
+      </div>
+
+      <!-- Mission 4: Penthouse -->
+      <div class="mission-card reveal">
+        <div class="mission-header">
+          <span class="mission-num"><span class="text-en">Mission 04</span><span class="text-cn">任务 04</span></span>
+          <span class="mission-status"><span class="text-en">COMPLETE</span><span class="text-cn">完成</span></span>
+        </div>
+        <div class="mission-name"><span class="text-en">Penthouse</span><span class="text-cn">顶层公寓</span></div>
+        <div class="mission-cn"><span class="text-en">顶层公寓 — 纽约</span><span class="text-cn">Penthouse — New York City</span></div>
+        <div class="mission-body">
+          <span class="text-en">Infiltrate Zherkezhi's Manhattan penthouse. High-rise urban environment with stunning views and deadly security. Rooftop entry, elevator shafts, and a confrontation that changes everything. Displace International's involvement deepens.</span>
+          <span class="text-cn">潜入谢尔凯齐的曼哈顿顶层公寓。高层城市环境，拥有惊人的景观和致命的安保。屋顶入口、电梯井，以及改变一切的对峙。Displace International的参与进一步加深。</span>
+        </div>
+        <div class="mission-meta">
+          <span><span class="text-en">Location: New York</span><span class="text-cn">地点：纽约</span></span>
+          <span class="difficulty-bar"><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db"></span></span>
+        </div>
+      </div>
+
+      <!-- Mission 5: Bathhouse -->
+      <div class="mission-card reveal">
+        <div class="mission-header">
+          <span class="mission-num"><span class="text-en">Mission 05</span><span class="text-cn">任务 05</span></span>
+          <span class="mission-status"><span class="text-en">ICONIC</span><span class="text-cn">标志性</span></span>
+        </div>
+        <div class="mission-name"><span class="text-en">Bathhouse</span><span class="text-cn">澡堂</span></div>
+        <div class="mission-cn"><span class="text-en">澡堂 — 东京</span><span class="text-cn">Bathhouse — Tokyo, Japan</span></div>
+        <div class="mission-body">
+          <span class="text-en">A Japanese bathhouse serves as front for I-SDF intelligence operations. Steam, water, traditional architecture — one of the most atmospheric levels in gaming history. The steam rooms create dynamic visibility. Navigate between relaxation and lethal security. Unforgettable.</span>
+          <span class="text-cn">一座日本澡堂作为I-SDF情报行动的掩护。蒸汽、水流、传统建筑——游戏史上最具氛围感的关卡之一。蒸汽房创造了动态的可见度。在休闲区和致命安保之间穿行。难以忘怀。</span>
+        </div>
+        <div class="mission-meta">
+          <span><span class="text-en">Location: Tokyo</span><span class="text-cn">地点：东京</span></span>
+          <span class="difficulty-bar"><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db"></span></span>
+        </div>
+      </div>
+
+      <!-- Mission 6: Kokubo Sosho -->
+      <div class="mission-card reveal">
+        <div class="mission-header">
+          <span class="mission-num"><span class="text-en">Mission 06</span><span class="text-cn">任务 06</span></span>
+          <span class="mission-status"><span class="text-en">FINAL</span><span class="text-cn">最终</span></span>
+        </div>
+        <div class="mission-name"><span class="text-en">Kokubo Sosho</span><span class="text-cn">国防总省</span></div>
+        <div class="mission-cn"><span class="text-en">国防总省 — 东京</span><span class="text-cn">Kokubo Sosho — Tokyo, Japan</span></div>
+        <div class="mission-body">
+          <span class="text-en">The final mission. Infiltrate Japan's national defense headquarters to prevent World War III. The I-SDF's war room holds the key to stopping the missile launches. Sam Fisher faces his most critical decision — one that determines the fate of millions. The culmination of the greatest stealth game ever made.</span>
+          <span class="text-cn">最终任务。潜入日本国防总部以阻止第三次世界大战。I-SDF的作战室是阻止导弹发射的关键。山姆·费舍尔面临他最关键的抉择——一个决定数百万人命运的选择。有史以来最伟大潜行游戏的高潮。</span>
+        </div>
+        <div class="mission-meta">
+          <span><span class="text-en">Location: Tokyo</span><span class="text-cn">地点：东京</span></span>
+          <span class="difficulty-bar"><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span><span class="db filled"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EQUIPMENT -->
+<section class="equipment-section" id="equipment">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="triple">●●●</div>
+      <h2><span class="text-en">Equipment</span><span class="text-cn">装备</span></h2>
+      <div class="cn-sub"><span class="text-en">第三梯队战术装备</span><span class="text-cn">Third Echelon Tactical Loadout</span></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="equipment-grid">
+      <div class="equip-card reveal">
+        <div class="equip-icon">[ ]===></div>
+        <div class="equip-name">SC-20K</div>
+        <div class="equip-cn"><span class="text-en">模块化突击步枪</span><span class="text-cn">Modular Assault Rifle</span></div>
+        <div class="equip-desc">
+          <span class="text-en">Multi-role assault rifle with modular attachments. Fires lethal rounds, sticky shockers, airfoil rounds, gas grenades, and sticky cameras. The Splinter Cell's signature weapon.</span>
+          <span class="text-cn">多用途模块化突击步枪。可发射致命弹药、粘性电击弹、气动弹、毒气榴弹和粘性摄像头。细胞分裂特工的标志性武器。</span>
+        </div>
+        <div class="equip-dots">●●●</div>
+      </div>
+
+      <div class="equip-card reveal">
+        <div class="equip-icon">|=></div>
+        <div class="equip-name"><span class="text-en">Five-seveN</span><span class="text-cn">Five-seveN</span></div>
+        <div class="equip-cn"><span class="text-en">消音手枪</span><span class="text-cn">Suppressed Pistol</span></div>
+        <div class="equip-desc">
+          <span class="text-en">FN Five-seveN suppressed pistol. OCP (Optically Channeled Potentiator) attachment can disable electronic devices. Precise, quiet, lethal.</span>
+          <span class="text-cn">FN Five-seveN消音手枪。OCP（光学通道增强器）附件可以禁用电子设备。精准、安静、致命。</span>
+        </div>
+        <div class="equip-dots">●●●</div>
+      </div>
+
+      <div class="equip-card reveal">
+        <div class="equip-icon">~*~</div>
+        <div class="equip-name"><span class="text-en">Sticky Shocker</span><span class="text-cn">粘性电击弹</span></div>
+        <div class="equip-cn"><span class="text-en">非致命弹药</span><span class="text-cn">Non-Lethal Ammo</span></div>
+        <div class="equip-desc">
+          <span class="text-en">Taser projectile fired from the SC-20K launcher. Delivers an incapacitating electric shock on contact. Can also electrify water to neutralize multiple targets. Essential for ghost runs.</span>
+          <span class="text-cn">从SC-20K发射器发射的电击弹。接触时释放使人失去行动能力的电击。还可以使水面带电以制服多个目标。幽灵通关的必备品。</span>
+        </div>
+        <div class="equip-dots">●●●</div>
+      </div>
+
+      <div class="equip-card reveal">
+        <div class="equip-icon">(O))</div>
+        <div class="equip-name"><span class="text-en">Optic Cable</span><span class="text-cn">光纤线</span></div>
+        <div class="equip-cn"><span class="text-en">门缝窥视器</span><span class="text-cn">Under-Door Camera</span></div>
+        <div class="equip-desc">
+          <span class="text-en">Flexible fiber-optic camera slipped under doors. See enemy positions, patrol patterns, and room layouts before entry. A Splinter Cell's best friend.</span>
+          <span class="text-cn">柔性光纤摄像头，可从门缝下方插入。在进入前观察敌人位置、巡逻路线和房间布局。细胞分裂特工的最佳伙伴。</span>
+        </div>
+        <div class="equip-dots">●●●</div>
+      </div>
+
+      <div class="equip-card reveal">
+        <div class="equip-icon">[((o))]</div>
+        <div class="equip-name">EEV</div>
+        <div class="equip-cn"><span class="text-en">电磁波视觉</span><span class="text-cn">Electronically Enhanced Vision</span></div>
+        <div class="equip-desc">
+          <span class="text-en">Remotely scan and interact with electronic devices. Hack computers, read emails, disable security systems — all from a safe distance. New to Chaos Theory.</span>
+          <span class="text-cn">远程扫描和操控电子设备。入侵电脑、阅读邮件、禁用安全系统——全部在安全距离内完成。混沌理论新增功能。</span>
+        </div>
+        <div class="equip-dots">●●●</div>
+      </div>
+
+      <div class="equip-card reveal">
+        <div class="equip-icon">((*))</div>
+        <div class="equip-name"><span class="text-en">Smoke Grenade</span><span class="text-cn">烟雾弹</span></div>
+        <div class="equip-cn"><span class="text-en">烟幕掩护</span><span class="text-cn">Smoke Cover</span></div>
+        <div class="equip-desc">
+          <span class="text-en">Deploys a thick smoke screen that obscures vision and disrupts enemy coordination. Combine with night vision for tactical advantage. Cover your extraction.</span>
+          <span class="text-cn">释放浓密烟幕遮蔽视线并扰乱敌方协调。配合夜视功能获得战术优势。掩护你的撤离。</span>
+        </div>
+        <div class="equip-dots">●●●</div>
+      </div>
+    </div>
+
+    <div class="rifle-silhouette reveal">
+      <span class="text-en">____[]================|>    SC-20K M.A.W.S. — MODULAR ASSAULT WEAPON SYSTEM    ●●●</span>
+      <span class="text-cn">____[]================|>    SC-20K 模块化突击武器系统    ●●●</span>
+    </div>
+  </div>
+</section>
+
+<!-- CO-OP -->
+<section class="coop-section" id="coop">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="triple">●●●</div>
+      <h2><span class="text-en">Co-Op Operations</span><span class="text-cn">合作行动</span></h2>
+      <div class="cn-sub"><span class="text-en">双人协同作战</span><span class="text-cn">Two-Agent Cooperative Missions</span></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="opsat-panel reveal" style="margin-bottom:30px">
+      <div class="opsat-header">
+        <span class="text-en">●●● Cooperative Multiplayer — Classified</span>
+        <span class="text-cn">●●● 合作多人模式 — 机密</span>
+      </div>
+      <div class="opsat-text">
+        <span class="text-en">Chaos Theory introduced a revolutionary cooperative campaign. Two agents working in perfect synchronization — boosting each other over walls, performing dual interrogations, coordinating distractions. A completely separate storyline with unique missions that complement the single-player narrative. This was cooperative stealth done right, years before anyone else even attempted it.</span>
+        <span class="text-cn">混沌理论引入了革命性的合作战役。两名特工完美协作——互相翻越墙壁、双人审讯、协调转移注意力。一条完全独立的故事线，配有独特的任务来补充单人叙事。这是在其他人尝试之前多年就做到的正确的合作潜行。</span>
+      </div>
+    </div>
+
+    <div class="coop-grid">
+      <div class="coop-card reveal">
+        <div class="coop-title"><span class="text-en">●●● Dual Maneuvers</span><span class="text-cn">●●● 双人战术</span></div>
+        <div class="coop-desc">
+          <span class="text-en">Tomoe Nage throw to reach high platforms. Human ladder for vertical access. Dual grab for synchronized takedowns. Co-op rappelling down building faces. Every move requires communication and trust.</span>
+          <span class="text-cn">巴投翻越技术登上高处平台。人梯获得垂直通道。双人同步制服。合作垂降建筑外墙。每一个动作都需要沟通和信任。</span>
+        </div>
+      </div>
+      <div class="coop-card reveal">
+        <div class="coop-title"><span class="text-en">●●● Versus Mode</span><span class="text-cn">●●● 对战模式</span></div>
+        <div class="coop-desc">
+          <span class="text-en">Spies vs. Mercenaries returns and improves on Pandora Tomorrow's foundation. Third-person spies with acrobatics and gadgets against first-person mercenaries with firepower and technology. The most intense asymmetric multiplayer ever created.</span>
+          <span class="text-cn">间谍对雇佣兵模式回归，在潘多拉明天的基础上改进。拥有杂技和小工具的第三人称间谍对抗拥有火力和科技的第一人称雇佣兵。有史以来最紧张的不对称多人游戏。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOUNDTRACK VISUALIZER -->
+<section class="soundtrack-section" id="soundtrack">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="triple">●●●</div>
+      <h2><span class="text-en">Amon Tobin</span><span class="text-cn">阿蒙·托宾</span></h2>
+      <div class="cn-sub"><span class="text-en">混沌理论原声音乐</span><span class="text-cn">Chaos Theory Original Soundtrack</span></div>
+      <div class="line"></div>
+    </div>
+
+    <div class="opsat-panel reveal" style="margin-bottom:0">
+      <div class="opsat-header">
+        <span class="text-en">●●● Audio Analysis — Frequency Spectrum</span>
+        <span class="text-cn">●●● 音频分析 — 频率频谱</span>
+      </div>
+      <div class="freq-visualizer" id="freqViz"></div>
+    </div>
+
+    <div class="opsat-panel reveal" style="margin-top:20px">
+      <div class="opsat-header">
+        <span class="text-en">●●● Track Listing</span>
+        <span class="text-cn">●●● 曲目列表</span>
+      </div>
+      <div class="track-list">
+        <div class="track-item"><span class="track-num">01</span><span>Lighthouse</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">02</span><span>Cargo Ship</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">03</span><span>Bank</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">04</span><span>Penthouse</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">05</span><span>Displace</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">06</span><span>Hokkaido</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">07</span><span>Battery</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">08</span><span>Seoul</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">09</span><span>Bathhouse</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">10</span><span>Kokubo Sosho</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">11</span><span>Theme from Battery</span><span class="track-dots">●●●</span></div>
+        <div class="track-item"><span class="track-num">12</span><span>The Clean Up</span><span class="track-dots">●●●</span></div>
+      </div>
+    </div>
+
+    <div class="opsat-text reveal" style="text-align:center;margin-top:20px;font-size:11px">
+      <span class="text-en">Amon Tobin's score defined the sound of modern stealth gaming. Glitchy, atmospheric, brooding electronic compositions that react dynamically to gameplay. A landmark in adaptive game audio.</span>
+      <span class="text-cn">阿蒙·托宾的配乐定义了现代潜行游戏的声音。故障感、氛围感、沉郁的电子作曲随游戏动态变化。自适应游戏音频的里程碑。</span>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE — FIFTH FREEDOM -->
+<section class="quote-section" id="quote">
+  <div class="container reveal">
+    <div class="big-dots">●●●</div>
+    <div class="quote-text">
+      <span class="text-en">"The Fifth Freedom is the right to defend all other freedoms by whatever means necessary — the right to spy, steal, destroy, and assassinate to ensure that American freedoms are protected."</span>
+      <span class="text-cn">"第五自由是以一切必要手段捍卫所有其他自由的权利——从事间谍活动、窃取情报、摧毁目标和执行暗杀的权利，以确保美国的自由受到保护。"</span>
+    </div>
+    <div class="quote-attr">
+      <span class="text-en">— Presidential Directive, Third Echelon</span>
+      <span class="text-cn">— 总统指令，第三梯队</span>
+    </div>
+    <div class="quote-cn">
+      <span class="text-en">第五自由</span>
+      <span class="text-cn">The Fifth Freedom</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="container reveal">
+    <div class="cta-title">
+      <span class="text-en">Enter the Shadows</span>
+      <span class="text-cn">踏入暗影</span>
+    </div>
+    <div class="cta-cn">
+      <span class="text-en">成为细胞分裂特工</span>
+      <span class="text-cn">Become a Splinter Cell</span>
+    </div>
+    <a href="#hero" class="cta-btn">
+      <span class="text-en">Activate Night Vision</span>
+      <span class="text-cn">启动夜视模式</span>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-col">
+        <div class="ft-title">●●● <span class="text-en">Third Echelon</span><span class="text-cn">第三梯队</span></div>
+        <div class="ft-text">
+          <span class="text-en">National Security Agency<br>Sub-division: Third Echelon<br>Classification: ULTRA BLACK<br>Est. 2003 — Fort Meade, MD</span>
+          <span class="text-cn">国家安全局<br>分支机构：第三梯队<br>密级：超黑<br>成立于2003年 — 马里兰州米德堡</span>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="ft-title">●●● <span class="text-en">Operations</span><span class="text-cn">行动</span></div>
+        <div class="ft-text">
+          <span class="text-en">Splinter Cell (2002)<br>Pandora Tomorrow (2004)<br>Chaos Theory (2005) ★<br>Double Agent (2006)<br>Conviction (2010)<br>Blacklist (2013)</span>
+          <span class="text-cn">细胞分裂 (2002)<br>潘多拉明天 (2004)<br>混沌理论 (2005) ★<br>双重间谍 (2006)<br>断罪 (2010)<br>黑名单 (2013)</span>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="ft-title">●●● <span class="text-en">Development</span><span class="text-cn">开发</span></div>
+        <div class="ft-text">
+          <span class="text-en">Developer: Ubisoft Montreal<br>Director: Mathieu Ferland<br>Soundtrack: Amon Tobin<br>Engine: Unreal Engine 2.5<br>Platform: Xbox / PS2 / PC</span>
+          <span class="text-cn">开发商：育碧蒙特利尔<br>总监：马修·费尔兰德<br>原声：阿蒙·托宾<br>引擎：虚幻引擎 2.5<br>平台：Xbox / PS2 / PC</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="ft-dots">●●●</div>
+      <span class="text-en">Fan tribute page — Tom Clancy's Splinter Cell: Chaos Theory (2005) — ●●● The definitive stealth experience</span>
+      <span class="text-cn">致敬页面 — 汤姆·克兰西的细胞分裂：混沌理论 (2005) — ●●● 终极潜行体验</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// === LOADING SEQUENCE ===
+(function(){
+  const ld1=document.getElementById('ld1'),ld2=document.getElementById('ld2'),ld3=document.getElementById('ld3');
+  const lt=document.getElementById('loadingText'),ov=document.getElementById('loadingOverlay');
+  setTimeout(()=>{ld1.classList.add('on');lt.textContent='Calibrating optics...'},400);
+  setTimeout(()=>{ld2.classList.add('on');lt.textContent='Scanning frequencies...'},900);
+  setTimeout(()=>{ld3.classList.add('on');lt.textContent='Night vision active ●●●'},1400);
+  setTimeout(()=>{ov.classList.add('done')},2200);
+  // Hero NV dots
+  setTimeout(()=>document.getElementById('nvDot1').classList.add('active'),2400);
+  setTimeout(()=>document.getElementById('nvDot2').classList.add('active'),2800);
+  setTimeout(()=>document.getElementById('nvDot3').classList.add('active'),3200);
+})();
+
+// === NV GRAIN CANVAS ===
+(function(){
+  const c=document.getElementById('nvCanvas'),ctx=c.getContext('2d');
+  let w,h,scanY=0;
+  function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    // Noise grain
+    const id=ctx.createImageData(w,h),d=id.data;
+    for(let i=0;i<d.length;i+=4){
+      const v=Math.random()*40;
+      d[i]=0;d[i+1]=v;d[i+2]=0;d[i+3]=Math.random()*30;
+    }
+    ctx.putImageData(id,0,0);
+    // Scan line sweep
+    scanY+=0.5;if(scanY>h)scanY=0;
+    ctx.fillStyle='rgba(0,255,65,0.03)';
+    ctx.fillRect(0,scanY-1,w,3);
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// === WAVEFORM BARS ===
+(function(){
+  const wd=document.getElementById('waveformDisplay');
+  for(let i=0;i<40;i++){
+    const b=document.createElement('div');b.className='wave-bar';
+    const d=(.5+Math.random()*2).toFixed(2);
+    b.style.animationDelay=(Math.random()*2).toFixed(2)+'s';
+    b.style.animationDuration=d+'s';
+    wd.appendChild(b);
+  }
+  // Sound dots
+  const sd=document.getElementById('soundDots');
+  for(let i=0;i<20;i++){
+    const d=document.createElement('div');d.className='dot';
+    if(i<6)d.classList.add('active');
+    sd.appendChild(d);
+  }
+})();
+
+// === FREQUENCY VISUALIZER BARS ===
+(function(){
+  const fv=document.getElementById('freqViz');
+  for(let i=0;i<60;i++){
+    const b=document.createElement('div');b.className='freq-bar';
+    const h1=5+Math.random()*15,h2=20+Math.random()*80,h3=5+Math.random()*25;
+    b.style.setProperty('--h1',h1+'px');
+    b.style.setProperty('--h2',h2+'px');
+    b.style.setProperty('--h3',h3+'px');
+    b.style.setProperty('--dur',(.8+Math.random()*1.5).toFixed(2)+'s');
+    b.style.animationDelay=(Math.random()*2).toFixed(2)+'s';
+    fv.appendChild(b);
+  }
+})();
+
+// === LIGHT METER ANIMATION ===
+(function(){
+  const fill=document.getElementById('lightFill');
+  const ind=document.getElementById('lightIndicator');
+  const segs=document.querySelectorAll('#lightSegments .seg');
+  function animateLight(){
+    const level=15+Math.random()*35;
+    fill.style.width=level+'%';
+    ind.style.left=level+'%';
+    const litCount=Math.floor(level/100*segs.length);
+    segs.forEach((s,i)=>{
+      if(i<litCount){s.style.background='var(--nv-green)';s.style.boxShadow='var(--glow-sm)'}
+      else{s.style.background='var(--nv-dark)';s.style.boxShadow='none'}
+    });
+    setTimeout(animateLight,3000+Math.random()*3000);
+  }
+  setTimeout(animateLight,2500);
+})();
+
+// === SCROLL REVEAL ===
+(function(){
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+  },{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+})();
+
+// === LANGUAGE TOGGLE ===
+function toggleLang(){
+  const html=document.documentElement;
+  const cur=html.getAttribute('data-lang');
+  html.setAttribute('data-lang',cur==='en'?'cn':'en');
+}
+
+// === THEME TOGGLE ===
+function toggleTheme(){
+  const html=document.documentElement;
+  const cur=html.getAttribute('data-theme');
+  html.setAttribute('data-theme',cur==='dark'?'light':'dark');
+}
+
+// === HERO LIGHT BAR ANIMATION ===
+(function(){
+  const segs=document.querySelectorAll('#heroLightBar .seg');
+  function pulse(){
+    const n=1+Math.floor(Math.random()*3);
+    segs.forEach((s,i)=>{
+      if(i<n){s.classList.add('lit')}else{s.classList.remove('lit')}
+    });
+    setTimeout(pulse,2000+Math.random()*3000);
+  }
+  setTimeout(pulse,3500);
+})();
+</script>
+</body>
+</html>

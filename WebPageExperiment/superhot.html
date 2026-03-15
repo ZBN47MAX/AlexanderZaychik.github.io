@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUPERHOT</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@400;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #ff0000;
+    --black: #000000;
+    --white: #ffffff;
+    --bg: #000000;
+    --fg: #ffffff;
+    --fg-dim: rgba(255,255,255,0.15);
+    --fg-mid: rgba(255,255,255,0.5);
+  }
+
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --fg: #000000;
+    --fg-dim: rgba(0,0,0,0.08);
+    --fg-mid: rgba(0,0,0,0.4);
+  }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    overflow-x: hidden;
+    transition: background 0.4s, color 0.4s;
+    position: relative;
+  }
+
+  /* SUPERHOT background wallpaper text */
+  body::before {
+    content: 'SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT SUPERHOT ';
+    position: fixed;
+    top: 0; left: 0;
+    width: 200vw; height: 200vh;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.8;
+    letter-spacing: 0.3em;
+    word-spacing: 1em;
+    color: var(--fg-dim);
+    pointer-events: none;
+    z-index: 0;
+    transform: rotate(-15deg) translate(-10%, -10%);
+    user-select: none;
+  }
+
+  /* Canvas for geometric shapes */
+  #geo-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Controls */
+  .controls {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .ctrl-btn {
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
+    transition: transform 0.2s, filter 0.2s;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .ctrl-btn:hover {
+    transform: scale(1.08);
+    filter: brightness(1.2);
+  }
+
+  /* Sections common */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 2rem;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 3rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--red);
+    clip-path: polygon(0 0, 100% 0, 96% 100%, 4% 100%);
+  }
+
+  /* Reveal animation */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(4rem, 15vw, 12rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    line-height: 0.9;
+    color: var(--red);
+    position: relative;
+    animation: glitch 3s infinite;
+  }
+
+  .hero-title span {
+    display: block;
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% { text-shadow: none; transform: translate(0); }
+    91% { text-shadow: -4px 0 var(--fg); transform: translate(2px, -1px); }
+    93% { text-shadow: 4px 0 var(--fg); transform: translate(-2px, 1px); }
+    95% { text-shadow: -2px 2px var(--fg); transform: translate(1px, 2px); }
+    97% { text-shadow: none; transform: translate(0); }
+  }
+
+  .hero-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(0.8rem, 2vw, 1.3rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-top: 2rem;
+    color: var(--fg);
+    opacity: 0.8;
+  }
+
+  .hero-line {
+    width: 60px;
+    height: 3px;
+    background: var(--red);
+    margin: 1.5rem auto;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+  }
+
+  .hero-tagline {
+    font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+    letter-spacing: 0.6em;
+    text-transform: uppercase;
+    color: var(--fg-mid);
+    margin-top: 0.5rem;
+  }
+
+  /* Scroll indicator */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--fg-mid);
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    animation: pulse-down 2s infinite;
+  }
+
+  .scroll-indicator .arrow {
+    width: 20px;
+    height: 20px;
+    border-right: 2px solid var(--red);
+    border-bottom: 2px solid var(--red);
+    transform: rotate(45deg);
+  }
+
+  @keyframes pulse-down {
+    0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 1; transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ===== ABOUT ===== */
+  .about { background: transparent; }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .about-text p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-bottom: 1.2rem;
+    color: var(--fg);
+    opacity: 0.85;
+  }
+
+  .about-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .about-graphic {
+    width: 100%;
+    max-width: 350px;
+    aspect-ratio: 1;
+    position: relative;
+  }
+
+  .about-graphic .tri {
+    position: absolute;
+    background: var(--red);
+    opacity: 0.15;
+    animation: tri-float 6s ease-in-out infinite;
+  }
+
+  .about-graphic .tri:nth-child(1) {
+    width: 70%; height: 70%;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    top: 0; left: 15%;
+    animation-delay: 0s;
+  }
+
+  .about-graphic .tri:nth-child(2) {
+    width: 50%; height: 50%;
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    bottom: 5%; right: 10%;
+    animation-delay: 2s;
+    opacity: 0.25;
+  }
+
+  .about-graphic .tri:nth-child(3) {
+    width: 35%; height: 35%;
+    clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+    top: 30%; left: 5%;
+    animation-delay: 4s;
+    opacity: 0.1;
+  }
+
+  .about-graphic .center-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  @keyframes tri-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(3deg); }
+  }
+
+  /* ===== FEATURES / MECHANICS ===== */
+  .features { background: transparent; }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card {
+    background: var(--fg-dim);
+    padding: 2.5rem 2rem;
+    clip-path: polygon(0 0, 95% 0, 100% 8%, 100% 100%, 5% 100%, 0 92%);
+    position: relative;
+    transition: transform 0.3s, background 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    background: rgba(255, 0, 0, 0.1);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--red);
+  }
+
+  .card-number {
+    font-family: 'Oswald', sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--red);
+    opacity: 0.3;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+    color: var(--fg);
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--fg);
+    opacity: 0.7;
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline-section { background: transparent; }
+
+  .timeline {
+    position: relative;
+    padding-left: 3rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--red);
+    opacity: 0.4;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 3rem;
+    padding-left: 1.5rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -3.15rem;
+    top: 0.3rem;
+    width: 16px;
+    height: 16px;
+    background: var(--red);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  }
+
+  .timeline-year {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 0.1em;
+  }
+
+  .timeline-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0.3rem 0;
+    color: var(--fg);
+  }
+
+  .timeline-desc {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--fg);
+    opacity: 0.65;
+  }
+
+  /* ===== QUOTE ===== */
+  .quote-section {
+    background: transparent;
+    text-align: center;
+    padding: 8rem 2rem;
+  }
+
+  .quote-block {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .quote-mark {
+    font-family: 'Oswald', sans-serif;
+    font-size: 8rem;
+    color: var(--red);
+    opacity: 0.2;
+    line-height: 0.5;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .quote-text {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    line-height: 1.4;
+    color: var(--red);
+  }
+
+  .quote-attr {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--fg-mid);
+  }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    background: transparent;
+    text-align: center;
+    padding: 6rem 2rem;
+  }
+
+  .cta-box {
+    display: inline-block;
+    padding: 4rem 5rem;
+    background: rgba(255, 0, 0, 0.08);
+    clip-path: polygon(3% 0, 100% 0, 97% 100%, 0% 100%);
+    position: relative;
+  }
+
+  .cta-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--red);
+    clip-path: polygon(3% 0, 100% 0, 97% 100%, 0% 100%);
+    opacity: 0.4;
+  }
+
+  .cta-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--fg);
+    margin-bottom: 1rem;
+  }
+
+  .cta-desc {
+    font-size: 0.85rem;
+    color: var(--fg);
+    opacity: 0.7;
+    margin-bottom: 2rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1rem 3rem;
+    clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%);
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s, filter 0.2s;
+  }
+
+  .cta-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--fg-dim);
+  }
+
+  footer .footer-logo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  footer p {
+    font-size: 0.7rem;
+    color: var(--fg-mid);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* Divider */
+  .angular-divider {
+    width: 100%;
+    height: 60px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .angular-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--red);
+    opacity: 0.25;
+    transform: rotate(-1deg);
+  }
+
+  /* System line decoration */
+  .sys-line {
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--red);
+    opacity: 0.35;
+    margin-bottom: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    section { padding: 4rem 1.5rem; }
+    .about-grid { grid-template-columns: 1fr; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .cta-box { padding: 3rem 2rem; }
+    .controls { top: 1rem; right: 1rem; }
+    .ctrl-btn { font-size: 0.65rem; padding: 0.5rem 0.8rem; min-width: 65px; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { font-size: clamp(3rem, 18vw, 6rem); }
+  }
+
+  /* Blink cursor for terminal feel */
+  .cursor-blink::after {
+    content: '_';
+    animation: blink 1s step-end infinite;
+    color: var(--red);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="geo-canvas"></canvas>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="lang-btn" onclick="toggleLang()">
+    <span data-en="ZH" data-zh="EN">ZH</span>
+  </button>
+  <button class="ctrl-btn" id="theme-btn" onclick="toggleTheme()">
+    <span data-en="LIGHT" data-zh="亮色">LIGHT</span>
+  </button>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-title">
+    <span>SUPER</span>
+    <span>HOT</span>
+  </div>
+  <div class="hero-line"></div>
+  <p class="hero-sub">
+    <span data-en="TIME MOVES ONLY WHEN YOU MOVE" data-zh="时间只在你动的时候流逝">TIME MOVES ONLY WHEN YOU MOVE</span>
+  </p>
+  <p class="hero-tagline cursor-blink">
+    <span data-en="THE MOST INNOVATIVE SHOOTER IN YEARS" data-zh="近年来最具创新性的射击游戏">THE MOST INNOVATIVE SHOOTER IN YEARS</span>
+  </p>
+  <div class="scroll-indicator">
+    <span data-en="SCROLL" data-zh="滚动">SCROLL</span>
+    <div class="arrow"></div>
+  </div>
+</section>
+
+<!-- About -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="sys-line reveal">// SYSTEM.ABOUT</div>
+    <h2 class="section-title reveal">
+      <span data-en="ABOUT THE SYSTEM" data-zh="关于系统">ABOUT THE SYSTEM</span>
+    </h2>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>
+          <span data-en="SUPERHOT is the FPS where time moves only when you move. No regenerating health bars. No ammo drops. It's just you, outnumbered and outgunned, grabbing weapons off fallen enemies to shoot, slice, and maneuver through a blizzard of slow-motion bullets." data-zh="SUPERHOT 是一款时间只在你移动时才会流动的第一人称射击游戏。没有自动恢复的生命条，没有弹药补给。只有你，寡不敌众，从倒下的敌人手中夺取武器，在慢动作子弹的风暴中射击、劈砍、闪避。">SUPERHOT is the FPS where time moves only when you move. No regenerating health bars. No ammo drops. It's just you, outnumbered and outgunned, grabbing weapons off fallen enemies to shoot, slice, and maneuver through a blizzard of slow-motion bullets.</span>
+        </p>
+        <p>
+          <span data-en="Blurring the lines between cautious strategy and unbridled mayhem, SUPERHOT is the definitive FPS experience that demands your creativity and wit. The game challenges you to rethink everything you know about first-person shooters." data-zh="在谨慎策略与肆意破坏之间模糊界限，SUPERHOT 是对创造力和智慧提出极致要求的终极FPS体验。这款游戏挑战你重新思考你对第一人称射击游戏的一切认知。">Blurring the lines between cautious strategy and unbridled mayhem, SUPERHOT is the definitive FPS experience that demands your creativity and wit. The game challenges you to rethink everything you know about first-person shooters.</span>
+        </p>
+        <p>
+          <span data-en="Developed by the SUPERHOT Team, the game transcends the boundaries of traditional gaming with its meta-narrative about control, obedience, and the nature of gaming itself." data-zh="由 SUPERHOT 团队开发，这款游戏以其关于控制、服从和游戏本质的元叙事，超越了传统游戏的边界。">Developed by the SUPERHOT Team, the game transcends the boundaries of traditional gaming with its meta-narrative about control, obedience, and the nature of gaming itself.</span>
+        </p>
+      </div>
+      <div class="about-visual reveal">
+        <div class="about-graphic">
+          <div class="tri"></div>
+          <div class="tri"></div>
+          <div class="tri"></div>
+          <div class="center-text">
+            <span data-en="MIND IS&#10;SOFTWARE" data-zh="意识即&#10;软件">MIND IS<br>SOFTWARE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="angular-divider"></div>
+
+<!-- Features / Mechanics -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="sys-line reveal">// SYSTEM.MECHANICS</div>
+    <h2 class="section-title reveal">
+      <span data-en="CORE MECHANICS" data-zh="核心机制">CORE MECHANICS</span>
+    </h2>
+    <div class="cards-grid">
+
+      <div class="card reveal">
+        <div class="card-number">01</div>
+        <h3 class="card-title"><span data-en="TIME MANIPULATION" data-zh="时间操控">TIME MANIPULATION</span></h3>
+        <p class="card-desc"><span data-en="Time advances only when you move. Stand still and the world freezes — a ballet of bullets suspended in air, waiting for your next decision." data-zh="只有当你移动时时间才会前进。站立不动，世界就会冻结——子弹悬停在空中的芭蕾，等待你的下一个决定。">Time advances only when you move. Stand still and the world freezes — a ballet of bullets suspended in air, waiting for your next decision.</span></p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-number">02</div>
+        <h3 class="card-title"><span data-en="WEAPON THROWING" data-zh="武器投掷">WEAPON THROWING</span></h3>
+        <p class="card-desc"><span data-en="Out of ammo? Throw your weapon at the enemy. Every object becomes a projectile. Katanas, bottles, ashtrays — anything can turn the tide of battle." data-zh="弹药用尽？把武器扔向敌人。每个物体都能成为投射物。武士刀、瓶子、烟灰缸——任何东西都能扭转战局。">Out of ammo? Throw your weapon at the enemy. Every object becomes a projectile. Katanas, bottles, ashtrays — anything can turn the tide of battle.</span></p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-number">03</div>
+        <h3 class="card-title"><span data-en="HOTSWITCH" data-zh="热切换">HOTSWITCH</span></h3>
+        <p class="card-desc"><span data-en="Transfer your consciousness into an enemy's body. Take control of their form, their weapon, their position. The ultimate tactical advantage — become your enemy." data-zh="将你的意识转移到敌人的身体中。控制他们的形态、武器和位置。终极战术优势——成为你的敌人。">Transfer your consciousness into an enemy's body. Take control of their form, their weapon, their position. The ultimate tactical advantage — become your enemy.</span></p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-number">04</div>
+        <h3 class="card-title"><span data-en="MIND CONTROL" data-zh="精神控制">MIND CONTROL</span></h3>
+        <p class="card-desc"><span data-en="The system wants you to play. It needs you to play. The narrative blurs reality and simulation, questioning who truly controls whom in this digital prison." data-zh="系统要你玩。它需要你玩。叙事模糊了现实与模拟的界限，质问在这个数字牢笼中，究竟谁在控制谁。">The system wants you to play. It needs you to play. The narrative blurs reality and simulation, questioning who truly controls whom in this digital prison.</span></p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-number">05</div>
+        <h3 class="card-title"><span data-en="ONE-HIT FRAGILITY" data-zh="一击即碎">ONE-HIT FRAGILITY</span></h3>
+        <p class="card-desc"><span data-en="One hit and you shatter. The crystalline red enemies shatter too. This fragility creates extreme tension — every encounter is life or death, every move calculated." data-zh="一击你就会碎裂。水晶般的红色敌人也会碎裂。这种脆弱创造了极度紧张感——每次遭遇都是生死攸关，每步移动都经过计算。">One hit and you shatter. The crystalline red enemies shatter too. This fragility creates extreme tension — every encounter is life or death, every move calculated.</span></p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-number">06</div>
+        <h3 class="card-title"><span data-en="ENDLESS MODE" data-zh="无尽模式">ENDLESS MODE</span></h3>
+        <p class="card-desc"><span data-en="After the story, endless waves of enemies test your mastery. Challenge mode strips away abilities. Speedrun mode demands perfection. The system never lets you go." data-zh="故事结束后，无尽的敌人浪潮考验你的精通程度。挑战模式剥夺你的能力。速通模式要求完美。系统永远不会放过你。">After the story, endless waves of enemies test your mastery. Challenge mode strips away abilities. Speedrun mode demands perfection. The system never lets you go.</span></p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="angular-divider"></div>
+
+<!-- Timeline -->
+<section class="timeline-section" id="timeline">
+  <div class="container">
+    <div class="sys-line reveal">// SYSTEM.CHRONOLOGY</div>
+    <h2 class="section-title reveal">
+      <span data-en="TIMELINE" data-zh="时间线">TIMELINE</span>
+    </h2>
+    <div class="timeline">
+
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2013</div>
+        <h3 class="timeline-title"><span data-en="7DFPS GAME JAM" data-zh="7DFPS 游戏开发马拉松">7DFPS GAME JAM</span></h3>
+        <p class="timeline-desc"><span data-en="SUPERHOT was born as a prototype in the 7-Day FPS challenge. The core mechanic — time moves when you move — captivated the gaming world instantly." data-zh="SUPERHOT 作为 7 天 FPS 挑战赛的原型诞生。核心机制——你动时间才动——瞬间吸引了整个游戏世界。">SUPERHOT was born as a prototype in the 7-Day FPS challenge. The core mechanic — time moves when you move — captivated the gaming world instantly.</span></p>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2014</div>
+        <h3 class="timeline-title"><span data-en="KICKSTARTER SUCCESS" data-zh="KICKSTARTER 众筹成功">KICKSTARTER SUCCESS</span></h3>
+        <p class="timeline-desc"><span data-en="The crowdfunding campaign reached its goal in under 24 hours, ultimately raising over $250,000. The community had spoken — they wanted more." data-zh="众筹活动在 24 小时内达到目标，最终筹集超过 25 万美元。社区已经表态——他们想要更多。">The crowdfunding campaign reached its goal in under 24 hours, ultimately raising over $250,000. The community had spoken — they wanted more.</span></p>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2016</div>
+        <h3 class="timeline-title"><span data-en="FULL RELEASE" data-zh="正式发布">FULL RELEASE</span></h3>
+        <p class="timeline-desc"><span data-en="SUPERHOT launched on PC to critical acclaim. 'The most innovative shooter I've played in years' became the defining quote of a generation of FPS games." data-zh="SUPERHOT 在 PC 平台发布，获得一致好评。'近年来我玩过的最具创新性的射击游戏'成为了一代 FPS 游戏的标志性评价。">SUPERHOT launched on PC to critical acclaim. 'The most innovative shooter I've played in years' became the defining quote of a generation of FPS games.</span></p>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2017</div>
+        <h3 class="timeline-title"><span data-en="SUPERHOT VR" data-zh="SUPERHOT VR 版">SUPERHOT VR</span></h3>
+        <p class="timeline-desc"><span data-en="The VR adaptation redefined virtual reality gaming. Physically dodging bullets and throwing objects brought the time-manipulation mechanic to life like never before." data-zh="VR 版本重新定义了虚拟现实游戏。亲身躲避子弹和投掷物体，让时间操控机制以前所未有的方式变得栩栩如生。">The VR adaptation redefined virtual reality gaming. Physically dodging bullets and throwing objects brought the time-manipulation mechanic to life like never before.</span></p>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2020</div>
+        <h3 class="timeline-title"><span data-en="MIND CONTROL DELETE" data-zh="精神控制删除">MIND CONTROL DELETE</span></h3>
+        <p class="timeline-desc"><span data-en="The standalone expansion expanded the SUPERHOT universe with roguelike elements, new abilities, and deeper exploration of the system's hold on the player." data-zh="独立扩展包以 Roguelike 元素、新能力以及对系统控制玩家的更深层探索，扩展了 SUPERHOT 宇宙。">The standalone expansion expanded the SUPERHOT universe with roguelike elements, new abilities, and deeper exploration of the system's hold on the player.</span></p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="angular-divider"></div>
+
+<!-- Quote -->
+<section class="quote-section" id="quote">
+  <div class="quote-block reveal">
+    <span class="quote-mark">"</span>
+    <p class="quote-text">
+      <span data-en="THE SYSTEM WILL SET YOU FREE" data-zh="系统将给你自由">THE SYSTEM WILL SET YOU FREE</span>
+    </p>
+    <p class="quote-attr">
+      <span data-en="— SUPERHOT SYSTEM PROMPT" data-zh="— SUPERHOT 系统提示">— SUPERHOT SYSTEM PROMPT</span>
+    </p>
+  </div>
+</section>
+
+<div class="angular-divider"></div>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="cta-box reveal">
+    <h2 class="cta-title">
+      <span data-en="JOIN THE SYSTEM" data-zh="加入系统">JOIN THE SYSTEM</span>
+    </h2>
+    <p class="cta-desc">
+      <span data-en="It's the most innovative shooter I've played in years. Surrender to the system. Let it consume you." data-zh="这是我近年来玩过的最具创新性的射击游戏。向系统投降。让它吞噬你。">It's the most innovative shooter I've played in years. Surrender to the system. Let it consume you.</span>
+    </p>
+    <a href="#" class="cta-btn">
+      <span data-en="SUPER. HOT." data-zh="SUPER. HOT.">SUPER. HOT.</span>
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">SUPERHOT</div>
+  <p><span data-en="BODY IS DISPOSABLE. MIND IS SOFTWARE." data-zh="身体是一次性的。意识即软件。">BODY IS DISPOSABLE. MIND IS SOFTWARE.</span></p>
+  <p style="margin-top:0.5rem;"><span data-en="FAN PAGE — NOT AFFILIATED WITH SUPERHOT TEAM" data-zh="粉丝页面 — 与 SUPERHOT 团队无关">FAN PAGE — NOT AFFILIATED WITH SUPERHOT TEAM</span></p>
+</footer>
+
+<script>
+// ===== LANGUAGE TOGGLE =====
+function toggleLang() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-lang');
+  const next = current === 'en' ? 'zh' : 'en';
+  html.setAttribute('data-lang', next);
+
+  document.querySelectorAll('[data-en][data-zh]').forEach(el => {
+    const text = el.getAttribute('data-' + next);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = text;
+    } else {
+      // Preserve <br> in content
+      el.innerHTML = text.replace(/\n/g, '<br>');
+    }
+  });
+}
+
+// ===== THEME TOGGLE =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+
+  const lang = html.getAttribute('data-lang');
+  const btn = document.querySelector('#theme-btn span');
+  if (next === 'dark') {
+    btn.setAttribute('data-en', 'LIGHT');
+    btn.setAttribute('data-zh', '亮色');
+    btn.textContent = lang === 'en' ? 'LIGHT' : '亮色';
+  } else {
+    btn.setAttribute('data-en', 'DARK');
+    btn.setAttribute('data-zh', '暗色');
+    btn.textContent = lang === 'en' ? 'DARK' : '暗色';
+  }
+}
+
+// ===== SCROLL REVEAL =====
+function initReveal() {
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  reveals.forEach(el => observer.observe(el));
+}
+
+// ===== GEOMETRIC CANVAS =====
+function initCanvas() {
+  const canvas = document.getElementById('geo-canvas');
+  const ctx = canvas.getContext('2d');
+  let shapes = [];
+  let w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+
+  function createShapes() {
+    shapes = [];
+    const count = Math.floor((w * h) / 120000);
+    for (let i = 0; i < count; i++) {
+      shapes.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        size: 20 + Math.random() * 60,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.003,
+        opacity: 0.02 + Math.random() * 0.04,
+        sides: 3 + Math.floor(Math.random() * 3), // 3-5 sides
+        drift: (Math.random() - 0.5) * 0.15
+      });
+    }
+  }
+
+  function drawShape(s) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rotation);
+    ctx.beginPath();
+    for (let i = 0; i < s.sides; i++) {
+      const angle = (Math.PI * 2 / s.sides) * i - Math.PI / 2;
+      const x = Math.cos(angle) * s.size;
+      const y = Math.sin(angle) * s.size;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(255, 0, 0, ${s.opacity})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    shapes.forEach(s => {
+      s.rotation += s.rotSpeed;
+      s.y += s.drift;
+      if (s.y > h + s.size) s.y = -s.size;
+      if (s.y < -s.size) s.y = h + s.size;
+      drawShape(s);
+    });
+    requestAnimationFrame(animate);
+  }
+
+  resize();
+  createShapes();
+  animate();
+
+  window.addEventListener('resize', () => {
+    resize();
+    createShapes();
+  });
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  initReveal();
+  initCanvas();
+});
+</script>
+
+</body>
+</html>

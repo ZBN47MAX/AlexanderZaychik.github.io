@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splinter Cell: Conviction — Sam Fisher Gone Rogue</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--fg:#fff;--fg2:#aaa;--fg3:#666;
+--amber:#e08020;--blue:#2060a0;--red:#cc0000;--red-bright:#ff2020;
+--panel:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+--font-heading:'Rajdhani',sans-serif;--font-body:'Noto Sans SC',sans-serif;--font-mono:'Space Mono',monospace;
+}
+html.light{
+--bg:#e8e4e0;--bg2:#d8d4d0;--bg3:#c8c4c0;--fg:#0a0a0a;--fg2:#333;--fg3:#666;
+--panel:rgba(0,0,0,0.06);--border:rgba(0,0,0,0.12);
+}
+html{scroll-behavior:smooth}
+body{
+font-family:var(--font-body);background:var(--bg);color:var(--fg);
+overflow-x:hidden;line-height:1.6;transition:background .5s,color .5s;
+}
+/* CANVAS */
+#dust-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--fg3);border-radius:3px}
+/* NAV */
+.nav{
+position:fixed;top:0;left:0;right:0;z-index:100;
+background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);
+border-bottom:1px solid var(--border);padding:0 2rem;height:56px;
+display:flex;align-items:center;justify-content:space-between;
+transition:background .5s;
+}
+html.light .nav{background:rgba(232,228,224,0.92)}
+.nav-logo{
+font-family:var(--font-heading);font-weight:700;font-size:1.1rem;
+letter-spacing:.15em;text-transform:uppercase;color:var(--fg);
+display:flex;align-items:center;gap:.6rem;
+}
+.nav-logo .tri{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid #2d8c2d;filter:drop-shadow(0 0 4px #2d8c2d)}
+.nav-links{display:flex;gap:1.4rem;align-items:center}
+.nav-links a{
+font-family:var(--font-heading);font-size:.82rem;font-weight:600;
+letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);
+text-decoration:none;transition:color .3s;
+}
+.nav-links a:hover{color:var(--amber)}
+.nav-toggles{display:flex;gap:.8rem;align-items:center}
+.toggle-btn{
+background:var(--panel);border:1px solid var(--border);color:var(--fg2);
+font-family:var(--font-mono);font-size:.7rem;padding:.35rem .7rem;
+cursor:pointer;letter-spacing:.08em;transition:all .3s;border-radius:2px;
+}
+.toggle-btn:hover{color:var(--amber);border-color:var(--amber)}
+/* PROJECTED TEXT — THE defining visual */
+.projected{
+position:relative;display:inline-block;
+font-family:var(--font-heading);font-weight:700;
+color:#fff;text-transform:uppercase;letter-spacing:.08em;
+transform:perspective(600px) rotateX(-4deg) rotateY(2deg);
+text-shadow:0 0 40px rgba(255,255,255,0.3),0 0 80px rgba(255,255,255,0.1);
+}
+.projected::before{
+content:'';position:absolute;top:-60%;left:-20%;right:-20%;bottom:-30%;
+background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.08) 0%,transparent 70%);
+pointer-events:none;z-index:-1;
+}
+html.light .projected{color:#0a0a0a;text-shadow:0 0 40px rgba(0,0,0,0.2),0 0 80px rgba(0,0,0,0.08)}
+html.light .projected::before{background:radial-gradient(ellipse at 50% 0%,rgba(0,0,0,0.06) 0%,transparent 70%)}
+.projected-wall{
+position:relative;padding:2rem 3rem;
+background:linear-gradient(135deg,rgba(255,255,255,0.02) 0%,transparent 50%);
+}
+.projected-wall::after{
+content:'';position:absolute;inset:0;
+background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.01) 3px,rgba(255,255,255,0.01) 4px);
+pointer-events:none;
+}
+/* LIGHT CONE — simulates projector beam */
+.light-cone{
+position:absolute;top:-100px;width:300px;height:400px;
+background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,rgba(255,255,255,0.02) 40%,transparent 100%);
+clip-path:polygon(40% 0%,60% 0%,100% 100%,0% 100%);
+pointer-events:none;z-index:0;
+}
+/* HERO */
+.hero{
+position:relative;min-height:100vh;display:flex;flex-direction:column;
+align-items:center;justify-content:center;text-align:center;
+overflow:hidden;
+background:radial-gradient(ellipse at 50% 30%,#1a1a1a 0%,#0a0a0a 70%,#000 100%);
+}
+html.light .hero{background:radial-gradient(ellipse at 50% 30%,#d0ccc8 0%,#e8e4e0 70%)}
+.hero-vignette{
+position:absolute;inset:0;
+background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.7) 100%);
+pointer-events:none;
+}
+.hero-line{
+position:absolute;width:100%;height:1px;
+background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+.hero-line:nth-child(1){top:20%}.hero-line:nth-child(2){top:40%}
+.hero-line:nth-child(3){top:60%}.hero-line:nth-child(4){top:80%}
+.hero-content{position:relative;z-index:2}
+.hero-subtitle{
+font-family:var(--font-mono);font-size:.75rem;letter-spacing:.4em;
+color:var(--fg3);margin-bottom:1.5rem;text-transform:uppercase;
+}
+.hero-title{
+font-family:var(--font-heading);font-size:clamp(4rem,12vw,10rem);
+font-weight:700;line-height:.9;margin-bottom:.5rem;
+transform:perspective(800px) rotateX(-5deg) rotateY(3deg);
+text-shadow:0 0 60px rgba(255,255,255,0.25),0 0 120px rgba(255,255,255,0.08),0 4px 30px rgba(0,0,0,0.5);
+letter-spacing:.06em;text-transform:uppercase;color:#fff;
+}
+html.light .hero-title{color:#0a0a0a;text-shadow:0 0 60px rgba(0,0,0,0.15),0 4px 30px rgba(0,0,0,0.1)}
+.hero-title-sub{
+font-family:var(--font-heading);font-size:clamp(1.2rem,3vw,2.2rem);
+font-weight:300;letter-spacing:.3em;color:var(--fg3);
+transform:perspective(800px) rotateX(-3deg) rotateY(2deg);
+margin-bottom:2rem;text-transform:uppercase;
+}
+.hero-tagline{
+font-family:var(--font-body);font-size:1rem;color:var(--fg2);
+max-width:500px;margin:0 auto 2.5rem;line-height:1.7;
+}
+.hero-year{
+font-family:var(--font-mono);font-size:.7rem;letter-spacing:.5em;
+color:var(--amber);
+}
+/* MARK & EXECUTE MARKERS */
+.mark-diamond{
+display:inline-block;width:12px;height:12px;
+background:var(--red);transform:rotate(45deg);
+box-shadow:0 0 8px var(--red),0 0 20px rgba(204,0,0,0.4);
+margin:0 .3rem;vertical-align:middle;
+}
+.mark-diamond.small{width:8px;height:8px}
+/* LAST KNOWN POSITION — ghost silhouette */
+.ghost-silhouette{
+position:relative;
+border:2px solid rgba(255,255,255,0.5);
+box-shadow:0 0 15px rgba(255,255,255,0.15),inset 0 0 15px rgba(255,255,255,0.05);
+background:transparent;
+}
+.ghost-silhouette::after{
+content:'LAST KNOWN POSITION';position:absolute;bottom:-1.5rem;left:50%;
+transform:translateX(-50%);font-family:var(--font-mono);font-size:.55rem;
+letter-spacing:.15em;color:rgba(255,255,255,0.4);white-space:nowrap;
+}
+/* SECTIONS */
+section{position:relative;z-index:1;padding:6rem 2rem}
+.container{max-width:1100px;margin:0 auto}
+.section-label{
+font-family:var(--font-mono);font-size:.65rem;letter-spacing:.4em;
+color:var(--amber);text-transform:uppercase;margin-bottom:.8rem;
+display:flex;align-items:center;gap:.8rem;
+}
+.section-label::before{content:'';width:30px;height:1px;background:var(--amber)}
+.section-title{
+font-family:var(--font-heading);font-size:clamp(2.5rem,6vw,4.5rem);
+font-weight:700;line-height:1;margin-bottom:2rem;
+text-transform:uppercase;letter-spacing:.05em;
+transform:perspective(600px) rotateX(-3deg) rotateY(1.5deg);
+text-shadow:0 0 30px rgba(255,255,255,0.15);
+}
+html.light .section-title{text-shadow:0 0 30px rgba(0,0,0,0.08)}
+.section-desc{
+color:var(--fg2);max-width:650px;font-size:.95rem;line-height:1.8;
+margin-bottom:3rem;
+}
+/* BW STEALTH EFFECT — monochrome section */
+.stealth-mode{
+filter:saturate(0.15);transition:filter .6s;
+}
+.stealth-mode:hover,.stealth-mode.detected{
+filter:saturate(1);
+}
+/* PROFILE */
+.profile-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:3rem;align-items:start}
+.profile-image{
+position:relative;aspect-ratio:3/4;
+background:linear-gradient(135deg,#1a1a1a 0%,#252525 50%,#1a1a1a 100%);
+border:1px solid var(--border);overflow:hidden;
+display:flex;align-items:center;justify-content:center;
+}
+.profile-image .silhouette{
+width:70%;height:85%;
+background:linear-gradient(180deg,#222 0%,#111 100%);
+clip-path:polygon(35% 0%,65% 0%,72% 8%,70% 15%,75% 20%,73% 35%,80% 45%,78% 55%,85% 65%,70% 70%,72% 85%,65% 100%,35% 100%,28% 85%,30% 70%,15% 65%,22% 55%,20% 45%,27% 35%,25% 20%,30% 15%,28% 8%);
+position:relative;
+}
+.profile-image .silhouette::after{
+content:'';position:absolute;top:3%;left:38%;right:38%;height:6%;
+background:radial-gradient(ellipse,#2d8c2d 0%,transparent 70%);
+filter:blur(3px);animation:goggles-pulse 3s ease-in-out infinite;
+}
+@keyframes goggles-pulse{0%,100%{opacity:.6}50%{opacity:1}}
+.profile-image .projected-overlay{
+position:absolute;bottom:10%;left:0;right:0;
+font-family:var(--font-heading);font-size:2.5rem;font-weight:700;
+color:rgba(255,255,255,0.12);text-align:center;text-transform:uppercase;
+letter-spacing:.2em;
+transform:perspective(400px) rotateX(-8deg);
+}
+.profile-stats{display:flex;flex-direction:column;gap:1.5rem}
+.stat-row{
+display:flex;justify-content:space-between;align-items:center;
+padding:.8rem 0;border-bottom:1px solid var(--border);
+}
+.stat-label{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.15em;color:var(--fg3);text-transform:uppercase}
+.stat-value{font-family:var(--font-heading);font-weight:600;font-size:1rem;color:var(--fg)}
+.stat-bar{
+width:120px;height:3px;background:var(--panel);position:relative;overflow:hidden;
+}
+.stat-bar-fill{height:100%;background:var(--amber);transition:width 1.5s ease}
+.profile-bio{
+color:var(--fg2);font-size:.9rem;line-height:1.8;margin-top:1rem;
+padding-left:1rem;border-left:2px solid var(--amber);
+}
+/* MARK & EXECUTE SECTION */
+.me-demo{
+position:relative;padding:3rem;
+background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.1) 100%);
+border:1px solid var(--border);margin:2rem 0;
+}
+html.light .me-demo{background:linear-gradient(180deg,rgba(0,0,0,0.06) 0%,rgba(0,0,0,0.02) 100%)}
+.me-targets{
+display:flex;justify-content:space-around;align-items:center;
+height:200px;position:relative;
+}
+.me-target{
+position:relative;width:60px;height:80px;
+background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);
+display:flex;align-items:center;justify-content:center;
+transition:all .4s;cursor:pointer;
+}
+.me-target::before{
+content:'';position:absolute;top:-18px;left:50%;transform:translateX(-50%) rotate(45deg);
+width:14px;height:14px;background:var(--red);
+box-shadow:0 0 10px var(--red),0 0 25px rgba(204,0,0,0.5);
+transition:all .3s;
+}
+.me-target::after{
+content:attr(data-mark);position:absolute;top:-34px;left:50%;transform:translateX(-50%);
+font-family:var(--font-mono);font-size:.6rem;color:var(--red);letter-spacing:.1em;
+}
+.me-target:hover{background:rgba(204,0,0,0.1);border-color:var(--red)}
+.me-target:hover::before{box-shadow:0 0 15px var(--red-bright),0 0 40px rgba(255,32,32,0.6)}
+.me-target .target-figure{
+width:20px;height:50px;position:relative;
+}
+.me-target .target-figure::before{
+content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+width:14px;height:14px;border-radius:50%;border:1.5px solid var(--fg3);
+}
+.me-target .target-figure::after{
+content:'';position:absolute;top:16px;left:50%;transform:translateX(-50%);
+width:1.5px;height:30px;background:var(--fg3);
+}
+.me-label{
+position:absolute;bottom:0;left:0;right:0;text-align:center;
+font-family:var(--font-heading);font-size:1.8rem;font-weight:700;
+color:rgba(255,255,255,0.06);text-transform:uppercase;letter-spacing:.3em;
+transform:perspective(400px) rotateX(-6deg);
+}
+html.light .me-label{color:rgba(0,0,0,0.06)}
+.me-instructions{
+margin-top:2rem;display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;
+}
+.me-step{
+display:flex;align-items:center;gap:.6rem;
+font-family:var(--font-mono);font-size:.7rem;color:var(--fg3);
+letter-spacing:.1em;text-transform:uppercase;
+}
+.me-step .step-num{
+width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+border:1px solid var(--amber);color:var(--amber);font-size:.65rem;
+}
+/* GADGETS GRID */
+.gadgets-grid{
+display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+gap:1.5rem;
+}
+.gadget-card{
+background:var(--panel);border:1px solid var(--border);
+padding:2rem;position:relative;overflow:hidden;
+transition:all .4s;cursor:default;
+}
+.gadget-card:hover{
+border-color:var(--amber);
+box-shadow:0 0 30px rgba(224,128,32,0.08);
+}
+.gadget-card::before{
+content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+background:linear-gradient(90deg,transparent,var(--amber),transparent);
+opacity:0;transition:opacity .4s;
+}
+.gadget-card:hover::before{opacity:1}
+.gadget-icon{
+font-size:1.8rem;margin-bottom:1rem;
+filter:grayscale(0.5);
+}
+.gadget-name{
+font-family:var(--font-heading);font-weight:700;font-size:1.1rem;
+text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem;
+}
+.gadget-desc{
+font-size:.82rem;color:var(--fg2);line-height:1.7;
+}
+.gadget-stat{
+margin-top:1rem;display:flex;align-items:center;gap:.6rem;
+}
+.gadget-stat-label{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;color:var(--fg3);text-transform:uppercase}
+.gadget-stat-bar{
+flex:1;height:2px;background:var(--panel);position:relative;
+}
+.gadget-stat-fill{height:100%;background:var(--amber)}
+/* MISSIONS */
+.missions-list{display:flex;flex-direction:column;gap:2rem}
+.mission-card{
+display:grid;grid-template-columns:auto 1fr;gap:2rem;
+padding:2rem;background:var(--panel);border:1px solid var(--border);
+position:relative;overflow:hidden;transition:all .5s;
+}
+.mission-card:hover{border-color:rgba(255,255,255,0.15)}
+.mission-card::after{
+content:'';position:absolute;inset:0;
+background:linear-gradient(90deg,rgba(224,128,32,0.03),transparent 50%);
+opacity:0;transition:opacity .4s;
+}
+.mission-card:hover::after{opacity:1}
+.mission-number{
+font-family:var(--font-heading);font-size:3rem;font-weight:700;
+color:rgba(255,255,255,0.06);line-height:1;min-width:60px;text-align:center;
+}
+html.light .mission-number{color:rgba(0,0,0,0.06)}
+.mission-info{position:relative;z-index:1}
+.mission-name{
+font-family:var(--font-heading);font-weight:700;font-size:1.3rem;
+text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;
+transform:perspective(400px) rotateX(-2deg) rotateY(1deg);
+}
+.mission-location{
+font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;
+color:var(--amber);text-transform:uppercase;margin-bottom:.8rem;
+}
+.mission-desc{font-size:.85rem;color:var(--fg2);line-height:1.7}
+.mission-objectives{
+margin-top:1rem;display:flex;flex-wrap:wrap;gap:.5rem;
+}
+.mission-obj{
+font-family:var(--font-mono);font-size:.6rem;letter-spacing:.08em;
+padding:.3rem .7rem;background:rgba(255,255,255,0.03);
+border:1px solid var(--border);color:var(--fg3);text-transform:uppercase;
+}
+/* LAST KNOWN POSITION */
+.lkp-visual{
+position:relative;height:300px;
+background:linear-gradient(180deg,#0d0d0d 0%,#151515 100%);
+border:1px solid var(--border);margin:2rem 0;overflow:hidden;
+display:flex;align-items:center;justify-content:center;
+}
+html.light .lkp-visual{background:linear-gradient(180deg,#d0ccc8 0%,#c0bcb8 100%)}
+.lkp-ghost{
+width:80px;height:180px;position:relative;
+border:2px solid rgba(255,255,255,0.4);
+clip-path:polygon(30% 0%,70% 0%,75% 12%,72% 20%,78% 28%,75% 42%,82% 52%,78% 58%,85% 68%,70% 72%,72% 88%,62% 100%,38% 100%,28% 88%,30% 72%,15% 68%,22% 58%,18% 52%,25% 42%,22% 28%,28% 20%,25% 12%);
+box-shadow:0 0 20px rgba(255,255,255,0.2),0 0 40px rgba(255,255,255,0.08),inset 0 0 20px rgba(255,255,255,0.05);
+animation:ghost-flicker 4s ease-in-out infinite;
+}
+@keyframes ghost-flicker{
+0%,100%{opacity:.7}30%{opacity:.5}50%{opacity:.8}70%{opacity:.4}
+}
+.lkp-ghost::after{
+content:'';position:absolute;top:3%;left:35%;right:35%;height:8%;
+background:radial-gradient(ellipse,#2d8c2d 0%,transparent 70%);
+filter:blur(2px);opacity:.5;
+}
+.lkp-text{
+position:absolute;bottom:2rem;left:50%;transform:translateX(-50%) perspective(400px) rotateX(-5deg);
+font-family:var(--font-heading);font-size:2rem;font-weight:700;
+color:rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:.3em;
+white-space:nowrap;
+}
+html.light .lkp-text{color:rgba(0,0,0,0.08)}
+.lkp-arrows{
+position:absolute;top:50%;right:15%;display:flex;gap:.5rem;
+transform:translateY(-50%);
+}
+.lkp-arrow{
+width:0;height:0;
+border-top:8px solid transparent;border-bottom:8px solid transparent;
+border-left:12px solid rgba(255,255,255,0.1);
+animation:arrow-pulse 2s ease-in-out infinite;
+}
+.lkp-arrow:nth-child(2){animation-delay:.3s}
+.lkp-arrow:nth-child(3){animation-delay:.6s}
+@keyframes arrow-pulse{0%,100%{opacity:.2}50%{opacity:.6}}
+/* QUOTE */
+.quote-section{
+text-align:center;padding:8rem 2rem;
+background:linear-gradient(180deg,var(--bg) 0%,#0d0d0d 50%,var(--bg) 100%);
+position:relative;overflow:hidden;
+}
+html.light .quote-section{background:linear-gradient(180deg,var(--bg) 0%,#d4d0cc 50%,var(--bg) 100%)}
+.quote-section .light-cone{left:50%;transform:translateX(-50%)}
+.quote-text{
+font-family:var(--font-heading);font-size:clamp(2rem,5vw,3.5rem);
+font-weight:700;line-height:1.3;
+transform:perspective(600px) rotateX(-4deg);
+text-shadow:0 0 40px rgba(255,255,255,0.2);
+max-width:700px;margin:0 auto 2rem;
+text-transform:uppercase;letter-spacing:.05em;
+}
+html.light .quote-text{text-shadow:0 0 40px rgba(0,0,0,0.1)}
+.quote-attr{
+font-family:var(--font-mono);font-size:.7rem;letter-spacing:.3em;
+color:var(--amber);text-transform:uppercase;
+}
+/* CTA */
+.cta-section{text-align:center;padding:6rem 2rem}
+.cta-btn{
+display:inline-block;font-family:var(--font-heading);font-weight:700;
+font-size:1rem;letter-spacing:.2em;text-transform:uppercase;
+padding:1rem 3rem;color:#fff;background:transparent;
+border:2px solid var(--amber);cursor:pointer;
+text-decoration:none;position:relative;overflow:hidden;
+transition:all .4s;
+}
+.cta-btn:hover{
+background:var(--amber);color:#000;
+box-shadow:0 0 30px rgba(224,128,32,0.3);
+}
+.cta-btn::before{
+content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+transition:left .5s;
+}
+.cta-btn:hover::before{left:100%}
+/* FOOTER */
+.footer{
+padding:3rem 2rem;text-align:center;
+border-top:1px solid var(--border);
+}
+.footer-logo{
+font-family:var(--font-heading);font-weight:700;font-size:.9rem;
+letter-spacing:.2em;text-transform:uppercase;color:var(--fg3);
+margin-bottom:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.footer-text{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;color:var(--fg3)}
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s,transform .8s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .8s,transform .8s}
+.reveal-left.visible{opacity:1;transform:translateX(0)}
+/* B&W STEALTH FILTER on scroll */
+.noir-filter{
+position:fixed;inset:0;pointer-events:none;z-index:50;
+background:transparent;mix-blend-mode:saturation;
+transition:background 1s;
+}
+/* RESPONSIVE */
+@media(max-width:768px){
+.nav-links{display:none}
+.profile-grid{grid-template-columns:1fr}
+.gadgets-grid{grid-template-columns:1fr}
+.mission-card{grid-template-columns:1fr}
+.mission-number{font-size:2rem;text-align:left}
+.me-targets{flex-wrap:wrap;height:auto;gap:2rem;padding:1rem 0}
+section{padding:4rem 1rem}
+.hero-title{letter-spacing:.02em}
+}
+@media(max-width:480px){
+.nav{padding:0 1rem}
+.me-instructions{flex-direction:column;align-items:center}
+.profile-image{max-height:350px}
+}
+/* DETECTED STATE — color returns */
+.detected-flash{
+animation:detected .6s ease-out;
+}
+@keyframes detected{
+0%{box-shadow:inset 0 0 100px rgba(224,128,32,0.3)}
+100%{box-shadow:inset 0 0 0 transparent}
+}
+/* Interrogation harsh light */
+.interrogation-light{
+position:absolute;top:0;left:50%;transform:translateX(-50%);
+width:200px;height:100%;
+background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 60%);
+clip-path:polygon(40% 0%,60% 0%,100% 100%,0% 100%);
+pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<canvas id="dust-canvas"></canvas>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <span class="tri"></span>
+    <span data-en="SPLINTER CELL" data-zh="细胞分裂">SPLINTER CELL</span>
+  </div>
+  <div class="nav-links">
+    <a href="#fisher" data-en="FISHER" data-zh="费舍尔">FISHER</a>
+    <a href="#mark-execute" data-en="MARK & EXECUTE" data-zh="标记处决">MARK & EXECUTE</a>
+    <a href="#arsenal" data-en="ARSENAL" data-zh="武器库">ARSENAL</a>
+    <a href="#missions" data-en="MISSIONS" data-zh="任务">MISSIONS</a>
+    <a href="#lkp" data-en="L.K.P." data-zh="最后位置">L.K.P.</a>
+  </div>
+  <div class="nav-toggles">
+    <button class="toggle-btn" id="lang-toggle" onclick="toggleLang()">中/EN</button>
+    <button class="toggle-btn" id="theme-toggle" onclick="toggleTheme()">◐</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-line"></div><div class="hero-line"></div>
+  <div class="hero-line"></div><div class="hero-line"></div>
+  <div class="hero-vignette"></div>
+  <div class="light-cone" style="left:50%;transform:translateX(-50%)"></div>
+  <div class="hero-content">
+    <div class="hero-subtitle" data-en="TOM CLANCY'S SPLINTER CELL" data-zh="汤姆·克兰西 — 细胞分裂">TOM CLANCY'S SPLINTER CELL</div>
+    <h1 class="hero-title projected">CONVICTION</h1>
+    <div class="hero-title-sub" data-en="断罪" data-zh="断罪">断罪</div>
+    <p class="hero-tagline" data-en="Sam Fisher has gone rogue. Betrayed by his own government, driven by the murder of his daughter — there are no rules, no backup, no mercy." data-zh="山姆·费舍尔已经叛变。被自己的政府出卖，被女儿的死驱使——没有规则，没有后援，没有仁慈。">Sam Fisher has gone rogue. Betrayed by his own government, driven by the murder of his daughter — there are no rules, no backup, no mercy.</p>
+    <div class="hero-year">— 2010 —</div>
+  </div>
+</section>
+
+<!-- SAM FISHER PROFILE -->
+<section id="fisher" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-label reveal" data-en="OPERATIVE DOSSIER" data-zh="特工档案">OPERATIVE DOSSIER</div>
+    <h2 class="section-title projected reveal" data-en="SAM FISHER" data-zh="山姆·费舍尔">SAM FISHER</h2>
+    <div class="profile-grid">
+      <div class="profile-image reveal-left">
+        <div class="silhouette"></div>
+        <div class="projected-overlay" data-en="ROGUE" data-zh="叛变者">ROGUE</div>
+        <div class="interrogation-light"></div>
+      </div>
+      <div class="profile-stats reveal">
+        <div class="stat-row">
+          <span class="stat-label" data-en="REAL NAME" data-zh="真名">REAL NAME</span>
+          <span class="stat-value">Samuel Leo Fisher</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" data-en="STATUS" data-zh="状态">STATUS</span>
+          <span class="stat-value" style="color:var(--red)" data-en="ROGUE — OFF GRID" data-zh="叛变 — 脱离控制">ROGUE — OFF GRID</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" data-en="FORMER UNIT" data-zh="前隶属单位">FORMER UNIT</span>
+          <span class="stat-value">Third Echelon / NSA</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" data-en="SPECIALIZATION" data-zh="专长">SPECIALIZATION</span>
+          <span class="stat-value" data-en="Infiltration / CQC / Interrogation" data-zh="渗透 / 近身格斗 / 审讯">Infiltration / CQC / Interrogation</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" data-en="COMBAT RATING" data-zh="战斗评级">COMBAT RATING</span>
+          <div class="stat-bar"><div class="stat-bar-fill" data-width="95"></div></div>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" data-en="STEALTH RATING" data-zh="隐身评级">STEALTH RATING</span>
+          <div class="stat-bar"><div class="stat-bar-fill" data-width="98"></div></div>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" data-en="THREAT LEVEL" data-zh="威胁等级">THREAT LEVEL</span>
+          <span class="stat-value" style="color:var(--red)">■■■■■ <span data-en="EXTREME" data-zh="极端">EXTREME</span></span>
+        </div>
+        <p class="profile-bio" data-en="After years of loyal service to Third Echelon, Fisher discovers that the organization he trusted orchestrated the murder of his daughter Sarah. With nothing left to lose, he cuts all ties and wages a one-man war against the conspiracy that destroyed his life. No longer bound by rules of engagement, Fisher uses every brutal skill at his disposal — from savage interrogations to lethal close-quarters combat — to tear apart the shadow network from the inside." data-zh="在为第三梯队效忠多年后，费舍尔发现他信任的组织策划了女儿莎拉的谋杀。在失去一切后，他切断所有联系，独自一人向摧毁他生活的阴谋发动战争。不再受交战规则约束的费舍尔，运用他掌握的每一项残酷技能——从野蛮审讯到致命近身格斗——从内部撕裂这个影子网络。">After years of loyal service to Third Echelon, Fisher discovers that the organization he trusted orchestrated the murder of his daughter Sarah. With nothing left to lose, he cuts all ties and wages a one-man war against the conspiracy that destroyed his life. No longer bound by rules of engagement, Fisher uses every brutal skill at his disposal — from savage interrogations to lethal close-quarters combat — to tear apart the shadow network from the inside.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARK & EXECUTE -->
+<section id="mark-execute" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-label reveal" data-en="COMBAT SYSTEM" data-zh="战斗系统">COMBAT SYSTEM</div>
+    <h2 class="section-title projected reveal" data-en="MARK & EXECUTE" data-zh="标记处决">MARK & EXECUTE</h2>
+    <p class="section-desc reveal" data-en="Earned through hand-to-hand takedowns, Mark & Execute lets Fisher tag multiple enemies and eliminate them all in one fluid, lethal motion. Time slows. Targets lock. One press — and they all fall." data-zh="通过近身击倒敌人获得的能力，标记处决让费舍尔标记多个敌人，在一次流畅致命的动作中将他们全部消灭。时间减缓。目标锁定。一键按下——他们全部倒下。">Earned through hand-to-hand takedowns, Mark & Execute lets Fisher tag multiple enemies and eliminate them all in one fluid, lethal motion. Time slows. Targets lock. One press — and they all fall.</p>
+
+    <div class="me-demo reveal">
+      <div class="me-targets">
+        <div class="me-target" data-mark="MARK 1"><div class="target-figure"></div></div>
+        <div class="me-target" data-mark="MARK 2"><div class="target-figure"></div></div>
+        <div class="me-target" data-mark="MARK 3"><div class="target-figure"></div></div>
+        <div class="me-target" data-mark="MARK 4"><div class="target-figure"></div></div>
+      </div>
+      <div class="me-label" data-en="EXECUTE" data-zh="处决">EXECUTE</div>
+      <div class="me-instructions">
+        <div class="me-step">
+          <div class="step-num">1</div>
+          <span data-en="HAND-TO-HAND TAKEDOWN" data-zh="近身击倒">HAND-TO-HAND TAKEDOWN</span>
+        </div>
+        <div class="me-step">
+          <div class="step-num">2</div>
+          <span data-en="MARK TARGETS" data-zh="标记目标">MARK TARGETS</span>
+          <span class="mark-diamond small"></span>
+        </div>
+        <div class="me-step">
+          <div class="step-num">3</div>
+          <span data-en="PRESS Y — EXECUTE" data-zh="按下 Y — 处决">PRESS Y — EXECUTE</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GADGETS / WEAPONS -->
+<section id="arsenal" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-label reveal" data-en="WEAPONS & GADGETS" data-zh="武器和装备">WEAPONS & GADGETS</div>
+    <h2 class="section-title projected reveal" data-en="ARSENAL" data-zh="武器库">ARSENAL</h2>
+    <p class="section-desc reveal" data-en="Fisher operates off-grid — no quartermaster, no resupply. Every weapon is sourced in the field. Every gadget is a tool of survival." data-zh="费舍尔在网格之外行动——没有军需官，没有补给。每件武器都是在战场上获取的。每件装备都是生存的工具。">Fisher operates off-grid — no quartermaster, no resupply. Every weapon is sourced in the field. Every gadget is a tool of survival.</p>
+
+    <div class="gadgets-grid">
+      <div class="gadget-card reveal">
+        <div class="gadget-icon">🔫</div>
+        <div class="gadget-name" data-en="Five-seveN" data-zh="FN Five-seveN 手枪">Five-seveN</div>
+        <div class="gadget-desc" data-en="Fisher's signature sidearm. Suppressed, accurate, lethal. The weapon of choice for Mark & Execute — each round finds its mark with surgical precision." data-zh="费舍尔的标志性随身武器。消音、精准、致命。标记处决的首选武器——每一发子弹都以外科手术般的精度命中目标。">Fisher's signature sidearm. Suppressed, accurate, lethal. The weapon of choice for Mark & Execute — each round finds its mark with surgical precision.</div>
+        <div class="gadget-stat"><span class="gadget-stat-label" data-en="ACCURACY" data-zh="精准度">ACCURACY</span><div class="gadget-stat-bar"><div class="gadget-stat-fill" style="width:92%"></div></div></div>
+      </div>
+      <div class="gadget-card reveal">
+        <div class="gadget-icon">💣</div>
+        <div class="gadget-name" data-en="Frag Grenade" data-zh="破片手雷">Frag Grenade</div>
+        <div class="gadget-desc" data-en="When stealth fails, make a statement. Devastating in confined spaces — a last resort that leaves no room for questions." data-zh="当潜行失败时，发出声明。在密闭空间中毁灭性极强——一种不留任何余地的最后手段。">When stealth fails, make a statement. Devastating in confined spaces — a last resort that leaves no room for questions.</div>
+        <div class="gadget-stat"><span class="gadget-stat-label" data-en="DAMAGE" data-zh="伤害">DAMAGE</span><div class="gadget-stat-bar"><div class="gadget-stat-fill" style="width:95%"></div></div></div>
+      </div>
+      <div class="gadget-card reveal">
+        <div class="gadget-icon">📱</div>
+        <div class="gadget-name" data-en="Portable EMP" data-zh="便携式EMP">Portable EMP</div>
+        <div class="gadget-desc" data-en="Shuts down all electronics in a radius — lights, cameras, comms. Plunges the area into darkness, giving Fisher the advantage he was born for." data-zh="关闭一定范围内的所有电子设备——灯光、摄像头、通信。将区域陷入黑暗，给费舍尔他天生擅长的优势。">Shuts down all electronics in a radius — lights, cameras, comms. Plunges the area into darkness, giving Fisher the advantage he was born for.</div>
+        <div class="gadget-stat"><span class="gadget-stat-label" data-en="RANGE" data-zh="范围">RANGE</span><div class="gadget-stat-bar"><div class="gadget-stat-fill" style="width:70%"></div></div></div>
+      </div>
+      <div class="gadget-card reveal">
+        <div class="gadget-icon">💡</div>
+        <div class="gadget-name" data-en="Flashbang" data-zh="闪光弹">Flashbang</div>
+        <div class="gadget-desc" data-en="Blinds and disorients. Perfect for breaching a room full of hostiles — enter the flash, own the aftermath." data-zh="致盲和失去方向感。完美用于突入满是敌人的房间——进入闪光，掌控之后。">Blinds and disorients. Perfect for breaching a room full of hostiles — enter the flash, own the aftermath.</div>
+        <div class="gadget-stat"><span class="gadget-stat-label" data-en="STUN DURATION" data-zh="眩晕时间">STUN DURATION</span><div class="gadget-stat-bar"><div class="gadget-stat-fill" style="width:80%"></div></div></div>
+      </div>
+      <div class="gadget-card reveal">
+        <div class="gadget-icon">🔭</div>
+        <div class="gadget-name" data-en="Sonar Goggles" data-zh="声纳护目镜">Sonar Goggles</div>
+        <div class="gadget-desc" data-en="Upgraded from the iconic trifocal NVGs. Sonar pulses reveal enemies through walls — see everything, be seen by nothing." data-zh="从标志性的三目夜视仪升级而来。声纳脉冲可以穿墙显示敌人——看到一切，不被看见。">Upgraded from the iconic trifocal NVGs. Sonar pulses reveal enemies through walls — see everything, be seen by nothing.</div>
+        <div class="gadget-stat"><span class="gadget-stat-label" data-en="DETECTION" data-zh="探测">DETECTION</span><div class="gadget-stat-bar"><div class="gadget-stat-fill" style="width:98%"></div></div></div>
+      </div>
+      <div class="gadget-card reveal">
+        <div class="gadget-icon">🪞</div>
+        <div class="gadget-name" data-en="Mirror Camera" data-zh="蛇眼摄像头">Mirror Camera</div>
+        <div class="gadget-desc" data-en="Slide it under any door. Scout the room, count the targets, plan the breach. Information is the deadliest weapon." data-zh="从任何门缝下滑入。侦察房间、计算目标数量、规划突入方案。情报是最致命的武器。">Slide it under any door. Scout the room, count the targets, plan the breach. Information is the deadliest weapon.</div>
+        <div class="gadget-stat"><span class="gadget-stat-label" data-en="UTILITY" data-zh="实用性">UTILITY</span><div class="gadget-stat-bar"><div class="gadget-stat-fill" style="width:85%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KEY MISSIONS -->
+<section id="missions" style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-label reveal" data-en="OPERATION INTEL" data-zh="行动情报">OPERATION INTEL</div>
+    <h2 class="section-title projected reveal" data-en="KEY MISSIONS" data-zh="关键任务">KEY MISSIONS</h2>
+    <p class="section-desc reveal" data-en="Three operations that define Fisher's path from fugitive to the man who dismantled a shadow government." data-zh="三项行动定义了费舍尔从逃犯到瓦解影子政府之人的道路。">Three operations that define Fisher's path from fugitive to the man who dismantled a shadow government.</p>
+
+    <div class="missions-list">
+      <div class="mission-card reveal">
+        <div class="mission-number">01</div>
+        <div class="mission-info">
+          <div class="mission-name" data-en="AMERICAN EMBASSY — PRICE AIRFIELD" data-zh="美国大使馆 — 普莱斯机场">AMERICAN EMBASSY — PRICE AIRFIELD</div>
+          <div class="mission-location" data-en="VALLETTA, MALTA" data-zh="瓦莱塔，马耳他">VALLETTA, MALTA</div>
+          <div class="mission-desc" data-en="Fisher infiltrates the American Embassy in Malta chasing leads on his daughter's killer. What begins as reconnaissance erupts into a full-scale firefight. The projected text reads: 'FIND ANDRIY KOBIN' — smashed across embassy walls as Fisher tears through Black Arrow PMC operatives." data-zh="费舍尔渗透马耳他美国大使馆，追寻女儿杀手的线索。原本的侦察行动演变为全面交火。投射文字写着：'找到安德烈·科宾'——在费舍尔撕裂黑箭PMC特工的过程中砸碎在大使馆墙壁上。">Fisher infiltrates the American Embassy in Malta chasing leads on his daughter's killer. What begins as reconnaissance erupts into a full-scale firefight. The projected text reads: 'FIND ANDRIY KOBIN' — smashed across embassy walls as Fisher tears through Black Arrow PMC operatives.</div>
+          <div class="mission-objectives">
+            <span class="mission-obj" data-en="INFILTRATE EMBASSY" data-zh="渗透大使馆">INFILTRATE EMBASSY</span>
+            <span class="mission-obj" data-en="LOCATE KOBIN" data-zh="定位科宾">LOCATE KOBIN</span>
+            <span class="mission-obj" data-en="EXTRACT INTEL" data-zh="提取情报">EXTRACT INTEL</span>
+          </div>
+        </div>
+      </div>
+      <div class="mission-card reveal">
+        <div class="mission-number">02</div>
+        <div class="mission-info">
+          <div class="mission-name" data-en="THE WHITE HOUSE — 1600 PENN" data-zh="白宫 — 宾夕法尼亚大道1600号">THE WHITE HOUSE — 1600 PENN</div>
+          <div class="mission-location" data-en="WASHINGTON, D.C." data-zh="华盛顿特区">WASHINGTON, D.C.</div>
+          <div class="mission-desc" data-en="An EMP detonation has crippled Washington. In total blackout, Third Echelon's rogue director Tom Reed attempts a coup against the President. Fisher breaches the White House through underground tunnels, fighting through Secret Service and Third Echelon operatives to reach the Oval Office and stop Reed's assassination plot." data-zh="一次EMP爆炸瘫痪了华盛顿。在完全断电中，第三梯队的叛变主管汤姆·里德企图对总统发动政变。费舍尔通过地下隧道突入白宫，穿越特勤局和第三梯队特工到达椭圆形办公室，阻止里德的暗杀阴谋。">An EMP detonation has crippled Washington. In total blackout, Third Echelon's rogue director Tom Reed attempts a coup against the President. Fisher breaches the White House through underground tunnels, fighting through Secret Service and Third Echelon operatives to reach the Oval Office and stop Reed's assassination plot.</div>
+          <div class="mission-objectives">
+            <span class="mission-obj" data-en="BREACH WHITE HOUSE" data-zh="突入白宫">BREACH WHITE HOUSE</span>
+            <span class="mission-obj" data-en="NEUTRALIZE REED" data-zh="制服里德">NEUTRALIZE REED</span>
+            <span class="mission-obj" data-en="SAVE PRESIDENT" data-zh="拯救总统">SAVE PRESIDENT</span>
+          </div>
+        </div>
+      </div>
+      <div class="mission-card reveal">
+        <div class="mission-number">03</div>
+        <div class="mission-info">
+          <div class="mission-name" data-en="THIRD ECHELON HQ" data-zh="第三梯队总部">THIRD ECHELON HQ</div>
+          <div class="mission-location" data-en="FORT MEADE, MARYLAND" data-zh="马里兰州，米德堡">FORT MEADE, MARYLAND</div>
+          <div class="mission-desc" data-en="Fisher assaults the very headquarters that trained him. Third Echelon's own fortress becomes his hunting ground. Every corridor he once walked is now a kill zone. The organization that made him will be unmade by him. Projected across the walls of the ops center: 'BURN IT DOWN.'" data-zh="费舍尔突袭了训练他的总部。第三梯队的堡垒成为他的猎场。他曾经走过的每一条走廊现在都是杀戮区。制造他的组织将被他亲手摧毁。投射在行动中心墙壁上的文字：'烧毁一切。'">Fisher assaults the very headquarters that trained him. Third Echelon's own fortress becomes his hunting ground. Every corridor he once walked is now a kill zone. The organization that made him will be unmade by him. Projected across the walls of the ops center: 'BURN IT DOWN.'</div>
+          <div class="mission-objectives">
+            <span class="mission-obj" data-en="INFILTRATE HQ" data-zh="渗透总部">INFILTRATE HQ</span>
+            <span class="mission-obj" data-en="ACCESS MAINFRAME" data-zh="访问主机">ACCESS MAINFRAME</span>
+            <span class="mission-obj" data-en="DISMANTLE 3E" data-zh="瓦解第三梯队">DISMANTLE 3E</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LAST KNOWN POSITION -->
+<section id="lkp" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-label reveal" data-en="STEALTH MECHANIC" data-zh="潜行机制">STEALTH MECHANIC</div>
+    <h2 class="section-title projected reveal" data-en="LAST KNOWN POSITION" data-zh="最后已知位置">LAST KNOWN POSITION</h2>
+    <p class="section-desc reveal" data-en="When spotted, a ghostly white silhouette marks where enemies last saw you. They converge on the ghost — but you're already behind them. Use the phantom to flank, ambush, and destroy." data-zh="被发现时，一个幽灵般的白色轮廓标记敌人最后看到你的位置。他们聚集在幽灵周围——但你已经在他们身后。利用幻影进行侧翼包抄、伏击和消灭。">When spotted, a ghostly white silhouette marks where enemies last saw you. They converge on the ghost — but you're already behind them. Use the phantom to flank, ambush, and destroy.</p>
+
+    <div class="lkp-visual reveal">
+      <div class="lkp-ghost"></div>
+      <div class="lkp-text" data-en="LAST KNOWN POSITION" data-zh="最后已知位置">LAST KNOWN POSITION</div>
+      <div class="lkp-arrows">
+        <div class="lkp-arrow"></div>
+        <div class="lkp-arrow"></div>
+        <div class="lkp-arrow"></div>
+      </div>
+      <div class="interrogation-light"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-top:2rem">
+      <div class="reveal" style="padding:1.5rem;border-left:2px solid var(--fg3)">
+        <div style="font-family:var(--font-heading);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem" data-en="BLACK & WHITE" data-zh="黑白模式">BLACK & WHITE</div>
+        <div style="font-size:.85rem;color:var(--fg2);line-height:1.7" data-en="Hidden in shadow, the world drains to monochrome. You are invisible. The desaturated view is your confirmation — you are a ghost." data-zh="隐藏在阴影中，世界褪成单色。你是隐形的。去饱和的视觉是你的确认——你是一个幽灵。">Hidden in shadow, the world drains to monochrome. You are invisible. The desaturated view is your confirmation — you are a ghost.</div>
+      </div>
+      <div class="reveal" style="padding:1.5rem;border-left:2px solid var(--amber)">
+        <div style="font-family:var(--font-heading);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem" data-en="COLOR RETURNS" data-zh="色彩回归">COLOR RETURNS</div>
+        <div style="font-size:.85rem;color:var(--fg2);line-height:1.7" data-en="Detection floods the screen with color — warm amber tones crash back in. You've been seen. Adapt or die." data-zh="被发现时，屏幕充满色彩——温暖的琥珀色调涌回。你被看到了。适应或死亡。">Detection floods the screen with color — warm amber tones crash back in. You've been seen. Adapt or die.</div>
+      </div>
+      <div class="reveal" style="padding:1.5rem;border-left:2px solid var(--red)">
+        <div style="font-family:var(--font-heading);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem" data-en="THE GHOST REMAINS" data-zh="幽灵残留">THE GHOST REMAINS</div>
+        <div style="font-size:.85rem;color:var(--fg2);line-height:1.7" data-en="Your silhouette stays — a decoy. Enemies fire at nothing while you reposition. The ghost is your greatest weapon." data-zh="你的轮廓留在原地——一个诱饵。敌人向空无开火，而你已经重新定位。幽灵是你最强大的武器。">Your silhouette stays — a decoy. Enemies fire at nothing while you reposition. The ghost is your greatest weapon.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote-section">
+  <div class="light-cone"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <div class="quote-text projected reveal" data-en="&ldquo;I'M NOT THE SAME MAN I WAS.&rdquo;" data-zh="&ldquo;我已不是从前的我了。&rdquo;">&ldquo;I'M NOT THE SAME MAN I WAS.&rdquo;</div>
+    <div class="quote-attr reveal" data-en="— SAM FISHER, TO VICTOR COSTE" data-zh="— 山姆·费舍尔，对维克多·科斯特">— SAM FISHER, TO VICTOR COSTE</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content:center" data-en="OPERATION BRIEFING COMPLETE" data-zh="行动简报完成">OPERATION BRIEFING COMPLETE</div>
+    <h2 class="section-title projected reveal" style="text-align:center" data-en="GO DARK" data-zh="进入黑暗">GO DARK</h2>
+    <p class="section-desc reveal" style="text-align:center;margin:0 auto 3rem" data-en="Third Echelon is compromised. The conspiracy reaches the highest levels. There is only one operative who can end this — and he answers to no one." data-zh="第三梯队已被渗透。阴谋延伸到最高层。只有一个特工能终结这一切——而他不听命于任何人。">Third Echelon is compromised. The conspiracy reaches the highest levels. There is only one operative who can end this — and he answers to no one.</p>
+    <div class="reveal" style="text-align:center">
+      <a href="#top" class="cta-btn" data-en="INITIATE OPERATION" data-zh="启动行动">INITIATE OPERATION</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">
+    <span class="tri" style="border-bottom-width:10px"></span>
+    <span data-en="SPLINTER CELL: CONVICTION" data-zh="细胞分裂：断罪">SPLINTER CELL: CONVICTION</span>
+  </div>
+  <div class="footer-text" data-en="Fan tribute page — Tom Clancy's Splinter Cell: Conviction (2010) by Ubisoft Montreal" data-zh="粉丝致敬页面 — 汤姆·克兰西的细胞分裂：断罪 (2010)，育碧蒙特利尔制作">Fan tribute page — Tom Clancy's Splinter Cell: Conviction (2010) by Ubisoft Montreal</div>
+</footer>
+
+<script>
+// ===== DUST / LIGHT PARTICLES =====
+(function(){
+const canvas=document.getElementById('dust-canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+
+const particles=[];
+const COUNT=80;
+for(let i=0;i<COUNT;i++){
+  particles.push({
+    x:Math.random()*2000,
+    y:Math.random()*2000,
+    size:Math.random()*1.8+0.3,
+    speedX:(Math.random()-0.5)*0.3,
+    speedY:Math.random()*0.2+0.05,
+    opacity:Math.random()*0.4+0.05,
+    flicker:Math.random()*Math.PI*2
+  });
+}
+
+// Light beams — harsh overhead
+const beams=[
+  {x:0.2,w:0.06,opacity:0.025},
+  {x:0.5,w:0.08,opacity:0.03},
+  {x:0.78,w:0.05,opacity:0.02}
+];
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+
+  // Draw light beams
+  const isDark=!document.documentElement.classList.contains('light');
+  if(isDark){
+    beams.forEach(b=>{
+      const grd=ctx.createLinearGradient(0,0,0,H);
+      grd.addColorStop(0,'rgba(255,255,255,'+b.opacity+')');
+      grd.addColorStop(0.5,'rgba(255,255,255,'+(b.opacity*0.3)+')');
+      grd.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=grd;
+      ctx.beginPath();
+      const cx=b.x*W;
+      const hw=b.w*W*0.5;
+      ctx.moveTo(cx-hw*0.3,0);
+      ctx.lineTo(cx+hw*0.3,0);
+      ctx.lineTo(cx+hw,H);
+      ctx.lineTo(cx-hw,H);
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+
+  // Draw dust particles
+  const t=Date.now()*0.001;
+  particles.forEach(p=>{
+    p.x+=p.speedX;
+    p.y+=p.speedY;
+    p.flicker+=0.02;
+    if(p.x>W+10)p.x=-10;
+    if(p.x<-10)p.x=W+10;
+    if(p.y>H+10){p.y=-10;p.x=Math.random()*W}
+
+    const flick=Math.sin(p.flicker)*0.3+0.7;
+    const alpha=p.opacity*flick;
+    ctx.fillStyle=isDark?'rgba(255,255,255,'+alpha+')':'rgba(0,0,0,'+(alpha*0.5)+')';
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// ===== SCROLL REVEAL =====
+(function(){
+const els=document.querySelectorAll('.reveal,.reveal-left');
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}
+  });
+},{threshold:0.15});
+els.forEach(el=>obs.observe(el));
+})();
+
+// ===== STAT BAR ANIMATION =====
+(function(){
+const bars=document.querySelectorAll('.stat-bar-fill');
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.width=e.target.dataset.width+'%';
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:0.5});
+bars.forEach(b=>{b.style.width='0';obs.observe(b)});
+})();
+
+// ===== LANGUAGE TOGGLE =====
+let isZh=false;
+function toggleLang(){
+  isZh=!isZh;
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const key=isZh?'zh':'en';
+    if(el.dataset[key]){
+      if(el.tagName==='INPUT'||el.tagName==='TEXTAREA'){
+        el.placeholder=el.dataset[key];
+      } else {
+        el.innerHTML=el.dataset[key];
+      }
+    }
+  });
+  document.documentElement.lang=isZh?'zh-CN':'en';
+}
+
+// ===== THEME TOGGLE =====
+function toggleTheme(){
+  document.documentElement.classList.toggle('light');
+}
+
+// ===== MARK & EXECUTE CLICK EFFECT =====
+document.querySelectorAll('.me-target').forEach(t=>{
+  t.addEventListener('click',()=>{
+    t.style.transition='transform .15s,opacity .3s';
+    t.style.transform='scale(0.9)';
+    t.style.opacity='0.4';
+    setTimeout(()=>{
+      t.style.transform='scale(1)';
+      t.style.opacity='1';
+    },400);
+  });
+});
+
+// ===== SUBTLE NOIR EFFECT ON SCROLL — stealth desaturation =====
+(function(){
+  let ticking=false;
+  window.addEventListener('scroll',()=>{
+    if(!ticking){
+      requestAnimationFrame(()=>{
+        const scrollY=window.scrollY;
+        const maxScroll=document.body.scrollHeight-window.innerHeight;
+        const ratio=scrollY/maxScroll;
+        // subtle desaturation wave
+        const sat=0.85+Math.sin(ratio*Math.PI*4)*0.15;
+        document.body.style.filter='saturate('+sat+')';
+        ticking=false;
+      });
+      ticking=true;
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HITMAN - World of Assassination</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg-primary:#0e0e10;--bg-secondary:#1a1a1e;--bg-tertiary:#2a2a30;--bg-card:#1e1e22;
+--red:#e3000b;--red-dark:#cc0000;--red-glow:rgba(227,0,11,.3);
+--text-primary:#e8e8e8;--text-secondary:#999;--text-muted:#555;
+--border:#333;--font-display:'Rajdhani',sans-serif;--font-body:'Noto Sans SC',sans-serif;
+--font-mono:'Space Mono',monospace;
+}
+[data-theme="light"]{
+--bg-primary:#f0eff2;--bg-secondary:#e4e3e8;--bg-tertiary:#d5d4da;--bg-card:#eaeaef;
+--text-primary:#1a1a1e;--text-secondary:#555;--text-muted:#999;--border:#c0c0c5;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;line-height:1.6;transition:background .4s,color .4s}
+a{color:inherit;text-decoration:none}
+
+/* ==================== BRIEFING OVERLAY ==================== */
+#briefing-overlay{position:fixed;inset:0;z-index:10000;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:transform .8s cubic-bezier(.77,0,.18,1)}
+#briefing-overlay.dismiss{transform:translateY(-100%)}
+#briefing-overlay .layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:0;pointer-events:none}
+
+/* ICA Logo */
+.ica-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:18px}
+.ica-logo{width:100px;height:100px;position:relative}
+.ica-logo .diamond{width:60px;height:60px;border:3px solid var(--red);transform:rotate(45deg);position:absolute;top:20px;left:20px}
+.ica-logo .inner-diamond{width:30px;height:30px;border:2px solid var(--red);transform:rotate(45deg);position:absolute;top:35px;left:35px}
+.ica-logo .dot{width:8px;height:8px;background:var(--red);border-radius:50%;position:absolute;top:46px;left:46px}
+.ica-text{font-family:var(--font-display);font-weight:300;font-size:14px;letter-spacing:12px;color:#888;text-transform:uppercase}
+.ica-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:#555;margin-top:4px}
+
+/* Scan line */
+.scan-line{position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);transform:translateY(-10px);opacity:0}
+
+/* Mission briefing text */
+.mission-text{font-family:var(--font-display);font-size:clamp(28px,5vw,48px);font-weight:700;letter-spacing:8px;color:var(--red);text-transform:uppercase}
+
+/* Target dossier in briefing */
+.brief-target{display:flex;align-items:center;gap:40px;max-width:700px;width:90%}
+.brief-target-photo{width:120px;height:120px;border-radius:50%;border:2px solid var(--red);position:relative;flex-shrink:0;overflow:hidden;background:#111}
+.brief-target-photo .silhouette{width:100%;height:100%;background:radial-gradient(ellipse at 50% 30%,#333 0%,#333 25%,transparent 25%),radial-gradient(ellipse at 50% 70%,#333 0%,#333 35%,transparent 35%);position:relative}
+.brief-target-photo .crosshair{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.brief-target-photo .crosshair::before,.brief-target-photo .crosshair::after{content:'';position:absolute;background:var(--red);opacity:.6}
+.brief-target-photo .crosshair::before{width:1px;height:100%}
+.brief-target-photo .crosshair::after{width:100%;height:1px}
+.brief-target-info{display:flex;flex-direction:column;gap:6px}
+.brief-target-info .line{font-family:var(--font-mono);font-size:13px;color:#ccc;opacity:0;transform:translateX(20px)}
+.brief-target-info .line .label{color:var(--red);margin-right:8px;font-size:11px;letter-spacing:2px}
+
+/* Good luck */
+.goodluck{font-family:var(--font-display);font-size:clamp(20px,4vw,36px);font-weight:300;letter-spacing:6px;color:#e8e8e8}
+
+/* Skip button */
+#skip-btn{position:fixed;bottom:40px;right:40px;z-index:10001;font-family:var(--font-display);font-size:13px;letter-spacing:4px;color:#666;background:transparent;border:1px solid #333;padding:8px 24px;cursor:pointer;text-transform:uppercase;transition:all .3s}
+#skip-btn:hover{color:var(--red);border-color:var(--red)}
+#skip-btn.hidden{display:none}
+
+/* ==================== CONTROLS ==================== */
+.controls{position:fixed;top:20px;right:20px;z-index:9000;display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .5s}
+.controls.visible{opacity:1;pointer-events:auto}
+.ctrl-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;font-family:var(--font-mono);transition:all .3s}
+.ctrl-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ==================== HERO ==================== */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--bg-primary) 0%,#12121a 50%,var(--bg-primary) 100%)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,var(--red-glow) 0%,transparent 70%);opacity:.15}
+.hero-content{text-align:center;z-index:1;padding:20px}
+.hero-subtitle{font-family:var(--font-display);font-weight:300;font-size:14px;letter-spacing:10px;color:var(--red);text-transform:uppercase;margin-bottom:20px}
+.hero-title{font-family:var(--font-display);font-weight:700;font-size:clamp(36px,7vw,80px);letter-spacing:6px;text-transform:uppercase;line-height:1.1;margin-bottom:10px}
+.hero-title span{color:var(--red)}
+.hero-tagline{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);letter-spacing:3px;margin-top:16px}
+/* Agent 47 silhouette */
+.agent-silhouette{width:200px;height:300px;margin:30px auto 0;position:relative;opacity:.15}
+.agent-silhouette .head{width:50px;height:60px;border-radius:50% 50% 45% 45%;background:var(--text-primary);margin:0 auto}
+.agent-silhouette .body{width:120px;height:180px;background:var(--text-primary);margin:-5px auto 0;border-radius:10px 10px 0 0;clip-path:polygon(15% 0%,85% 0%,100% 100%,0% 100%)}
+.agent-silhouette .tie{width:12px;height:60px;background:var(--red);margin:-175px auto 0;clip-path:polygon(50% 0%,100% 10%,60% 100%,40% 100%,0% 10%)}
+
+/* Red line divider */
+.red-divider{width:60px;height:2px;background:var(--red);margin:0 auto}
+
+/* ==================== SECTIONS ==================== */
+section{padding:80px 20px;max-width:1200px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:50px}
+.section-label{font-family:var(--font-mono);font-size:11px;letter-spacing:4px;color:var(--red);text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--font-display);font-size:clamp(28px,4vw,42px);font-weight:700;letter-spacing:4px;text-transform:uppercase}
+.section-title::after{content:'';display:block;width:40px;height:2px;background:var(--red);margin:12px auto 0}
+
+/* ==================== ICA OVERVIEW ==================== */
+.ica-overview{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:40px}
+.ica-card{background:var(--bg-secondary);border:1px solid var(--border);padding:30px;position:relative;overflow:hidden;transition:all .4s}
+.ica-card:hover{border-color:var(--red)}
+.ica-card::before{content:'';position:absolute;left:0;top:0;width:3px;height:0;background:var(--red);transition:height .4s}
+.ica-card:hover::before{height:100%}
+.ica-card h3{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;color:var(--red)}
+.ica-card p{font-size:14px;color:var(--text-secondary);line-height:1.8}
+.ica-card .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.stat-item{background:var(--bg-tertiary);padding:12px;text-align:center}
+.stat-item .stat-val{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--red)}
+.stat-item .stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-top:4px}
+
+/* ==================== TARGET DOSSIERS ==================== */
+.dossier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px;margin-top:40px}
+.dossier-card{background:var(--bg-card);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .4s;cursor:default}
+.dossier-card:hover{border-color:var(--red);box-shadow:inset 0 0 40px rgba(227,0,11,.05)}
+.dossier-card .classified{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-family:var(--font-display);font-size:60px;font-weight:700;letter-spacing:10px;color:var(--red);opacity:.04;text-transform:uppercase;pointer-events:none;white-space:nowrap}
+.dossier-header{display:flex;align-items:center;gap:20px;padding:24px 24px 16px}
+.dossier-photo{width:70px;height:70px;border-radius:50%;border:2px solid var(--red);flex-shrink:0;position:relative;overflow:hidden;background:var(--bg-tertiary)}
+.dossier-photo .sil{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.dossier-photo .sil::before{content:'';width:22px;height:26px;border-radius:50%;background:var(--text-muted);position:absolute;top:14px}
+.dossier-photo .sil::after{content:'';width:44px;height:32px;border-radius:50% 50% 0 0;background:var(--text-muted);position:absolute;bottom:0}
+.dossier-photo .xhair{position:absolute;inset:0}
+.dossier-photo .xhair::before,.dossier-photo .xhair::after{content:'';position:absolute;background:var(--red);opacity:.4}
+.dossier-photo .xhair::before{width:1px;height:100%;left:50%}
+.dossier-photo .xhair::after{height:1px;width:100%;top:50%}
+.dossier-meta h3{font-family:var(--font-display);font-size:18px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+.dossier-meta .codename{font-family:var(--font-mono);font-size:11px;color:var(--red);letter-spacing:2px;margin-top:2px}
+.dossier-body{padding:0 24px 20px}
+.dossier-body .info-line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.dossier-body .info-line .il-label{color:var(--text-muted);font-family:var(--font-mono);font-size:11px;letter-spacing:1px}
+.dossier-body .info-line .il-value{color:var(--text-secondary)}
+.dossier-stars{color:var(--red);font-size:12px;letter-spacing:2px}
+.dossier-footer{padding:12px 24px;background:rgba(227,0,11,.03);border-top:1px solid rgba(227,0,11,.1);display:flex;justify-content:space-between;align-items:center}
+.dossier-footer .methods{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:1px}
+.badge{font-family:var(--font-display);font-size:10px;letter-spacing:2px;border:1px solid var(--red);color:var(--red);padding:2px 10px;border-radius:20px;text-transform:uppercase}
+
+/* Diamond marker */
+.diamond-list{list-style:none;padding:0}
+.diamond-list li{padding:6px 0;font-size:14px;color:var(--text-secondary)}
+.diamond-list li::before{content:'◆';color:var(--red);margin-right:10px;font-size:8px}
+
+/* ==================== LOCATIONS ==================== */
+.locations-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:20px;margin-top:40px}
+.location-panel{background:var(--bg-secondary);border:1px solid var(--border);padding:30px;position:relative;overflow:hidden;min-height:160px;transition:all .4s}
+.location-panel:hover{border-color:var(--red)}
+.location-panel::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 100% 100%,var(--red-glow) 0%,transparent 50%);opacity:0;transition:opacity .4s}
+.location-panel:hover::after{opacity:.15}
+.location-panel .loc-number{font-family:var(--font-display);font-size:48px;font-weight:700;color:var(--red);opacity:.1;position:absolute;top:10px;right:20px}
+.location-panel h3{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;position:relative;z-index:1}
+.location-panel h3::after{content:'';display:block;width:30px;height:2px;background:var(--red);margin-top:8px}
+.location-panel .loc-country{font-family:var(--font-mono);font-size:11px;color:var(--red);letter-spacing:2px;margin-bottom:10px;position:relative;z-index:1}
+.location-panel p{font-size:13px;color:var(--text-secondary);position:relative;z-index:1;line-height:1.7}
+
+/* minimap circle */
+.location-panel .minimap{width:50px;height:50px;border-radius:50%;border:1px solid var(--red);position:absolute;bottom:15px;right:15px;opacity:.2;display:flex;align-items:center;justify-content:center}
+.location-panel .minimap::before{content:'';width:4px;height:4px;background:var(--red);border-radius:50%}
+.location-panel .minimap::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;border:1px solid var(--red);opacity:.5}
+
+/* ==================== MASTERY ==================== */
+.mastery-list{display:flex;flex-direction:column;gap:20px;margin-top:40px;max-width:800px;margin-left:auto;margin-right:auto}
+.mastery-item{display:flex;align-items:center;gap:20px}
+.mastery-item .m-label{width:140px;font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;text-align:right;flex-shrink:0}
+.mastery-bar{flex:1;height:8px;background:var(--bg-tertiary);border-radius:0;overflow:hidden;position:relative}
+.mastery-fill{height:100%;background:var(--red);border-radius:0;transition:width 1.5s ease-out}
+.mastery-item .m-level{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);width:60px;flex-shrink:0}
+
+/* ==================== EQUIPMENT ==================== */
+.equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-top:40px}
+.equip-card{background:var(--bg-secondary);border:1px solid var(--border);padding:24px 16px;text-align:center;transition:all .3s;position:relative}
+.equip-card:hover{border-color:var(--red);transform:translateY(-4px)}
+.equip-icon{font-size:32px;margin-bottom:12px;filter:grayscale(1);transition:filter .3s}
+.equip-card:hover .equip-icon{filter:grayscale(0)}
+.equip-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.equip-card .equip-type{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:1px}
+
+/* ==================== CHALLENGES ==================== */
+.challenge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:40px}
+.challenge-tile{background:var(--bg-secondary);border:1px solid var(--border);padding:16px 12px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.challenge-tile:hover{border-color:var(--red)}
+.challenge-tile .ch-icon{font-size:24px;margin-bottom:8px}
+.challenge-tile .ch-name{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-secondary)}
+.challenge-tile .ch-xp{font-family:var(--font-mono);font-size:10px;color:var(--red);margin-top:4px}
+.challenge-tile.completed::after{content:'✓';position:absolute;top:6px;right:8px;color:var(--red);font-size:12px;font-weight:700}
+
+/* ==================== QUOTE ==================== */
+.quote-section{text-align:center;padding:80px 20px;position:relative}
+.quote-section::before{content:'';position:absolute;left:50%;top:0;width:1px;height:40px;background:var(--red);transform:translateX(-50%)}
+.quote-text{font-family:var(--font-display);font-size:clamp(20px,3vw,32px);font-weight:300;letter-spacing:3px;color:var(--text-primary);max-width:700px;margin:0 auto;line-height:1.5}
+.quote-text em{color:var(--red);font-style:normal}
+.quote-attr{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);letter-spacing:3px;margin-top:16px;text-transform:uppercase}
+
+/* ==================== CTA ==================== */
+.cta-section{text-align:center;padding:60px 20px 80px}
+.cta-btn{display:inline-block;font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:6px;text-transform:uppercase;color:#fff;background:var(--red);border:none;padding:16px 60px;cursor:pointer;position:relative;overflow:hidden;transition:all .3s}
+.cta-btn:hover{background:var(--red-dark);box-shadow:0 0 30px var(--red-glow)}
+.cta-btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transition:left .5s}
+.cta-btn:hover::after{left:100%}
+
+/* ==================== FOOTER ==================== */
+footer{background:var(--bg-secondary);border-top:1px solid var(--border);padding:40px 20px;text-align:center}
+.footer-logo{font-family:var(--font-display);font-size:14px;letter-spacing:6px;color:var(--text-muted);text-transform:uppercase;margin-bottom:16px}
+.barcode{height:40px;width:200px;margin:0 auto 16px;background:repeating-linear-gradient(90deg,var(--text-muted) 0px,var(--text-muted) 2px,transparent 2px,transparent 5px,var(--text-muted) 5px,var(--text-muted) 6px,transparent 6px,transparent 10px,var(--text-muted) 10px,var(--text-muted) 11px,transparent 11px,transparent 13px,var(--text-muted) 13px,var(--text-muted) 16px,transparent 16px,transparent 18px,var(--text-muted) 18px,var(--text-muted) 19px,transparent 19px,transparent 22px,var(--text-muted) 22px,var(--text-muted) 24px,transparent 24px,transparent 26px,var(--text-muted) 26px,var(--text-muted) 27px,transparent 27px,transparent 30px);opacity:.3}
+.footer-terminal{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:3px;text-transform:uppercase}
+
+/* ==================== ANIMATIONS ==================== */
+/* Briefing sequence keyframes */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+@keyframes scanLine{0%{transform:translateY(-10px);opacity:0}10%{opacity:1}100%{transform:translateY(100vh);opacity:0}}
+@keyframes typeIn{from{width:0}to{width:100%}}
+@keyframes slideInRight{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes lineReveal{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* Briefing layers animation */
+.layer-1{animation:fadeIn .8s .3s forwards}
+.layer-1.out{animation:fadeOut .5s forwards}
+.layer-2 .scan-line{animation:scanLine 1s 1.8s forwards}
+.layer-3{animation:fadeIn .6s 2.5s forwards}
+.layer-3.out{animation:fadeOut .4s forwards}
+.layer-4{animation:fadeIn .6s 3.2s forwards}
+.layer-4.out{animation:fadeOut .4s forwards}
+.layer-4 .brief-target-photo{animation:slideInRight .5s 3.4s both}
+.layer-4 .line:nth-child(1){animation:lineReveal .3s 3.6s both}
+.layer-4 .line:nth-child(2){animation:lineReveal .3s 3.8s both}
+.layer-4 .line:nth-child(3){animation:lineReveal .3s 4.0s both}
+.layer-4 .line:nth-child(4){animation:lineReveal .3s 4.2s both}
+.layer-5{animation:fadeIn .8s 4.8s forwards}
+.layer-5.out{animation:fadeOut .4s forwards}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Instinct pulse on red elements */
+@keyframes instinctPulse{0%,100%{box-shadow:0 0 0 0 var(--red-glow)}50%{box-shadow:0 0 20px 5px var(--red-glow)}}
+
+/* ==================== RESPONSIVE ==================== */
+@media(max-width:768px){
+.ica-overview{grid-template-columns:1fr}
+.dossier-grid{grid-template-columns:1fr}
+.locations-grid{grid-template-columns:1fr}
+.equip-grid{grid-template-columns:repeat(2,1fr)}
+.challenge-grid{grid-template-columns:repeat(3,1fr)}
+.brief-target{flex-direction:column;text-align:center;gap:20px}
+.mastery-item{flex-direction:column;gap:8px}
+.mastery-item .m-label{width:auto;text-align:center}
+.mastery-item .m-level{width:auto;text-align:center}
+section{padding:50px 16px}
+}
+@media(max-width:480px){
+.equip-grid{grid-template-columns:1fr 1fr}
+.challenge-grid{grid-template-columns:repeat(2,1fr)}
+.dossier-header{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== MISSION BRIEFING OVERLAY ==================== -->
+<div id="briefing-overlay">
+  <!-- Layer 1: ICA Logo -->
+  <div class="layer layer-1" id="layer1">
+    <div class="ica-logo-wrap">
+      <div class="ica-logo">
+        <div class="diamond"></div>
+        <div class="inner-diamond"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="ica-text" data-en="International Contract Agency" data-zh="国际合同局">International Contract Agency</div>
+      <div class="ica-sub">EST. 1945 — SECURE CHANNEL</div>
+    </div>
+  </div>
+
+  <!-- Layer 2: Scan Line -->
+  <div class="layer layer-2" style="opacity:1;pointer-events:none">
+    <div class="scan-line"></div>
+  </div>
+
+  <!-- Layer 3: Mission Briefing Text -->
+  <div class="layer layer-3" id="layer3">
+    <div class="mission-text" data-en="Mission Briefing" data-zh="任务简报">Mission Briefing</div>
+  </div>
+
+  <!-- Layer 4: Target Dossier -->
+  <div class="layer layer-4" id="layer4">
+    <div class="brief-target">
+      <div class="brief-target-photo">
+        <div class="silhouette"></div>
+        <div class="crosshair"></div>
+      </div>
+      <div class="brief-target-info">
+        <div class="line"><span class="label" data-en="TARGET:" data-zh="目标：">TARGET:</span> <span data-en="Viktor Novikov" data-zh="维克多·诺维科夫">Viktor Novikov</span></div>
+        <div class="line"><span class="label" data-en="LOCATION:" data-zh="地点：">LOCATION:</span> <span data-en="Paris, France — Palais de Walewska" data-zh="法国巴黎 — 瓦莱夫斯卡宫">Paris, France — Palais de Walewska</span></div>
+        <div class="line"><span class="label" data-en="CLIENT:" data-zh="客户：">CLIENT:</span> <span data-en="[REDACTED]" data-zh="[已编辑]">[REDACTED]</span></div>
+        <div class="line"><span class="label" data-en="OBJECTIVES:" data-zh="目标任务：">OBJECTIVES:</span> <span data-en="Eliminate target. No witnesses." data-zh="消灭目标。不留目击者。">Eliminate target. No witnesses.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 5: Good Luck -->
+  <div class="layer layer-5" id="layer5">
+    <div class="goodluck" data-en="Good Luck, 47." data-zh="祝好运，47。">Good Luck, 47.</div>
+  </div>
+</div>
+<button id="skip-btn">SKIP ▶</button>
+
+<!-- ==================== CONTROLS ==================== -->
+<div class="controls" id="controls">
+  <button class="ctrl-btn" id="lang-btn" title="中/EN">文</button>
+  <button class="ctrl-btn" id="theme-btn" title="Theme">☀</button>
+</div>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main id="main-content">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-subtitle" data-en="IO Interactive Presents" data-zh="IO Interactive 出品">IO Interactive Presents</div>
+      <h1 class="hero-title"><span>HITMAN</span></h1>
+      <div class="red-divider"></div>
+      <div class="hero-tagline" data-en="World of Assassination" data-zh="暗杀世界">World of Assassination</div>
+      <div class="agent-silhouette">
+        <div class="head"></div>
+        <div class="body"></div>
+        <div class="tie"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ICA OVERVIEW -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-label" data-en="Intelligence File" data-zh="情报档案">Intelligence File</div>
+      <h2 class="section-title" data-en="ICA Overview" data-zh="ICA 概述">ICA Overview</h2>
+    </div>
+    <div class="ica-overview">
+      <div class="ica-card">
+        <h3 data-en="The Agency" data-zh="机构">The Agency</h3>
+        <p data-en="The International Contract Agency is the world's premier clandestine organization specializing in contract assassinations. Operating from the shadows, the ICA maintains a global network of handlers, assets, and the most skilled operatives money can buy. Discretion. Precision. Professionalism." data-zh="国际合同局是世界首屈一指的秘密组织，专门从事合同暗杀。ICA在暗处运作，维持着一个由管理者、资产和金钱所能买到的最熟练特工组成的全球网络。谨慎。精确。专业。">The International Contract Agency is the world's premier clandestine organization specializing in contract assassinations. Operating from the shadows, the ICA maintains a global network of handlers, assets, and the most skilled operatives money can buy. Discretion. Precision. Professionalism.</p>
+      </div>
+      <div class="ica-card">
+        <h3 data-en="Agent 47" data-zh="47号特工">Agent 47</h3>
+        <p data-en="Genetically enhanced. The perfect assassin. Known only by his barcode — 640509-040147. Agent 47 is the ICA's most effective operative: adaptable, ruthless, and invisible. His methods are varied, his disguises flawless, his record unmatched." data-zh="基因增强型。完美的刺客。仅以条形码闻名 — 640509-040147。47号特工是ICA最有效的特工：适应力强、冷酷无情且隐形。他的方法多变，伪装无懈可击，纪录无人能及。">Genetically enhanced. The perfect assassin. Known only by his barcode — 640509-040147. Agent 47 is the ICA's most effective operative: adaptable, ruthless, and invisible. His methods are varied, his disguises flawless, his record unmatched.</p>
+        <div class="stat-grid">
+          <div class="stat-item"><div class="stat-val">47</div><div class="stat-label" data-en="Targets Eliminated" data-zh="已消灭目标">Targets Eliminated</div></div>
+          <div class="stat-item"><div class="stat-val">100%</div><div class="stat-label" data-en="Success Rate" data-zh="成功率">Success Rate</div></div>
+          <div class="stat-item"><div class="stat-val">SA</div><div class="stat-label" data-en="Avg. Rating" data-zh="平均评分">Avg. Rating</div></div>
+          <div class="stat-item"><div class="stat-val">0</div><div class="stat-label" data-en="Witnesses" data-zh="目击者">Witnesses</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARGET DOSSIERS -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-label" data-en="Classified Dossiers" data-zh="机密档案">Classified Dossiers</div>
+      <h2 class="section-title" data-en="Target Intel" data-zh="目标情报">Target Intel</h2>
+    </div>
+    <div class="dossier-grid">
+      <!-- Viktor Novikov -->
+      <div class="dossier-card">
+        <div class="classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+        <div class="dossier-header">
+          <div class="dossier-photo"><div class="sil"></div><div class="xhair"></div></div>
+          <div class="dossier-meta">
+            <h3 data-en="Viktor Novikov" data-zh="维克多·诺维科夫">Viktor Novikov</h3>
+            <div class="codename" data-en="Codename: The Showstopper" data-zh="代号：终场演出">Codename: The Showstopper</div>
+          </div>
+        </div>
+        <div class="dossier-body">
+          <div class="info-line"><span class="il-label" data-en="Location" data-zh="地点">Location</span><span class="il-value" data-en="Paris, France" data-zh="法国巴黎">Paris, France</span></div>
+          <div class="info-line"><span class="il-label" data-en="Occupation" data-zh="职业">Occupation</span><span class="il-value" data-en="Fashion Mogul / IAGO Leader" data-zh="时尚大亨 / IAGO领导者">Fashion Mogul / IAGO Leader</span></div>
+          <div class="info-line"><span class="il-label" data-en="Difficulty" data-zh="难度">Difficulty</span><span class="dossier-stars">★★★☆☆</span></div>
+        </div>
+        <div class="dossier-footer">
+          <span class="methods" data-en="CHANDELIER / POISON / PUSH" data-zh="吊灯 / 毒药 / 推落">CHANDELIER / POISON / PUSH</span>
+          <span class="badge">SA/SO</span>
+        </div>
+      </div>
+      <!-- Silvio Caruso -->
+      <div class="dossier-card">
+        <div class="classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+        <div class="dossier-header">
+          <div class="dossier-photo"><div class="sil"></div><div class="xhair"></div></div>
+          <div class="dossier-meta">
+            <h3 data-en="Silvio Caruso" data-zh="西尔维奥·卡鲁索">Silvio Caruso</h3>
+            <div class="codename" data-en="Codename: World of Tomorrow" data-zh="代号：明日世界">Codename: World of Tomorrow</div>
+          </div>
+        </div>
+        <div class="dossier-body">
+          <div class="info-line"><span class="il-label" data-en="Location" data-zh="地点">Location</span><span class="il-value" data-en="Sapienza, Italy" data-zh="意大利萨皮恩扎">Sapienza, Italy</span></div>
+          <div class="info-line"><span class="il-label" data-en="Occupation" data-zh="职业">Occupation</span><span class="il-value" data-en="Bioengineering Scientist" data-zh="生物工程科学家">Bioengineering Scientist</span></div>
+          <div class="info-line"><span class="il-label" data-en="Difficulty" data-zh="难度">Difficulty</span><span class="dossier-stars">★★★★☆</span></div>
+        </div>
+        <div class="dossier-footer">
+          <span class="methods" data-en="EXPLODING GOLF BALL / SNIPER" data-zh="爆炸高尔夫球 / 狙击">EXPLODING GOLF BALL / SNIPER</span>
+          <span class="badge">SA/SO</span>
+        </div>
+      </div>
+      <!-- Sean Rose -->
+      <div class="dossier-card">
+        <div class="classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+        <div class="dossier-header">
+          <div class="dossier-photo"><div class="sil"></div><div class="xhair"></div></div>
+          <div class="dossier-meta">
+            <h3 data-en="Sean Rose" data-zh="肖恩·罗斯">Sean Rose</h3>
+            <div class="codename" data-en="Codename: Freedom Fighters" data-zh="代号：自由战士">Codename: Freedom Fighters</div>
+          </div>
+        </div>
+        <div class="dossier-body">
+          <div class="info-line"><span class="il-label" data-en="Location" data-zh="地点">Location</span><span class="il-value" data-en="Colorado, USA" data-zh="美国科罗拉多">Colorado, USA</span></div>
+          <div class="info-line"><span class="il-label" data-en="Occupation" data-zh="职业">Occupation</span><span class="il-value" data-en="Militia Leader / Demolitions Expert" data-zh="民兵领袖 / 爆破专家">Militia Leader / Demolitions Expert</span></div>
+          <div class="info-line"><span class="il-label" data-en="Difficulty" data-zh="难度">Difficulty</span><span class="dossier-stars">★★★★★</span></div>
+        </div>
+        <div class="dossier-footer">
+          <span class="methods" data-en="EXPLOSIVE / RAM / HAY BALE" data-zh="爆炸物 / 撞击 / 干草堆">EXPLOSIVE / RAM / HAY BALE</span>
+          <span class="badge">SA/SO</span>
+        </div>
+      </div>
+      <!-- Dalia Margolis -->
+      <div class="dossier-card">
+        <div class="classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+        <div class="dossier-header">
+          <div class="dossier-photo"><div class="sil"></div><div class="xhair"></div></div>
+          <div class="dossier-meta">
+            <h3 data-en="Dalia Margolis" data-zh="达利娅·马戈利斯">Dalia Margolis</h3>
+            <div class="codename" data-en="Codename: The Showstopper" data-zh="代号：终场演出">Codename: The Showstopper</div>
+          </div>
+        </div>
+        <div class="dossier-body">
+          <div class="info-line"><span class="il-label" data-en="Location" data-zh="地点">Location</span><span class="il-value" data-en="Paris, France" data-zh="法国巴黎">Paris, France</span></div>
+          <div class="info-line"><span class="il-label" data-en="Occupation" data-zh="职业">Occupation</span><span class="il-value" data-en="Supermodel / IAGO Spymaster" data-zh="超模 / IAGO间谍头目">Supermodel / IAGO Spymaster</span></div>
+          <div class="info-line"><span class="il-label" data-en="Difficulty" data-zh="难度">Difficulty</span><span class="dossier-stars">★★★☆☆</span></div>
+        </div>
+        <div class="dossier-footer">
+          <span class="methods" data-en="PUSH / FIBER WIRE / POISON" data-zh="推落 / 光纤线 / 毒药">PUSH / FIBER WIRE / POISON</span>
+          <span class="badge">SA/SO</span>
+        </div>
+      </div>
+      <!-- Erich Soders -->
+      <div class="dossier-card">
+        <div class="classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+        <div class="dossier-header">
+          <div class="dossier-photo"><div class="sil"></div><div class="xhair"></div></div>
+          <div class="dossier-meta">
+            <h3 data-en="Erich Soders" data-zh="埃里希·索德斯">Erich Soders</h3>
+            <div class="codename" data-en="Codename: Situs Inversus" data-zh="代号：内脏逆位">Codename: Situs Inversus</div>
+          </div>
+        </div>
+        <div class="dossier-body">
+          <div class="info-line"><span class="il-label" data-en="Location" data-zh="地点">Location</span><span class="il-value" data-en="Hokkaido, Japan" data-zh="日本北海道">Hokkaido, Japan</span></div>
+          <div class="info-line"><span class="il-label" data-en="Occupation" data-zh="职业">Occupation</span><span class="il-value" data-en="ICA Board Member (Traitor)" data-zh="ICA董事会成员（叛徒）">ICA Board Member (Traitor)</span></div>
+          <div class="info-line"><span class="il-label" data-en="Difficulty" data-zh="难度">Difficulty</span><span class="dossier-stars">★★★★★</span></div>
+        </div>
+        <div class="dossier-footer">
+          <span class="methods" data-en="SURGERY SABOTAGE / AI OVERRIDE" data-zh="手术破坏 / AI覆盖">SURGERY SABOTAGE / AI OVERRIDE</span>
+          <span class="badge">SA/SO</span>
+        </div>
+      </div>
+      <!-- Claus Hugo Strandberg -->
+      <div class="dossier-card">
+        <div class="classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+        <div class="dossier-header">
+          <div class="dossier-photo"><div class="sil"></div><div class="xhair"></div></div>
+          <div class="dossier-meta">
+            <h3 data-en="Claus Strandberg" data-zh="克劳斯·斯特兰伯格">Claus Strandberg</h3>
+            <div class="codename" data-en="Codename: A Gilded Cage" data-zh="代号：镀金牢笼">Codename: A Gilded Cage</div>
+          </div>
+        </div>
+        <div class="dossier-body">
+          <div class="info-line"><span class="il-label" data-en="Location" data-zh="地点">Location</span><span class="il-value" data-en="Marrakesh, Morocco" data-zh="摩洛哥马拉喀什">Marrakesh, Morocco</span></div>
+          <div class="info-line"><span class="il-label" data-en="Occupation" data-zh="职业">Occupation</span><span class="il-value" data-en="Embezzling Banker" data-zh="贪污银行家">Embezzling Banker</span></div>
+          <div class="info-line"><span class="il-label" data-en="Difficulty" data-zh="难度">Difficulty</span><span class="dossier-stars">★★★★☆</span></div>
+        </div>
+        <div class="dossier-footer">
+          <span class="methods" data-en="ELECTROCUTION / TOILET DROWN" data-zh="触电 / 马桶溺毙">ELECTROCUTION / TOILET DROWN</span>
+          <span class="badge">SA/SO</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCATIONS -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-label" data-en="Operation Theaters" data-zh="行动区域">Operation Theaters</div>
+      <h2 class="section-title" data-en="Locations" data-zh="地点">Locations</h2>
+    </div>
+    <div class="locations-grid">
+      <div class="location-panel">
+        <div class="loc-number">01</div>
+        <h3 data-en="Paris" data-zh="巴黎">Paris</h3>
+        <div class="loc-country" data-en="France" data-zh="法国">France</div>
+        <p data-en="The Palais de Walewska hosts the IAGO auction beneath the glamour of Sanguine's fashion show. High society, high stakes." data-zh="瓦莱夫斯卡宫在血红时装秀的华丽外表下举办IAGO拍卖会。上流社会，高风险。">The Palais de Walewska hosts the IAGO auction beneath the glamour of Sanguine's fashion show. High society, high stakes.</p>
+        <div class="minimap"></div>
+      </div>
+      <div class="location-panel">
+        <div class="loc-number">02</div>
+        <h3 data-en="Sapienza" data-zh="萨皮恩扎">Sapienza</h3>
+        <div class="loc-country" data-en="Italy" data-zh="意大利">Italy</div>
+        <p data-en="A picturesque coastal town concealing a secret biolab beneath an ancient villa. Sun-drenched streets hide deadly secrets." data-zh="一个风景如画的海滨小镇，古老别墅下隐藏着秘密生物实验室。阳光普照的街道下暗藏致命秘密。">A picturesque coastal town concealing a secret biolab beneath an ancient villa. Sun-drenched streets hide deadly secrets.</p>
+        <div class="minimap"></div>
+      </div>
+      <div class="location-panel">
+        <div class="loc-number">03</div>
+        <h3 data-en="Marrakesh" data-zh="马拉喀什">Marrakesh</h3>
+        <div class="loc-country" data-en="Morocco" data-zh="摩洛哥">Morocco</div>
+        <p data-en="Political turmoil grips the city as protests fill the streets. A Swedish consulate and a school turned military HQ await." data-zh="政治动荡席卷城市，抗议活动充斥街头。瑞典领事馆和改为军事总部的学校在等待。">Political turmoil grips the city as protests fill the streets. A Swedish consulate and a school turned military HQ await.</p>
+        <div class="minimap"></div>
+      </div>
+      <div class="location-panel">
+        <div class="loc-number">04</div>
+        <h3 data-en="Bangkok" data-zh="曼谷">Bangkok</h3>
+        <div class="loc-country" data-en="Thailand" data-zh="泰国">Thailand</div>
+        <p data-en="The Himmapan Hotel — a luxury riverside resort where a rock band records their album and dark dealings unfold behind closed doors." data-zh="希马潘酒店 — 一家豪华河畔度假村，摇滚乐队在此录制专辑，黑暗交易在紧闭的门后展开。">The Himmapan Hotel — a luxury riverside resort where a rock band records their album and dark dealings unfold behind closed doors.</p>
+        <div class="minimap"></div>
+      </div>
+      <div class="location-panel">
+        <div class="loc-number">05</div>
+        <h3 data-en="Colorado" data-zh="科罗拉多">Colorado</h3>
+        <div class="loc-country" data-en="United States" data-zh="美国">United States</div>
+        <p data-en="A fortified militia compound in rural America. Four targets. No civilian cover. 47's most hostile environment — a true test of skill." data-zh="美国乡村的一个坚固民兵营地。四个目标。没有平民掩护。47最恶劣的环境 — 真正的技能考验。">A fortified militia compound in rural America. Four targets. No civilian cover. 47's most hostile environment — a true test of skill.</p>
+        <div class="minimap"></div>
+      </div>
+      <div class="location-panel">
+        <div class="loc-number">06</div>
+        <h3 data-en="Hokkaido" data-zh="北海道">Hokkaido</h3>
+        <div class="loc-country" data-en="Japan" data-zh="日本">Japan</div>
+        <p data-en="The GAMA private hospital — a cutting-edge facility nestled in snowy mountains. No loadout. No gear. Only 47's ingenuity." data-zh="GAMA私立医院 — 一家坐落在雪山中的尖端设施。无装备。无道具。只有47的智慧。">The GAMA private hospital — a cutting-edge facility nestled in snowy mountains. No loadout. No gear. Only 47's ingenuity.</p>
+        <div class="minimap"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MASTERY -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-label" data-en="Progression" data-zh="进展">Progression</div>
+      <h2 class="section-title" data-en="Location Mastery" data-zh="地点精通度">Location Mastery</h2>
+    </div>
+    <div class="mastery-list">
+      <div class="mastery-item"><span class="m-label" data-en="Paris" data-zh="巴黎">Paris</span><div class="mastery-bar"><div class="mastery-fill" data-width="95"></div></div><span class="m-level">Lv 19/20</span></div>
+      <div class="mastery-item"><span class="m-label" data-en="Sapienza" data-zh="萨皮恩扎">Sapienza</span><div class="mastery-bar"><div class="mastery-fill" data-width="100"></div></div><span class="m-level">Lv 20/20</span></div>
+      <div class="mastery-item"><span class="m-label" data-en="Marrakesh" data-zh="马拉喀什">Marrakesh</span><div class="mastery-bar"><div class="mastery-fill" data-width="70"></div></div><span class="m-level">Lv 14/20</span></div>
+      <div class="mastery-item"><span class="m-label" data-en="Bangkok" data-zh="曼谷">Bangkok</span><div class="mastery-bar"><div class="mastery-fill" data-width="60"></div></div><span class="m-level">Lv 12/20</span></div>
+      <div class="mastery-item"><span class="m-label" data-en="Colorado" data-zh="科罗拉多">Colorado</span><div class="mastery-bar"><div class="mastery-fill" data-width="45"></div></div><span class="m-level">Lv 9/20</span></div>
+      <div class="mastery-item"><span class="m-label" data-en="Hokkaido" data-zh="北海道">Hokkaido</span><div class="mastery-bar"><div class="mastery-fill" data-width="85"></div></div><span class="m-level">Lv 17/20</span></div>
+    </div>
+  </section>
+
+  <!-- EQUIPMENT LOADOUT -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-label" data-en="Gear Selection" data-zh="装备选择">Gear Selection</div>
+      <h2 class="section-title" data-en="Equipment Loadout" data-zh="装备配置">Equipment Loadout</h2>
+    </div>
+    <div class="equip-grid">
+      <div class="equip-card">
+        <div class="equip-icon">🔫</div>
+        <h4 data-en="Silverballer" data-zh="银色舞者">Silverballer</h4>
+        <div class="equip-type" data-en="PISTOL — SIGNATURE" data-zh="手枪 — 标志性">PISTOL — SIGNATURE</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🪢</div>
+        <h4 data-en="Fiber Wire" data-zh="光纤线">Fiber Wire</h4>
+        <div class="equip-type" data-en="MELEE — LETHAL" data-zh="近战 — 致命">MELEE — LETHAL</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🪙</div>
+        <h4 data-en="Coin" data-zh="硬币">Coin</h4>
+        <div class="equip-type" data-en="DISTRACTION — TOOL" data-zh="分散注意力 — 工具">DISTRACTION — TOOL</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🔑</div>
+        <h4 data-en="Lockpick" data-zh="开锁器">Lockpick</h4>
+        <div class="equip-type" data-en="TOOL — COVERT" data-zh="工具 — 隐蔽">TOOL — COVERT</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🧪</div>
+        <h4 data-en="Emetic Poison" data-zh="催吐毒药">Emetic Poison</h4>
+        <div class="equip-type" data-en="POISON — NON-LETHAL" data-zh="毒药 — 非致命">POISON — NON-LETHAL</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">💣</div>
+        <h4 data-en="Remote Explosive" data-zh="遥控炸弹">Remote Explosive</h4>
+        <div class="equip-type" data-en="EXPLOSIVE — REMOTE" data-zh="炸药 — 遥控">EXPLOSIVE — REMOTE</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHALLENGES -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-label" data-en="Feats of Assassination" data-zh="暗杀壮举">Feats of Assassination</div>
+      <h2 class="section-title" data-en="Challenges" data-zh="挑战">Challenges</h2>
+    </div>
+    <div class="challenge-grid">
+      <div class="challenge-tile completed"><div class="ch-icon">🎯</div><div class="ch-name" data-en="Silent Assassin" data-zh="沉默刺客">Silent Assassin</div><div class="ch-xp">4000 XP</div></div>
+      <div class="challenge-tile completed"><div class="ch-icon">🤵</div><div class="ch-name" data-en="Suit Only" data-zh="仅西装">Suit Only</div><div class="ch-xp">4000 XP</div></div>
+      <div class="challenge-tile completed"><div class="ch-icon">👻</div><div class="ch-name" data-en="No Evidence" data-zh="无证据">No Evidence</div><div class="ch-xp">2000 XP</div></div>
+      <div class="challenge-tile"><div class="ch-icon">🎭</div><div class="ch-name" data-en="Chameleon" data-zh="变色龙">Chameleon</div><div class="ch-xp">4000 XP</div></div>
+      <div class="challenge-tile completed"><div class="ch-icon">💀</div><div class="ch-name" data-en="Piano Man" data-zh="钢琴师">Piano Man</div><div class="ch-xp">2000 XP</div></div>
+      <div class="challenge-tile"><div class="ch-icon">🔇</div><div class="ch-name" data-en="No Recordings" data-zh="无录像">No Recordings</div><div class="ch-xp">1000 XP</div></div>
+      <div class="challenge-tile completed"><div class="ch-icon">⏱️</div><div class="ch-name" data-en="Speed Run" data-zh="速通">Speed Run</div><div class="ch-xp">2000 XP</div></div>
+      <div class="challenge-tile"><div class="ch-icon">🎪</div><div class="ch-name" data-en="Versatile" data-zh="多才多艺">Versatile</div><div class="ch-xp">4000 XP</div></div>
+    </div>
+  </section>
+
+  <!-- QUOTE -->
+  <section class="quote-section reveal">
+    <div class="quote-text" data-en="&ldquo;Names are for <em>friends</em>, so I don't need one.&rdquo;" data-zh="&ldquo;<em>名字</em>是朋友之间用的，所以我不需要。&rdquo;">&ldquo;Names are for <em>friends</em>, so I don't need one.&rdquo;</div>
+    <div class="quote-attr" data-en="— Agent 47" data-zh="— 47号特工">— Agent 47</div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section reveal">
+    <button class="cta-btn" data-en="Accept Contract" data-zh="接受合同">Accept Contract</button>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo" data-en="ICA Secure Terminal" data-zh="ICA 安全终端">ICA Secure Terminal</div>
+  <div class="barcode"></div>
+  <div class="footer-terminal">640509-040147 — <span data-en="Clearance Level: Black" data-zh="许可级别：黑色">Clearance Level: Black</span></div>
+</footer>
+
+<script>
+(function(){
+  // ==================== BRIEFING ANIMATION ====================
+  const overlay = document.getElementById('briefing-overlay');
+  const skipBtn = document.getElementById('skip-btn');
+  const controls = document.getElementById('controls');
+  let briefingDone = false;
+
+  function endBriefing(){
+    if(briefingDone) return;
+    briefingDone = true;
+    overlay.classList.add('dismiss');
+    skipBtn.classList.add('hidden');
+    controls.classList.add('visible');
+    setTimeout(()=>{ overlay.style.display='none'; },900);
+    // Trigger mastery bars
+    document.querySelectorAll('.mastery-fill').forEach(bar=>{
+      bar.style.width = bar.getAttribute('data-width')+'%';
+    });
+  }
+
+  // Auto end after sequence (~5.8s)
+  const autoEnd = setTimeout(endBriefing, 5800);
+
+  // Layer timing: fade layers in/out
+  // L1 visible 0.3-1.8s, L3 visible 2.5-3.2s, L4 visible 3.2-4.6s, L5 visible 4.8-5.6s
+  setTimeout(()=>{ document.getElementById('layer1').classList.add('out'); },1600);
+  setTimeout(()=>{ document.getElementById('layer3').classList.add('out'); },3100);
+  setTimeout(()=>{ document.getElementById('layer4').classList.add('out'); },4600);
+
+  skipBtn.addEventListener('click',()=>{
+    clearTimeout(autoEnd);
+    endBriefing();
+  });
+
+  // ==================== LANGUAGE TOGGLE ====================
+  const langBtn = document.getElementById('lang-btn');
+  langBtn.addEventListener('click',()=>{
+    const html = document.documentElement;
+    const current = html.getAttribute('data-lang');
+    const next = current==='en'?'zh':'en';
+    html.setAttribute('data-lang', next);
+    langBtn.textContent = next==='en'?'文':'EN';
+    document.querySelectorAll('[data-en][data-zh]').forEach(el=>{
+      const val = el.getAttribute('data-'+next);
+      if(val) el.innerHTML = val;
+    });
+  });
+
+  // ==================== THEME TOGGLE ====================
+  const themeBtn = document.getElementById('theme-btn');
+  themeBtn.addEventListener('click',()=>{
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    const next = current==='dark'?'light':'dark';
+    html.setAttribute('data-theme', next);
+    themeBtn.textContent = next==='dark'?'☀':'☾';
+  });
+
+  // ==================== SCROLL REVEAL ====================
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+      }
+    });
+  },{threshold:0.1});
+  reveals.forEach(el=>observer.observe(el));
+
+  // ==================== MASTERY BAR INIT ====================
+  // Set initial width to 0
+  document.querySelectorAll('.mastery-fill').forEach(bar=>{
+    bar.style.width='0%';
+  });
+})();
+</script>
+</body>
+</html>

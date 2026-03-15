@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Recon: Future Soldier | 幽灵行动：未来战士</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e14;
+  --bg-secondary: #101820;
+  --bg-panel: rgba(16,24,32,0.85);
+  --ar-blue: #00b4ff;
+  --ar-blue-dim: #0088cc;
+  --ar-blue-glow: rgba(0,180,255,0.3);
+  --target-red: #ff2020;
+  --safe-green: #00cc44;
+  --hud-white: #d0e0f0;
+  --hud-white-dim: #8899aa;
+  --text-primary: #d0e0f0;
+  --text-secondary: #6688aa;
+  --border-holo: rgba(0,180,255,0.25);
+  --font-heading: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-cjk: 'Noto Sans SC', sans-serif;
+}
+
+html.light {
+  --bg-primary: #e8eef4;
+  --bg-secondary: #d0dae4;
+  --bg-panel: rgba(208,218,228,0.9);
+  --text-primary: #101820;
+  --text-secondary: #445566;
+  --hud-white: #1a2a3a;
+  --hud-white-dim: #556677;
+  --border-holo: rgba(0,136,204,0.35);
+  --ar-blue-glow: rgba(0,180,255,0.15);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--ar-blue-dim); border-radius: 3px; }
+
+/* ===== CANVAS ===== */
+#ar-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== NAV ===== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(10,14,20,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-holo);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  transition: background 0.4s;
+}
+.light nav { background: rgba(232,238,244,0.92); }
+
+.nav-logo {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ar-blue);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 12px;
+}
+.nav-logo .diamond-mini {
+  width: 20px; height: 20px; position: relative;
+}
+.nav-logo .diamond-mini span {
+  position: absolute;
+  width: 4px; height: 4px;
+  background: var(--ar-blue);
+  border-radius: 50%;
+}
+.nav-logo .diamond-mini span:nth-child(1) { top:0; left:8px; }
+.nav-logo .diamond-mini span:nth-child(2) { top:8px; left:16px; }
+.nav-logo .diamond-mini span:nth-child(3) { top:16px; left:8px; }
+.nav-logo .diamond-mini span:nth-child(4) { top:8px; left:0; }
+
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--ar-blue); }
+
+.nav-controls { display: flex; gap: 10px; align-items: center; }
+.toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-holo);
+  color: var(--ar-blue);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+}
+.toggle-btn:hover {
+  background: var(--ar-blue-glow);
+  border-color: var(--ar-blue);
+}
+
+.hamburger {
+  display: none;
+  background: none; border: none;
+  cursor: pointer; padding: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--ar-blue);
+  margin: 4px 0;
+  transition: 0.3s;
+}
+
+/* ===== HOLO PANEL ===== */
+.holo-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-holo);
+  position: relative;
+  overflow: hidden;
+}
+.holo-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ar-blue), transparent);
+}
+.holo-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 1px; height: 100%;
+  background: linear-gradient(180deg, transparent, var(--ar-blue-dim), transparent);
+}
+
+/* Corner brackets */
+.bracket-tl, .bracket-tr, .bracket-bl, .bracket-br {
+  position: absolute;
+  width: 12px; height: 12px;
+  z-index: 2;
+}
+.bracket-tl { top: -1px; left: -1px; border-top: 2px solid var(--ar-blue); border-left: 2px solid var(--ar-blue); }
+.bracket-tr { top: -1px; right: -1px; border-top: 2px solid var(--ar-blue); border-right: 2px solid var(--ar-blue); }
+.bracket-bl { bottom: -1px; left: -1px; border-bottom: 2px solid var(--ar-blue); border-left: 2px solid var(--ar-blue); }
+.bracket-br { bottom: -1px; right: -1px; border-bottom: 2px solid var(--ar-blue); border-right: 2px solid var(--ar-blue); }
+
+/* ===== SECTION COMMON ===== */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 5rem 2rem;
+}
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.section-header h2 {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--ar-blue);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.section-header .sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 3px;
+}
+.section-header .hud-line {
+  width: 120px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ar-blue), transparent);
+  margin: 0.8rem auto 0;
+}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== HERO ===== */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding-top: 60px;
+}
+
+/* Optical camo shimmer */
+.camo-shimmer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,180,255,0.03) 2px,
+    rgba(0,180,255,0.03) 4px
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.8; transform: translateY(-4px); }
+}
+
+/* Scan line */
+.scan-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 10%, var(--ar-blue) 50%, transparent 90%);
+  opacity: 0.5;
+  animation: scanDown 4s linear infinite;
+  z-index: 2;
+}
+@keyframes scanDown {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+}
+
+/* Diamond formation */
+.diamond-formation {
+  width: 60px; height: 60px;
+  position: relative;
+  margin: 0 auto 2rem;
+  animation: diamondPulse 2s ease-in-out infinite;
+}
+@keyframes diamondPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.diamond-formation .dot {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: var(--ar-blue);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--ar-blue), 0 0 16px var(--ar-blue-glow);
+}
+.diamond-formation .dot:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+.diamond-formation .dot:nth-child(2) { top: 50%; right: 0; transform: translateY(-50%); }
+.diamond-formation .dot:nth-child(3) { bottom: 0; left: 50%; transform: translateX(-50%); }
+.diamond-formation .dot:nth-child(4) { top: 50%; left: 0; transform: translateY(-50%); }
+/* Lines connecting dots */
+.diamond-formation .line {
+  position: absolute;
+  background: var(--ar-blue);
+  opacity: 0.3;
+}
+.diamond-formation .line-h {
+  width: 44px; height: 1px;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.diamond-formation .line-v {
+  width: 1px; height: 44px;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--hud-white);
+  line-height: 1.1;
+}
+.hero-title .ghost { color: var(--ar-blue); }
+.hero-sub {
+  font-family: var(--font-cjk);
+  font-size: 1rem;
+  color: var(--text-secondary);
+  letter-spacing: 6px;
+  margin-top: 0.5rem;
+}
+.hero-tagline {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ar-blue-dim);
+  letter-spacing: 4px;
+  margin-top: 1.5rem;
+  text-transform: uppercase;
+}
+
+/* HUD data readouts */
+.hud-readouts {
+  position: absolute;
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--ar-blue-dim);
+  letter-spacing: 1px;
+}
+.hud-tl { top: 80px; left: 2rem; text-align: left; }
+.hud-tr { top: 80px; right: 2rem; text-align: right; }
+.hud-bl { bottom: 2rem; left: 2rem; text-align: left; }
+.hud-br { bottom: 2rem; right: 2rem; text-align: right; }
+.hud-readouts div { margin: 4px 0; }
+.hud-readouts .val { color: var(--ar-blue); }
+
+/* Reticle */
+.reticle {
+  position: absolute;
+  width: 80px; height: 80px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+.reticle::before, .reticle::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(0,180,255,0.2);
+  border-radius: 50%;
+}
+.reticle::before {
+  width: 80px; height: 80px; top: 0; left: 0;
+}
+.reticle::after {
+  width: 50px; height: 50px; top: 15px; left: 15px;
+}
+.reticle .cross-h, .reticle .cross-v {
+  position: absolute; background: rgba(0,180,255,0.15);
+}
+.reticle .cross-h { width: 80px; height: 1px; top: 50%; left: 0; }
+.reticle .cross-v { width: 1px; height: 80px; top: 0; left: 50%; }
+
+/* ===== GHOST TEAM ===== */
+#team { background: var(--bg-secondary); }
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.ghost-card {
+  padding: 1.8rem;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.ghost-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 30px var(--ar-blue-glow);
+}
+.ghost-avatar {
+  width: 70px; height: 70px;
+  margin: 0 auto 1rem;
+  border: 2px solid var(--ar-blue);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.ghost-avatar .rank {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  color: var(--ar-blue);
+  font-weight: 700;
+}
+.ghost-avatar::after {
+  content: '';
+  position: absolute;
+  width: 82px; height: 82px;
+  border: 1px solid var(--border-holo);
+  border-radius: 50%;
+  animation: avatarSpin 8s linear infinite;
+}
+@keyframes avatarSpin {
+  0% { transform: rotate(0deg); border-color: var(--border-holo); }
+  50% { border-color: var(--ar-blue); }
+  100% { transform: rotate(360deg); border-color: var(--border-holo); }
+}
+.ghost-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ar-blue);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.ghost-card .callsign {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  margin-bottom: 0.8rem;
+}
+.ghost-card p {
+  font-family: var(--font-cjk);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.ghost-card .status {
+  display: inline-block;
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--safe-green);
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  border: 1px solid rgba(0,204,68,0.3);
+}
+
+/* ===== TECHNOLOGY ===== */
+#tech {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+.tech-card {
+  padding: 2rem;
+  position: relative;
+}
+.tech-card .tech-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.tech-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ar-blue);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.tech-card .tech-id {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  margin-bottom: 0.8rem;
+}
+.tech-card p {
+  font-family: var(--font-cjk);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.tech-card .status-bar {
+  margin-top: 1rem;
+  height: 2px;
+  background: rgba(0,180,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.tech-card .status-bar .fill {
+  height: 100%;
+  background: var(--ar-blue);
+  animation: statusFill 2s ease-in-out infinite alternate;
+}
+@keyframes statusFill {
+  0% { width: 30%; }
+  100% { width: 100%; }
+}
+
+/* ===== GUNSMITH ===== */
+#gunsmith { background: var(--bg-secondary); }
+.gunsmith-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.weapon-card {
+  padding: 2rem;
+}
+.weapon-card .weapon-silhouette {
+  width: 100%;
+  height: 100px;
+  position: relative;
+  margin-bottom: 1.2rem;
+  border: 1px dashed var(--border-holo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.weapon-card .weapon-silhouette .exploded-label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--ar-blue-dim);
+  letter-spacing: 1px;
+}
+.weapon-card .weapon-silhouette .exploded-label::before {
+  content: '';
+  position: absolute;
+  width: 20px; height: 1px;
+  background: var(--ar-blue-dim);
+}
+.weapon-card .weapon-silhouette .l1 { top: 10px; left: 10px; }
+.weapon-card .weapon-silhouette .l1::before { bottom: -4px; left: 0; }
+.weapon-card .weapon-silhouette .l2 { top: 10px; right: 10px; }
+.weapon-card .weapon-silhouette .l2::before { bottom: -4px; right: 0; }
+.weapon-card .weapon-silhouette .l3 { bottom: 10px; left: 10px; }
+.weapon-card .weapon-silhouette .l3::before { top: -4px; left: 0; }
+.weapon-card .weapon-silhouette .l4 { bottom: 10px; right: 10px; }
+.weapon-card .weapon-silhouette .l4::before { top: -4px; right: 0; }
+
+.weapon-card .weapon-name {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  color: var(--hud-white);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.weapon-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--ar-blue);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.weapon-card .weapon-type {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+}
+.weapon-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-row .stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.stat-row .stat-bar {
+  height: 3px;
+  background: rgba(0,180,255,0.15);
+  position: relative;
+}
+.stat-row .stat-bar .bar-fill {
+  height: 100%;
+  background: var(--ar-blue);
+  transition: width 1s ease;
+}
+
+/* ===== MISSIONS ===== */
+#missions {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.mission-item {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  cursor: default;
+  transition: border-color 0.3s;
+}
+.mission-item:hover {
+  border-color: var(--ar-blue);
+}
+.mission-num {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  color: var(--ar-blue);
+  min-width: 40px;
+}
+.mission-info h3 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--hud-white);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.mission-info .mission-loc {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+.mission-info .mission-desc {
+  font-family: var(--font-cjk);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+}
+.mission-status {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  padding: 3px 8px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.mission-status.complete { color: var(--safe-green); border-color: rgba(0,204,68,0.3); }
+.mission-status.active { color: var(--ar-blue); border-color: var(--border-holo); }
+.mission-status.classified { color: var(--target-red); border-color: rgba(255,32,32,0.3); }
+
+/* ===== QUOTE ===== */
+#quote {
+  text-align: center;
+  padding: 6rem 2rem;
+  position: relative;
+}
+#quote .quote-text {
+  font-family: var(--font-heading);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 300;
+  color: var(--hud-white);
+  letter-spacing: 3px;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+#quote .quote-attr {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ar-blue-dim);
+  letter-spacing: 3px;
+  margin-top: 1.5rem;
+}
+
+/* Sensor sweep */
+.sensor-sweep {
+  width: 120px; height: 120px;
+  margin: 0 auto 2rem;
+  position: relative;
+  border: 1px solid var(--border-holo);
+  border-radius: 50%;
+}
+.sensor-sweep::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 50%; height: 2px;
+  background: linear-gradient(90deg, var(--ar-blue), transparent);
+  transform-origin: left center;
+  animation: sensorScan 3s linear infinite;
+}
+@keyframes sensorScan {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.sensor-sweep .sweep-fill {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 50%; height: 50%;
+  transform-origin: left top;
+  animation: sensorFill 3s linear infinite;
+  background: conic-gradient(from 0deg, rgba(0,180,255,0.15), transparent 60deg);
+}
+@keyframes sensorFill {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.sensor-sweep .center-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 4px; height: 4px;
+  background: var(--ar-blue);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+}
+.sensor-sweep .ring {
+  position: absolute;
+  border: 1px solid rgba(0,180,255,0.1);
+  border-radius: 50%;
+}
+.sensor-sweep .ring:nth-child(2) {
+  width: 60px; height: 60px;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+.sensor-sweep .ring:nth-child(3) {
+  width: 90px; height: 90px;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+
+/* ===== CTA ===== */
+#cta {
+  text-align: center;
+  background: var(--bg-secondary);
+  padding: 5rem 2rem;
+}
+#cta h2 {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: var(--ar-blue);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+#cta p {
+  font-family: var(--font-cjk);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+.cta-btn {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bg-primary);
+  background: var(--ar-blue);
+  border: none;
+  padding: 12px 40px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.cta-btn:hover {
+  background: #00ccff;
+  box-shadow: 0 0 30px var(--ar-blue-glow);
+}
+.cta-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: btnShine 3s ease-in-out infinite;
+}
+@keyframes btnShine {
+  0% { left: -100%; }
+  50%,100% { left: 100%; }
+}
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 2rem;
+  border-top: 1px solid var(--border-holo);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+}
+footer .footer-diamond {
+  width: 30px; height: 30px;
+  margin: 0 auto 1rem;
+  position: relative;
+}
+footer .footer-diamond span {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: var(--ar-blue-dim);
+  border-radius: 50%;
+}
+footer .footer-diamond span:nth-child(1) { top:0; left:13px; }
+footer .footer-diamond span:nth-child(2) { top:13px; left:27px; }
+footer .footer-diamond span:nth-child(3) { top:27px; left:13px; }
+footer .footer-diamond span:nth-child(4) { top:13px; left:0; }
+
+/* ===== DRONE GRID OVERLAY ===== */
+.drone-grid {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(0,180,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .hamburger { display: block; }
+  nav.open .nav-links {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 60px; left: 0; right: 0;
+    background: rgba(10,14,20,0.98);
+    padding: 1rem 2rem;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-holo);
+  }
+  .light nav.open .nav-links { background: rgba(232,238,244,0.98); }
+  section { padding: 3rem 1rem; }
+  .hud-readouts { display: none; }
+  .tech-grid { grid-template-columns: 1fr; }
+  .gunsmith-grid { grid-template-columns: 1fr; }
+  .mission-item { flex-wrap: wrap; }
+  .mission-status { margin-left: 0; margin-top: 0.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- AR HUD Canvas -->
+<canvas id="ar-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">
+    <div class="diamond-mini"><span></span><span></span><span></span><span></span></div>
+    <span data-en="GHOST RECON" data-zh="幽灵行动">GHOST RECON</span>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a href="#team" data-en="TEAM" data-zh="小队">TEAM</a>
+    <a href="#tech" data-en="TECH" data-zh="科技">TECH</a>
+    <a href="#gunsmith" data-en="GUNSMITH" data-zh="枪匠">GUNSMITH</a>
+    <a href="#missions" data-en="MISSIONS" data-zh="任务">MISSIONS</a>
+    <a href="#cta" data-en="ENLIST" data-zh="加入">ENLIST</a>
+  </div>
+  <div class="nav-controls">
+    <button class="toggle-btn" id="langToggle" onclick="toggleLang()">中/EN</button>
+    <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">◐</button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="camo-shimmer"></div>
+  <div class="scan-line"></div>
+  <div class="drone-grid"></div>
+  <div class="reticle">
+    <div class="cross-h"></div>
+    <div class="cross-v"></div>
+  </div>
+
+  <div class="hud-readouts hud-tl">
+    <div>SYS.STATUS: <span class="val">ONLINE</span></div>
+    <div>CROSS-COM: <span class="val">ACTIVE</span></div>
+    <div>OPTIC CAMO: <span class="val">ENGAGED</span></div>
+    <div>SQUAD: <span class="val">HUNTER TEAM</span></div>
+  </div>
+  <div class="hud-readouts hud-tr">
+    <div>LAT: <span class="val">38.8977°N</span></div>
+    <div>LON: <span class="val">77.0365°W</span></div>
+    <div>ALT: <span class="val">42M ASL</span></div>
+    <div>ENCRYPT: <span class="val">AES-512</span></div>
+  </div>
+  <div class="hud-readouts hud-bl">
+    <div>THREAT LVL: <span class="val" style="color:var(--target-red)">HIGH</span></div>
+    <div>HOSTILES: <span class="val" style="color:var(--target-red)">12 DETECTED</span></div>
+    <div>AMMO: <span class="val">28/120</span></div>
+  </div>
+  <div class="hud-readouts hud-br">
+    <div>MISSION: <span class="val">NIMBLE GUARDIAN</span></div>
+    <div>OBJ: <span class="val">INFILTRATE</span></div>
+    <div>TIME: <span class="val" id="heroTime">00:00:00</span></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="diamond-formation">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="line line-h"></div>
+      <div class="line line-v"></div>
+    </div>
+    <h1 class="hero-title">
+      <span class="ghost" data-en="GHOST RECON" data-zh="幽灵行动">GHOST RECON</span><br>
+      <span data-en="FUTURE SOLDIER" data-zh="未来战士">FUTURE SOLDIER</span>
+    </h1>
+    <p class="hero-sub" data-en="幽灵行动：未来战士" data-zh="GHOST RECON: FUTURE SOLDIER">幽灵行动：未来战士</p>
+    <p class="hero-tagline" data-en="BELIEVE IN GHOSTS" data-zh="信仰幽灵">BELIEVE IN GHOSTS</p>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="section-header reveal">
+    <h2 data-en="GHOST TEAM" data-zh="幽灵小队">GHOST TEAM</h2>
+    <div class="sub" data-en="HUNTER TEAM // GROUP FOR SPECIALIZED TACTICS" data-zh="猎人小队 // 特种战术小组">HUNTER TEAM // GROUP FOR SPECIALIZED TACTICS</div>
+    <div class="hud-line"></div>
+  </div>
+  <div class="team-grid">
+    <!-- Ghost Lead -->
+    <div class="ghost-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="ghost-avatar"><span class="rank">GL</span></div>
+      <h3 data-en="GHOST LEAD" data-zh="幽灵队长">GHOST LEAD</h3>
+      <div class="callsign" data-en="CALLSIGN: CEDAR // SQUAD LEADER" data-zh="代号: 雪松 // 小队指挥官">CALLSIGN: CEDAR // SQUAD LEADER</div>
+      <p data-en="Veteran operator and team commander. Calm under fire, decisive in the field. Leads Hunter Team through the most dangerous operations around the globe." data-zh="经验丰富的特战人员和小队指挥官。在战火中沉着冷静，行动果断。率领猎人小队执行全球最危险的任务。">Veteran operator and team commander. Calm under fire, decisive in the field. Leads Hunter Team through the most dangerous operations around the globe.</p>
+      <div class="status" data-en="● ACTIVE" data-zh="● 在线">● ACTIVE</div>
+    </div>
+    <!-- Kozak -->
+    <div class="ghost-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="ghost-avatar"><span class="rank">KZ</span></div>
+      <h3 data-en="SGT. KOZAK" data-zh="科扎克中士">SGT. KOZAK</h3>
+      <div class="callsign" data-en="CALLSIGN: KOZAK // ENGINEER" data-zh="代号: 科扎克 // 工程兵">CALLSIGN: KOZAK // ENGINEER</div>
+      <p data-en="The newest Ghost, tech specialist and combat engineer. Expert in advanced military systems and drone warfare. Russian-American with unique insight into Bodark tactics." data-zh="最新加入的幽灵成员，技术专家兼战斗工程师。精通先进军事系统和无人机作战。俄裔美国人，对狼群战术有独到见解。">The newest Ghost, tech specialist and combat engineer. Expert in advanced military systems and drone warfare. Russian-American with unique insight into Bodark tactics.</p>
+      <div class="status" data-en="● ACTIVE" data-zh="● 在线">● ACTIVE</div>
+    </div>
+    <!-- Pepper -->
+    <div class="ghost-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="ghost-avatar"><span class="rank">PP</span></div>
+      <h3 data-en="PEPPER" data-zh="佩珀">PEPPER</h3>
+      <div class="callsign" data-en="CALLSIGN: PEPPER // GRENADIER" data-zh="代号: 佩珀 // 掷弹兵">CALLSIGN: PEPPER // GRENADIER</div>
+      <p data-en="Heavy weapons specialist and veteran operator. Former Delta Force, brings overwhelming firepower and battlefield experience. The team's backbone in direct confrontation." data-zh="重武器专家和资深特战人员。前三角洲部队成员，拥有强大火力和丰富战场经验。正面交锋中的小队支柱。">Heavy weapons specialist and veteran operator. Former Delta Force, brings overwhelming firepower and battlefield experience. The team's backbone in direct confrontation.</p>
+      <div class="status" data-en="● ACTIVE" data-zh="● 在线">● ACTIVE</div>
+    </div>
+    <!-- 30K -->
+    <div class="ghost-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="ghost-avatar"><span class="rank">30K</span></div>
+      <h3 data-en="30K" data-zh="30K">30K</h3>
+      <div class="callsign" data-en="CALLSIGN: 30K // RIFLEMAN" data-zh="代号: 30K // 步枪手">CALLSIGN: 30K // RIFLEMAN</div>
+      <p data-en="Marksman and designated sniper. Quiet, professional, and lethal at any range. Provides overwatch and precision fire support. The silent guardian of the squad." data-zh="神枪手和指定狙击手。沉默、专业，在任何距离都致命。提供监视和精确火力支援。小队的沉默守护者。">Marksman and designated sniper. Quiet, professional, and lethal at any range. Provides overwatch and precision fire support. The silent guardian of the squad.</p>
+      <div class="status" data-en="● ACTIVE" data-zh="● 在线">● ACTIVE</div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNOLOGY -->
+<section id="tech">
+  <div class="section-header reveal">
+    <h2 data-en="TECHNOLOGY" data-zh="尖端科技">TECHNOLOGY</h2>
+    <div class="sub" data-en="FUTURE SOLDIER SYSTEMS // CLASSIFIED" data-zh="未来战士系统 // 机密">FUTURE SOLDIER SYSTEMS // CLASSIFIED</div>
+    <div class="hud-line"></div>
+  </div>
+  <div class="tech-grid">
+    <!-- Optical Camo -->
+    <div class="tech-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="tech-icon">◈</span>
+      <h3 data-en="OPTICAL CAMO" data-zh="光学迷彩">OPTICAL CAMO</h3>
+      <div class="tech-id">SYST-OC-7700 // META-MATERIAL REFRACTION</div>
+      <p data-en="Adaptive camouflage system bending light around the operator, rendering them nearly invisible. Active when stationary or moving slowly. Disengages upon firing or rapid movement." data-zh="自适应迷彩系统通过弯曲光线使操作员几乎隐形。静止或缓慢移动时激活。开火或快速移动时解除。">Adaptive camouflage system bending light around the operator, rendering them nearly invisible. Active when stationary or moving slowly. Disengages upon firing or rapid movement.</p>
+      <div class="status-bar"><div class="fill" style="width:95%"></div></div>
+    </div>
+    <!-- Cross-Com -->
+    <div class="tech-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="tech-icon">⊞</span>
+      <h3 data-en="CROSS-COM 3.0" data-zh="交叉通讯 3.0">CROSS-COM 3.0</h3>
+      <div class="tech-id">SYST-CC-3000 // AUGMENTED REALITY HUD</div>
+      <p data-en="Heads-up display integrated into combat eyewear providing real-time battlefield intelligence. Marks hostiles, shares intel across the squad, and displays tactical data overlays." data-zh="集成于战斗护目镜中的抬头显示器，提供实时战场情报。标记敌人，在小队间共享情报，并显示战术数据叠加。">Heads-up display integrated into combat eyewear providing real-time battlefield intelligence. Marks hostiles, shares intel across the squad, and displays tactical data overlays.</p>
+      <div class="status-bar"><div class="fill" style="width:88%"></div></div>
+    </div>
+    <!-- Exoskeleton -->
+    <div class="tech-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="tech-icon">⎔</span>
+      <h3 data-en="EXOSKELETON" data-zh="外骨骼">EXOSKELETON</h3>
+      <div class="tech-id">SYST-EX-4500 // POWERED ARMOR FRAME</div>
+      <p data-en="Lightweight powered exoskeleton enhancing strength, endurance, and load-bearing capacity. Allows operators to carry heavier equipment while maintaining mobility and reducing fatigue." data-zh="轻量化动力外骨骼，增强力量、耐力和负重能力。使操作员能够携带更重的装备，同时保持机动性并减少疲劳。">Lightweight powered exoskeleton enhancing strength, endurance, and load-bearing capacity. Allows operators to carry heavier equipment while maintaining mobility and reducing fatigue.</p>
+      <div class="status-bar"><div class="fill" style="width:76%"></div></div>
+    </div>
+    <!-- UAV Drone -->
+    <div class="tech-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="tech-icon">◇</span>
+      <h3 data-en="UAV DRONE" data-zh="无人侦察机">UAV DRONE</h3>
+      <div class="tech-id">SYST-DR-2200 // AERIAL RECON PLATFORM</div>
+      <p data-en="Man-portable reconnaissance drone providing aerial surveillance and target marking. Feeds real-time video to Cross-Com, enabling the squad to scout ahead and plan approaches." data-zh="便携式侦察无人机，提供空中监视和目标标记。将实时视频传输至交叉通讯系统，使小队能够提前侦察并规划进攻路线。">Man-portable reconnaissance drone providing aerial surveillance and target marking. Feeds real-time video to Cross-Com, enabling the squad to scout ahead and plan approaches.</p>
+      <div class="status-bar"><div class="fill" style="width:82%"></div></div>
+    </div>
+    <!-- Magnetic Sight -->
+    <div class="tech-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="tech-icon">⊕</span>
+      <h3 data-en="MAGNETIC SIGHT" data-zh="磁力瞄准镜">MAGNETIC SIGHT</h3>
+      <div class="tech-id">SYST-MS-1100 // SMART OPTIC SYSTEM</div>
+      <p data-en="Advanced weapon optic using magnetic sensors to detect targets through walls and light cover. Displays enemy silhouettes, enabling engagement without direct line of sight." data-zh="先进武器光学瞄准系统，利用磁性传感器透过墙壁和轻型掩体探测目标。显示敌人轮廓，无需直接视线即可进行交战。">Advanced weapon optic using magnetic sensors to detect targets through walls and light cover. Displays enemy silhouettes, enabling engagement without direct line of sight.</p>
+      <div class="status-bar"><div class="fill" style="width:70%"></div></div>
+    </div>
+    <!-- Sensor Grenades -->
+    <div class="tech-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <span class="tech-icon">◉</span>
+      <h3 data-en="SENSOR GRENADES" data-zh="感应手雷">SENSOR GRENADES</h3>
+      <div class="tech-id">SYST-SG-0800 // AREA DETECTION DEVICE</div>
+      <p data-en="Throwable sensor devices that emit a pulse revealing all enemies within a radius. Data feeds directly to Cross-Com HUD, marking hostiles through cover for the entire squad." data-zh="可投掷的传感装置，发射脉冲信号揭示半径内所有敌人。数据直接传输至交叉通讯抬头显示器，为全队标记掩体后的敌人。">Throwable sensor devices that emit a pulse revealing all enemies within a radius. Data feeds directly to Cross-Com HUD, marking hostiles through cover for the entire squad.</p>
+      <div class="status-bar"><div class="fill" style="width:90%"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GUNSMITH -->
+<section id="gunsmith">
+  <div class="section-header reveal">
+    <h2 data-en="GUNSMITH" data-zh="枪匠系统">GUNSMITH</h2>
+    <div class="sub" data-en="WEAPON CUSTOMIZATION INTERFACE" data-zh="武器定制界面">WEAPON CUSTOMIZATION INTERFACE</div>
+    <div class="hud-line"></div>
+  </div>
+  <div class="gunsmith-grid">
+    <!-- ACR -->
+    <div class="weapon-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="weapon-silhouette">
+        <div class="weapon-name">ACR</div>
+        <span class="exploded-label l1">OPTIC</span>
+        <span class="exploded-label l2">STOCK</span>
+        <span class="exploded-label l3">TRIGGER</span>
+        <span class="exploded-label l4">BARREL</span>
+      </div>
+      <h3 data-en="ACR ASSAULT RIFLE" data-zh="ACR 突击步枪">ACR ASSAULT RIFLE</h3>
+      <div class="weapon-type">5.56x45MM NATO // ADAPTIVE COMBAT RIFLE</div>
+      <div class="weapon-stats">
+        <div class="stat-row"><span class="stat-label">DAMAGE</span><div class="stat-bar"><div class="bar-fill" style="width:65%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RANGE</span><div class="stat-bar"><div class="bar-fill" style="width:72%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">CONTROL</span><div class="stat-bar"><div class="bar-fill" style="width:80%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RATE</span><div class="stat-bar"><div class="bar-fill" style="width:70%"></div></div></div>
+      </div>
+    </div>
+    <!-- P90 -->
+    <div class="weapon-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="weapon-silhouette">
+        <div class="weapon-name">P90</div>
+        <span class="exploded-label l1">SIGHT</span>
+        <span class="exploded-label l2">MAG</span>
+        <span class="exploded-label l3">GRIP</span>
+        <span class="exploded-label l4">MUZZLE</span>
+      </div>
+      <h3 data-en="P90 SMG" data-zh="P90 冲锋枪">P90 SMG</h3>
+      <div class="weapon-type">5.7x28MM // PERSONAL DEFENSE WEAPON</div>
+      <div class="weapon-stats">
+        <div class="stat-row"><span class="stat-label">DAMAGE</span><div class="stat-bar"><div class="bar-fill" style="width:45%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RANGE</span><div class="stat-bar"><div class="bar-fill" style="width:40%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">CONTROL</span><div class="stat-bar"><div class="bar-fill" style="width:75%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RATE</span><div class="stat-bar"><div class="bar-fill" style="width:90%"></div></div></div>
+      </div>
+    </div>
+    <!-- MSR -->
+    <div class="weapon-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="weapon-silhouette">
+        <div class="weapon-name">MSR</div>
+        <span class="exploded-label l1">SCOPE</span>
+        <span class="exploded-label l2">BIPOD</span>
+        <span class="exploded-label l3">ACTION</span>
+        <span class="exploded-label l4">SUPPRESSOR</span>
+      </div>
+      <h3 data-en="MSR SNIPER RIFLE" data-zh="MSR 狙击步枪">MSR SNIPER RIFLE</h3>
+      <div class="weapon-type">.338 LAPUA // MODULAR SNIPER RIFLE</div>
+      <div class="weapon-stats">
+        <div class="stat-row"><span class="stat-label">DAMAGE</span><div class="stat-bar"><div class="bar-fill" style="width:95%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RANGE</span><div class="stat-bar"><div class="bar-fill" style="width:98%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">CONTROL</span><div class="stat-bar"><div class="bar-fill" style="width:50%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RATE</span><div class="stat-bar"><div class="bar-fill" style="width:20%"></div></div></div>
+      </div>
+    </div>
+    <!-- MK48 -->
+    <div class="weapon-card holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="weapon-silhouette">
+        <div class="weapon-name">MK48</div>
+        <span class="exploded-label l1">HOLO</span>
+        <span class="exploded-label l2">BELT</span>
+        <span class="exploded-label l3">FOREGRIP</span>
+        <span class="exploded-label l4">FLASH HID</span>
+      </div>
+      <h3 data-en="MK48 LMG" data-zh="MK48 轻机枪">MK48 LMG</h3>
+      <div class="weapon-type">7.62x51MM NATO // LIGHT MACHINE GUN</div>
+      <div class="weapon-stats">
+        <div class="stat-row"><span class="stat-label">DAMAGE</span><div class="stat-bar"><div class="bar-fill" style="width:78%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RANGE</span><div class="stat-bar"><div class="bar-fill" style="width:68%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">CONTROL</span><div class="stat-bar"><div class="bar-fill" style="width:35%"></div></div></div>
+        <div class="stat-row"><span class="stat-label">RATE</span><div class="stat-bar"><div class="bar-fill" style="width:85%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSIONS -->
+<section id="missions">
+  <div class="section-header reveal">
+    <h2 data-en="MISSIONS" data-zh="作战任务">MISSIONS</h2>
+    <div class="sub" data-en="OPERATION LOG // CLASSIFIED JSOC" data-zh="作战日志 // 联合特种作战司令部机密">OPERATION LOG // CLASSIFIED JSOC</div>
+    <div class="hud-line"></div>
+  </div>
+  <div class="mission-list">
+    <div class="mission-item holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="mission-num">01</div>
+      <div class="mission-info">
+        <h3 data-en="NIMBLE GUARDIAN" data-zh="敏捷守护者">NIMBLE GUARDIAN</h3>
+        <div class="mission-loc" data-en="LOCATION: BOLIVIA // SOUTH AMERICA" data-zh="地点: 玻利维亚 // 南美洲">LOCATION: BOLIVIA // SOUTH AMERICA</div>
+        <div class="mission-desc" data-en="Escort VIP through hostile territory. First deployment of optical camouflage in the field." data-zh="护送VIP穿越敌方领土。光学迷彩首次实战部署。">Escort VIP through hostile territory. First deployment of optical camouflage in the field.</div>
+      </div>
+      <div class="mission-status complete" data-en="COMPLETE" data-zh="已完成">COMPLETE</div>
+    </div>
+    <div class="mission-item holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="mission-num">02</div>
+      <div class="mission-info">
+        <h3 data-en="TIGER DUST" data-zh="虎尘行动">TIGER DUST</h3>
+        <div class="mission-loc" data-en="LOCATION: ZAMBIA // AFRICA" data-zh="地点: 赞比亚 // 非洲">LOCATION: ZAMBIA // AFRICA</div>
+        <div class="mission-desc" data-en="Intercept arms shipment linked to Bodark operatives. Neutralize weapons depot." data-zh="截获与狼群特工相关的武器运输。摧毁武器仓库。">Intercept arms shipment linked to Bodark operatives. Neutralize weapons depot.</div>
+      </div>
+      <div class="mission-status complete" data-en="COMPLETE" data-zh="已完成">COMPLETE</div>
+    </div>
+    <div class="mission-item holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="mission-num">03</div>
+      <div class="mission-info">
+        <h3 data-en="NOBLE TEMPEST" data-zh="高贵风暴">NOBLE TEMPEST</h3>
+        <div class="mission-loc" data-en="LOCATION: PAKISTAN // SOUTH ASIA" data-zh="地点: 巴基斯坦 // 南亚">LOCATION: PAKISTAN // SOUTH ASIA</div>
+        <div class="mission-desc" data-en="Prevent nuclear materials from falling into enemy hands. High-altitude insertion." data-zh="阻止核材料落入敌手。高空渗透行动。">Prevent nuclear materials from falling into enemy hands. High-altitude insertion.</div>
+      </div>
+      <div class="mission-status active" data-en="ACTIVE" data-zh="进行中">ACTIVE</div>
+    </div>
+    <div class="mission-item holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="mission-num">04</div>
+      <div class="mission-info">
+        <h3 data-en="DEEP FIRE" data-zh="深火行动">DEEP FIRE</h3>
+        <div class="mission-loc" data-en="LOCATION: RUSSIA // EASTERN EUROPE" data-zh="地点: 俄罗斯 // 东欧">LOCATION: RUSSIA // EASTERN EUROPE</div>
+        <div class="mission-desc" data-en="Infiltrate Bodark headquarters. Dismantle the ultranationalist threat from within." data-zh="渗透狼群总部。从内部瓦解极端民族主义威胁。">Infiltrate Bodark headquarters. Dismantle the ultranationalist threat from within.</div>
+      </div>
+      <div class="mission-status classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+    </div>
+    <div class="mission-item holo-panel reveal">
+      <div class="bracket-tl"></div><div class="bracket-tr"></div><div class="bracket-bl"></div><div class="bracket-br"></div>
+      <div class="mission-num">05</div>
+      <div class="mission-info">
+        <h3 data-en="EMBER HUNT" data-zh="余烬猎杀">EMBER HUNT</h3>
+        <div class="mission-loc" data-en="LOCATION: MOSCOW // RUSSIA" data-zh="地点: 莫斯科 // 俄罗斯">LOCATION: MOSCOW // RUSSIA</div>
+        <div class="mission-desc" data-en="Final confrontation. Stop the coup. Prevent war. The Ghosts' most critical operation." data-zh="最终对决。阻止政变。防止战争。幽灵小队最关键的行动。">Final confrontation. Stop the coup. Prevent war. The Ghosts' most critical operation.</div>
+      </div>
+      <div class="mission-status classified" data-en="CLASSIFIED" data-zh="机密">CLASSIFIED</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section id="quote">
+  <div class="drone-grid"></div>
+  <div class="sensor-sweep">
+    <div class="center-dot"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="sweep-fill"></div>
+  </div>
+  <div class="reveal">
+    <div class="quote-text" data-en="&ldquo;The battlefield is changing. The enemy has evolved. We must become something more &mdash; invisible, precise, unstoppable. We are the Ghosts.&rdquo;" data-zh="&ldquo;战场在变。敌人在进化。我们必须超越自我——隐形、精准、不可阻挡。我们是幽灵。&rdquo;">&ldquo;The battlefield is changing. The enemy has evolved. We must become something more &mdash; invisible, precise, unstoppable. We are the Ghosts.&rdquo;</div>
+    <div class="quote-attr" data-en="&mdash; GHOST LEAD // HUNTER TEAM" data-zh="&mdash; 幽灵队长 // 猎人小队">&mdash; GHOST LEAD // HUNTER TEAM</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="reveal">
+    <div class="diamond-formation" style="margin-bottom:2rem;">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="line line-h"></div>
+      <div class="line line-v"></div>
+    </div>
+    <h2 data-en="JOIN THE GHOSTS" data-zh="加入幽灵小队">JOIN THE GHOSTS</h2>
+    <p data-en="The world needs soldiers who don't exist. No flags, no names, no proof they were ever there. Only results. Are you ready to become invisible?" data-zh="世界需要不存在的士兵。没有旗帜，没有名字，没有他们曾存在的证据。只有结果。你准备好隐形了吗？">The world needs soldiers who don't exist. No flags, no names, no proof they were ever there. Only results. Are you ready to become invisible?</p>
+    <button class="cta-btn" data-en="ENLIST NOW" data-zh="立即加入">ENLIST NOW</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-diamond"><span></span><span></span><span></span><span></span></div>
+  <div data-en="GHOST RECON: FUTURE SOLDIER // TOM CLANCY'S" data-zh="幽灵行动：未来战士 // 汤姆·克兰西">GHOST RECON: FUTURE SOLDIER // TOM CLANCY'S</div>
+  <div style="margin-top:0.5rem;" data-en="BELIEVE IN GHOSTS // 2012" data-zh="信仰幽灵 // 2012">BELIEVE IN GHOSTS // 2012</div>
+</footer>
+
+<script>
+// ===== LANGUAGE TOGGLE =====
+let lang = 'en';
+function toggleLang() {
+  lang = lang === 'en' ? 'zh' : 'en';
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.innerHTML = el.getAttribute('data-' + lang);
+  });
+}
+
+// ===== THEME TOGGLE =====
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+}
+
+// ===== HAMBURGER MENU =====
+function toggleMenu() {
+  document.getElementById('navbar').classList.toggle('open');
+}
+
+// Close menu on link click
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navbar').classList.remove('open');
+  });
+});
+
+// ===== SCROLL REVEAL =====
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ===== HERO TIME =====
+function updateTime() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('heroTime');
+  if (el) el.textContent = h + ':' + m + ':' + s;
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// ===== AR HUD CANVAS =====
+const canvas = document.getElementById('ar-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+let dataPoints = [];
+let brackets = [];
+let mouseX = 0, mouseY = 0;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  initDataPoints();
+}
+
+function initDataPoints() {
+  dataPoints = [];
+  const count = Math.floor((W * H) / 50000);
+  for (let i = 0; i < count; i++) {
+    dataPoints.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      size: Math.random() * 2 + 1,
+      alpha: Math.random() * 0.3 + 0.05,
+      pulse: Math.random() * Math.PI * 2
+    });
+  }
+  brackets = [];
+  const bCount = Math.floor(count / 4);
+  for (let i = 0; i < bCount; i++) {
+    brackets.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+      size: Math.random() * 12 + 6,
+      alpha: Math.random() * 0.15 + 0.03,
+      type: Math.floor(Math.random() * 3) // 0=bracket, 1=diamond, 2=cross
+    });
+  }
+}
+
+function drawFrame(time) {
+  ctx.clearRect(0, 0, W, H);
+
+  const isLight = document.documentElement.classList.contains('light');
+  const blueR = 0, blueG = 180, blueB = 255;
+
+  // Data points
+  for (let p of dataPoints) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.pulse += 0.02;
+    if (p.x < 0 || p.x > W) p.vx *= -1;
+    if (p.y < 0 || p.y > H) p.vy *= -1;
+
+    const a = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse));
+    ctx.fillStyle = `rgba(${blueR},${blueG},${blueB},${isLight ? a * 0.7 : a})`;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+
+  // Targeting brackets
+  for (let b of brackets) {
+    b.x += b.vx;
+    b.y += b.vy;
+    if (b.x < 0 || b.x > W) b.vx *= -1;
+    if (b.y < 0 || b.y > H) b.vy *= -1;
+
+    const a = b.alpha * (isLight ? 0.6 : 1);
+    ctx.strokeStyle = `rgba(${blueR},${blueG},${blueB},${a})`;
+    ctx.lineWidth = 1;
+
+    const s = b.size;
+    const cx = b.x, cy = b.y;
+    const corner = s * 0.35;
+
+    if (b.type === 0) {
+      // Targeting bracket
+      ctx.beginPath();
+      ctx.moveTo(cx - s, cy - s + corner); ctx.lineTo(cx - s, cy - s); ctx.lineTo(cx - s + corner, cy - s);
+      ctx.moveTo(cx + s - corner, cy - s); ctx.lineTo(cx + s, cy - s); ctx.lineTo(cx + s, cy - s + corner);
+      ctx.moveTo(cx + s, cy + s - corner); ctx.lineTo(cx + s, cy + s); ctx.lineTo(cx + s - corner, cy + s);
+      ctx.moveTo(cx - s + corner, cy + s); ctx.lineTo(cx - s, cy + s); ctx.lineTo(cx - s, cy + s - corner);
+      ctx.stroke();
+    } else if (b.type === 1) {
+      // Diamond
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s); ctx.lineTo(cx + s, cy);
+      ctx.lineTo(cx, cy + s); ctx.lineTo(cx - s, cy); ctx.closePath();
+      ctx.stroke();
+    } else {
+      // Crosshair
+      const r = s * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy);
+      ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r);
+      ctx.stroke();
+    }
+  }
+
+  // Mouse-following reticle
+  const mx = mouseX, my = mouseY;
+  if (mx > 0 && my > 0) {
+    ctx.strokeStyle = `rgba(${blueR},${blueG},${blueB},0.12)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(mx, my, 30, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(mx, my, 18, 0, Math.PI * 2);
+    ctx.stroke();
+    // Cross
+    ctx.beginPath();
+    ctx.moveTo(mx - 35, my); ctx.lineTo(mx - 22, my);
+    ctx.moveTo(mx + 22, my); ctx.lineTo(mx + 35, my);
+    ctx.moveTo(mx, my - 35); ctx.lineTo(mx, my - 22);
+    ctx.moveTo(mx, my + 22); ctx.lineTo(mx, my + 35);
+    ctx.stroke();
+  }
+
+  // Connection lines between nearby points
+  ctx.strokeStyle = `rgba(${blueR},${blueG},${blueB},${isLight ? 0.03 : 0.04})`;
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i < dataPoints.length; i++) {
+    for (let j = i + 1; j < dataPoints.length; j++) {
+      const dx = dataPoints[i].x - dataPoints[j].x;
+      const dy = dataPoints[i].y - dataPoints[j].y;
+      const dist = dx*dx + dy*dy;
+      if (dist < 15000) {
+        ctx.beginPath();
+        ctx.moveTo(dataPoints[i].x, dataPoints[i].y);
+        ctx.lineTo(dataPoints[j].x, dataPoints[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawFrame);
+}
+
+window.addEventListener('resize', resize);
+window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+resize();
+requestAnimationFrame(drawFrame);
+
+// ===== NAV SCROLL EFFECT =====
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 50) {
+    nav.style.boxShadow = '0 2px 20px rgba(0,180,255,0.1)';
+  } else {
+    nav.style.boxShadow = 'none';
+  }
+});
+
+// ===== SMOOTH SCROLL =====
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>

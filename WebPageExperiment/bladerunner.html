@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blade Runner 2049 — A World Beyond</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ======================== RESET & BASE ======================== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal-deep:#0a2a3a;--teal:#0d3040;--teal-mid:#15445a;--teal-light:#1a5a70;
+  --amber:#d4842a;--amber-light:#e89838;--amber-glow:#f0a840;
+  --orange-dust:#c87830;--haze-yellow:#d0a050;
+  --cold-blue:#1a3040;--neon-pink:#d040a0;--neon-pink-dim:#a03080;
+  --bg-primary:#060e14;--bg-secondary:#0a1a24;--bg-card:#0c2230;
+  --text-primary:#c8d0d4;--text-secondary:#7a8a94;--text-accent:#e89838;
+  --grain-opacity:0.04;
+  --section-pad:120px 0;
+  --font-heading:'Rajdhani',sans-serif;
+  --font-body:'Noto Sans SC','Rajdhani',sans-serif;
+  --font-mono:'Space Mono',monospace;
+}
+[data-theme="light"]{
+  --bg-primary:#d8cfc0;--bg-secondary:#c8bfb0;--bg-card:#bab0a0;
+  --text-primary:#1a1410;--text-secondary:#4a4030;--text-accent:#a05820;
+  --teal-deep:#2a5a6a;--teal:#3a7080;--grain-opacity:0.025;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);
+  overflow-x:hidden;line-height:1.7;transition:background .6s,color .6s;
+}
+a{color:var(--amber);text-decoration:none}
+::selection{background:var(--amber);color:var(--teal-deep)}
+
+/* ======================== GRAIN OVERLAY ======================== */
+.grain{
+  position:fixed;inset:0;z-index:9998;pointer-events:none;
+  opacity:var(--grain-opacity);
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+
+/* ======================== CANVAS ======================== */
+#atmosphere-canvas{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+}
+
+/* ======================== FOG OVERLAYS ======================== */
+.fog-layer{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 100%,rgba(200,120,48,0.08) 0%,transparent 70%),
+    radial-gradient(ellipse 80% 40% at 20% 80%,rgba(10,42,58,0.15) 0%,transparent 60%),
+    radial-gradient(ellipse 100% 50% at 80% 20%,rgba(208,160,80,0.05) 0%,transparent 50%);
+}
+.fog-drift{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  opacity:0.12;
+  background:linear-gradient(90deg,transparent 0%,rgba(200,180,140,0.3) 30%,transparent 60%);
+  animation:fogDrift 20s ease-in-out infinite alternate;
+}
+@keyframes fogDrift{
+  0%{transform:translateX(-20%) scaleX(1.2)}
+  100%{transform:translateX(20%) scaleX(0.8)}
+}
+
+/* ======================== CONTROLS (TOP RIGHT) ======================== */
+.controls{
+  position:fixed;top:24px;right:24px;z-index:9999;
+  display:flex;gap:12px;
+}
+.ctrl-btn{
+  background:rgba(10,42,58,0.85);border:1px solid var(--amber);
+  color:var(--amber);padding:8px 16px;cursor:pointer;
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:1px;
+  text-transform:uppercase;backdrop-filter:blur(8px);
+  transition:all .3s;
+}
+.ctrl-btn:hover{background:var(--amber);color:var(--teal-deep)}
+
+/* ======================== NAV ======================== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:9990;
+  padding:20px 60px;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(6,14,20,0.9) 0%,transparent 100%);
+  transition:background .4s;
+}
+.nav.scrolled{background:rgba(6,14,20,0.95);backdrop-filter:blur(12px)}
+.nav-logo{
+  font-family:var(--font-heading);font-weight:700;font-size:1.1rem;
+  letter-spacing:6px;text-transform:uppercase;color:var(--amber);
+}
+.nav-logo span{color:var(--text-secondary);font-weight:300}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{
+  font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text-secondary);
+  transition:color .3s;position:relative;
+}
+.nav-links a:hover{color:var(--amber)}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;
+  background:var(--amber);transition:width .3s;
+}
+.nav-links a:hover::after{width:100%}
+
+/* ======================== MOBILE NAV ======================== */
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-toggle span{display:block;width:24px;height:2px;background:var(--amber);margin:5px 0;transition:all .3s}
+@media(max-width:768px){
+  .nav{padding:16px 24px}
+  .nav-links{
+    position:fixed;top:0;right:-100%;width:70%;height:100vh;
+    flex-direction:column;padding:80px 40px;gap:24px;
+    background:rgba(6,14,20,0.98);transition:right .4s;
+  }
+  .nav-links.open{right:0}
+  .nav-toggle{display:block}
+}
+
+/* ======================== HERO ======================== */
+.hero{
+  position:relative;height:100vh;min-height:700px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;z-index:3;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(180deg,rgba(6,14,20,0.3) 0%,rgba(6,14,20,0.1) 40%,rgba(200,120,48,0.15) 70%,rgba(6,14,20,0.8) 100%),
+    linear-gradient(135deg,var(--teal-deep) 0%,#1a3020 30%,#3a2810 60%,var(--orange-dust) 100%);
+}
+.hero-haze{
+  position:absolute;bottom:0;left:0;right:0;height:40%;
+  background:linear-gradient(0deg,rgba(200,120,48,0.2) 0%,transparent 100%);
+}
+.hero-content{
+  position:relative;z-index:5;text-align:center;
+  max-width:900px;padding:0 24px;
+}
+.hero-subtitle{
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:8px;
+  text-transform:uppercase;color:var(--amber);margin-bottom:24px;
+  opacity:0.8;
+}
+.hero-title{
+  font-family:var(--font-heading);font-weight:700;
+  font-size:clamp(3rem,8vw,7rem);line-height:0.95;
+  letter-spacing:-2px;text-transform:uppercase;
+  color:var(--text-primary);margin-bottom:16px;
+}
+.hero-title .accent{color:var(--amber);display:block;font-size:0.5em;letter-spacing:12px;font-weight:300}
+.hero-year{
+  font-family:var(--font-mono);font-size:clamp(1rem,3vw,1.6rem);
+  color:var(--amber);opacity:0.5;letter-spacing:20px;margin-bottom:40px;
+}
+.hero-tagline{
+  font-size:1rem;color:var(--text-secondary);max-width:500px;margin:0 auto 48px;
+  font-weight:300;line-height:1.8;
+}
+.hero-scroll{
+  display:inline-block;width:1px;height:60px;background:var(--amber);
+  opacity:0.4;animation:scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse{
+  0%,100%{opacity:0.1;transform:scaleY(0.6)}
+  50%{opacity:0.5;transform:scaleY(1)}
+}
+.hero-line-left,.hero-line-right{
+  position:absolute;top:50%;width:120px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--amber));opacity:0.2;
+}
+.hero-line-left{left:60px;transform:rotate(0deg)}
+.hero-line-right{right:60px;background:linear-gradient(90deg,var(--amber),transparent)}
+
+/* ======================== SECTION COMMON ======================== */
+.section{position:relative;z-index:3;padding:var(--section-pad)}
+.section-inner{max-width:1200px;margin:0 auto;padding:0 40px}
+.section-label{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:6px;
+  text-transform:uppercase;color:var(--amber);margin-bottom:8px;opacity:0.7;
+}
+.section-title{
+  font-family:var(--font-heading);font-weight:700;
+  font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-1px;
+  text-transform:uppercase;margin-bottom:16px;line-height:1.1;
+}
+.section-subtitle{
+  color:var(--text-secondary);font-size:0.95rem;max-width:600px;
+  line-height:1.8;font-weight:300;margin-bottom:60px;
+}
+.divider{
+  width:60px;height:1px;background:var(--amber);margin:40px 0;opacity:0.4;
+}
+
+/* ======================== SCROLL REVEAL ======================== */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.15s}
+.reveal-delay-2{transition-delay:.3s}
+.reveal-delay-3{transition-delay:.45s}
+.reveal-delay-4{transition-delay:.6s}
+
+/* ======================== THE WORLD SECTION ======================== */
+.world-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.world-visual{
+  position:relative;height:400px;
+  background:linear-gradient(135deg,var(--teal) 0%,var(--orange-dust) 100%);
+  overflow:hidden;
+}
+.world-visual::before{
+  content:'';position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(0deg,transparent 0px,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+}
+.world-visual::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:60%;
+  background:linear-gradient(0deg,var(--bg-primary) 0%,transparent 100%);
+}
+.world-visual-label{
+  position:absolute;bottom:20px;left:20px;z-index:2;
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:4px;
+  color:var(--amber);text-transform:uppercase;
+}
+.world-stats{display:flex;gap:40px;margin-top:40px}
+.stat{text-align:left}
+.stat-num{
+  font-family:var(--font-heading);font-size:2.5rem;font-weight:700;
+  color:var(--amber);line-height:1;
+}
+.stat-label{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:3px;
+  color:var(--text-secondary);text-transform:uppercase;margin-top:4px;
+}
+@media(max-width:768px){
+  .world-grid{grid-template-columns:1fr;gap:40px}
+  .world-visual{height:250px}
+}
+
+/* ======================== REPLICANT FILES ======================== */
+.replicant-section{
+  background:linear-gradient(180deg,var(--bg-primary) 0%,var(--bg-secondary) 50%,var(--bg-primary) 100%);
+}
+.replicant-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.replicant-card{
+  background:var(--bg-card);border:1px solid rgba(212,132,42,0.1);
+  padding:0;overflow:hidden;position:relative;
+  transition:border-color .4s,transform .4s;
+}
+.replicant-card:hover{border-color:rgba(212,132,42,0.4);transform:translateY(-4px)}
+.replicant-card-header{
+  height:180px;position:relative;overflow:hidden;
+}
+.replicant-card-header.k-bg{
+  background:linear-gradient(135deg,var(--cold-blue) 0%,var(--teal) 100%);
+}
+.replicant-card-header.luv-bg{
+  background:linear-gradient(135deg,var(--teal-deep) 0%,var(--neon-pink-dim) 100%);
+}
+.replicant-card-header.sapper-bg{
+  background:linear-gradient(135deg,var(--orange-dust) 0%,var(--teal) 100%);
+}
+.replicant-card-header::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:50%;
+  background:linear-gradient(0deg,var(--bg-card),transparent);
+}
+.replicant-card-id{
+  position:absolute;top:16px;right:16px;
+  font-family:var(--font-mono);font-size:0.55rem;letter-spacing:2px;
+  color:var(--amber);opacity:0.6;z-index:2;
+}
+.replicant-card-body{padding:24px 28px 28px}
+.replicant-card-name{
+  font-family:var(--font-heading);font-size:1.5rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;
+}
+.replicant-card-model{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:3px;
+  color:var(--amber);margin-bottom:16px;text-transform:uppercase;
+}
+.replicant-card-desc{
+  font-size:0.85rem;color:var(--text-secondary);line-height:1.7;
+  font-weight:300;
+}
+.replicant-card-tags{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.tag{
+  font-family:var(--font-mono);font-size:0.55rem;letter-spacing:1px;
+  padding:4px 10px;border:1px solid rgba(212,132,42,0.2);
+  color:var(--text-secondary);text-transform:uppercase;
+}
+@media(max-width:900px){.replicant-grid{grid-template-columns:1fr}}
+
+/* ======================== WALLACE CORP ======================== */
+.wallace-section{
+  background:
+    linear-gradient(180deg,var(--bg-primary) 0%,rgba(10,42,58,0.3) 50%,var(--bg-primary) 100%);
+}
+.wallace-feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}
+.wallace-feature{
+  padding:48px 40px;border:1px solid rgba(212,132,42,0.05);
+  background:rgba(12,34,48,0.3);position:relative;overflow:hidden;
+  transition:background .4s;
+}
+.wallace-feature:hover{background:rgba(12,34,48,0.6)}
+.wallace-feature-icon{
+  font-family:var(--font-heading);font-size:2.5rem;font-weight:700;
+  color:var(--amber);opacity:0.3;margin-bottom:16px;line-height:1;
+}
+.wallace-feature-title{
+  font-family:var(--font-heading);font-size:1.2rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;
+}
+.wallace-feature-desc{
+  font-size:0.85rem;color:var(--text-secondary);line-height:1.7;font-weight:300;
+}
+.wallace-feature .neon-line{
+  position:absolute;bottom:0;left:0;width:0;height:1px;
+  background:linear-gradient(90deg,var(--amber),var(--neon-pink),transparent);
+  transition:width .6s;
+}
+.wallace-feature:hover .neon-line{width:100%}
+@media(max-width:768px){.wallace-feature-grid{grid-template-columns:1fr}}
+
+/* ======================== LOCATIONS ======================== */
+.locations-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.location-card{
+  position:relative;height:360px;overflow:hidden;cursor:pointer;
+}
+.location-card-bg{
+  position:absolute;inset:0;transition:transform .8s;
+}
+.location-card:hover .location-card-bg{transform:scale(1.05)}
+.la-bg{background:linear-gradient(180deg,var(--cold-blue) 0%,var(--teal-deep) 60%,rgba(208,64,160,0.2) 100%)}
+.vegas-bg{background:linear-gradient(180deg,var(--orange-dust) 0%,var(--haze-yellow) 40%,rgba(200,120,48,0.4) 100%)}
+.sandiego-bg{background:linear-gradient(180deg,#1a1a1a 0%,#2a2020 60%,#0a0a0a 100%)}
+.location-card-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(0deg,rgba(6,14,20,0.9) 0%,transparent 60%);
+  z-index:2;
+}
+.location-card-content{
+  position:absolute;bottom:0;left:0;right:0;padding:32px;z-index:3;
+}
+.location-card-name{
+  font-family:var(--font-heading);font-size:1.8rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:3px;margin-bottom:4px;
+}
+.location-card-sub{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:4px;
+  color:var(--amber);text-transform:uppercase;margin-bottom:12px;
+}
+.location-card-desc{
+  font-size:0.8rem;color:var(--text-secondary);line-height:1.7;
+  font-weight:300;max-width:280px;
+}
+@media(max-width:768px){
+  .locations-grid{grid-template-columns:1fr}
+  .location-card{height:280px}
+}
+
+/* ======================== MEMORY SECTION ======================== */
+.memory-section{
+  padding:160px 0;text-align:center;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%,rgba(200,120,48,0.06) 0%,transparent 70%);
+}
+.memory-title{
+  font-family:var(--font-heading);font-size:clamp(1.5rem,4vw,2.5rem);
+  font-weight:300;letter-spacing:4px;text-transform:uppercase;
+  line-height:1.6;max-width:700px;margin:0 auto 40px;
+}
+.memory-title em{font-style:normal;color:var(--amber);font-weight:600}
+.memory-desc{
+  max-width:500px;margin:0 auto;font-size:0.9rem;
+  color:var(--text-secondary);line-height:1.8;font-weight:300;
+}
+
+/* ======================== QUOTE ======================== */
+.quote-section{
+  padding:200px 0;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,var(--bg-primary) 0%,rgba(200,120,48,0.08) 50%,var(--bg-primary) 100%);
+}
+.quote-section::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(212,132,42,0.03) 50%,transparent 100%);
+}
+.quote-text{
+  font-family:var(--font-heading);font-size:clamp(1.8rem,5vw,4rem);
+  font-weight:300;text-align:center;line-height:1.4;
+  letter-spacing:2px;max-width:900px;margin:0 auto 32px;padding:0 24px;
+  color:var(--text-primary);
+}
+.quote-text .highlight{color:var(--amber);font-weight:600}
+.quote-attr{
+  text-align:center;font-family:var(--font-mono);font-size:0.65rem;
+  letter-spacing:6px;color:var(--text-secondary);text-transform:uppercase;
+}
+
+/* ======================== CTA ======================== */
+.cta-section{text-align:center;padding:120px 0}
+.cta-title{
+  font-family:var(--font-heading);font-size:clamp(1.5rem,4vw,2.8rem);
+  font-weight:700;text-transform:uppercase;letter-spacing:4px;margin-bottom:24px;
+}
+.cta-desc{
+  color:var(--text-secondary);font-size:0.95rem;max-width:480px;
+  margin:0 auto 48px;line-height:1.8;font-weight:300;
+}
+.cta-btn{
+  display:inline-block;padding:16px 48px;
+  border:1px solid var(--amber);color:var(--amber);
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:4px;
+  text-transform:uppercase;cursor:pointer;background:transparent;
+  position:relative;overflow:hidden;transition:color .4s;
+}
+.cta-btn::before{
+  content:'';position:absolute;inset:0;background:var(--amber);
+  transform:translateX(-101%);transition:transform .4s;z-index:-1;
+}
+.cta-btn:hover{color:var(--teal-deep)}
+.cta-btn:hover::before{transform:translateX(0)}
+
+/* ======================== FOOTER ======================== */
+.footer{
+  border-top:1px solid rgba(212,132,42,0.1);
+  padding:60px 40px;
+}
+.footer-inner{
+  max-width:1200px;margin:0 auto;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;
+}
+.footer-brand{
+  font-family:var(--font-heading);font-size:0.9rem;
+  letter-spacing:4px;text-transform:uppercase;color:var(--text-secondary);
+}
+.footer-links{display:flex;gap:24px}
+.footer-links a{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:2px;
+  color:var(--text-secondary);text-transform:uppercase;transition:color .3s;
+}
+.footer-links a:hover{color:var(--amber)}
+.footer-copy{
+  width:100%;text-align:center;margin-top:24px;
+  font-family:var(--font-mono);font-size:0.55rem;
+  color:var(--text-secondary);letter-spacing:2px;opacity:0.5;
+}
+
+/* ======================== HOLOGRAPHIC FLICKER ======================== */
+.holo-flicker{animation:holoFlicker 4s ease-in-out infinite}
+@keyframes holoFlicker{
+  0%,100%{opacity:1}
+  5%{opacity:0.7}
+  5.5%{opacity:1}
+  10%{opacity:0.85}
+  10.5%{opacity:1}
+  50%{opacity:1}
+  50.5%{opacity:0.6}
+  51%{opacity:1}
+  75%{opacity:1}
+  75.3%{opacity:0.75}
+  75.6%{opacity:1}
+}
+.holo-scanline{
+  position:relative;
+}
+.holo-scanline::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0px,transparent 2px,
+    rgba(212,132,42,0.015) 2px,rgba(212,132,42,0.015) 4px
+  );
+  z-index:10;
+}
+
+/* ======================== NEON GLOW LINES ======================== */
+.neon-border-top{
+  position:relative;
+}
+.neon-border-top::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--amber),var(--neon-pink),var(--amber),transparent);
+  opacity:0.5;
+}
+
+/* ======================== WIDE CINEMATIC BARS ======================== */
+.cinema-bar{
+  position:fixed;left:0;right:0;height:clamp(20px,3vh,40px);
+  background:#000;z-index:9997;pointer-events:none;
+}
+.cinema-bar.top{top:0}
+.cinema-bar.bottom{bottom:0}
+
+/* ======================== SCROLLBAR ======================== */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg-primary)}
+::-webkit-scrollbar-thumb{background:var(--amber);opacity:0.5}
+</style>
+</head>
+<body>
+
+<!-- Atmospheric Canvas -->
+<canvas id="atmosphere-canvas"></canvas>
+
+<!-- Film Grain -->
+<div class="grain"></div>
+
+<!-- Fog Layers -->
+<div class="fog-layer"></div>
+<div class="fog-drift"></div>
+
+<!-- Cinematic Bars -->
+<div class="cinema-bar top"></div>
+<div class="cinema-bar bottom"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="lang-toggle" onclick="toggleLang()">中文</button>
+  <button class="ctrl-btn" id="theme-toggle" onclick="toggleTheme()">Light</button>
+</div>
+
+<!-- Navigation -->
+<nav class="nav" id="navbar">
+  <div class="nav-logo">BLADE<span>RUNNER</span></div>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#world" data-en="The World" data-zh="世界观">The World</a></li>
+    <li><a href="#replicants" data-en="Replicants" data-zh="复制人">Replicants</a></li>
+    <li><a href="#wallace" data-en="Wallace Corp" data-zh="华莱士公司">Wallace Corp</a></li>
+    <li><a href="#locations" data-en="Locations" data-zh="地点">Locations</a></li>
+    <li><a href="#memory" data-en="Memory" data-zh="记忆">Memory</a></li>
+  </ul>
+  <button class="nav-toggle" id="nav-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-haze"></div>
+  <div class="hero-line-left"></div>
+  <div class="hero-line-right"></div>
+  <div class="hero-content">
+    <div class="hero-subtitle holo-flicker" data-en="Officer KD6-3.7 — LAPD" data-zh="警员 KD6-3.7 — 洛杉矶警局">Officer KD6-3.7 — LAPD</div>
+    <h1 class="hero-title">
+      BLADE<br>RUNNER
+      <span class="accent" data-en="A World Beyond Human" data-zh="超越人类的世界">A World Beyond Human</span>
+    </h1>
+    <div class="hero-year">2 0 4 9</div>
+    <p class="hero-tagline" data-en="In a future darkened by synthetic evolution, one replicant's search for truth threatens to unravel the fragile order between human and machine." data-zh="在被合成进化笼罩的未来，一个复制人对真相的追寻，威胁着人类与机器之间脆弱的秩序。">In a future darkened by synthetic evolution, one replicant's search for truth threatens to unravel the fragile order between human and machine.</p>
+    <div class="hero-scroll"></div>
+  </div>
+</section>
+
+<!-- ==================== THE WORLD ==================== -->
+<section class="section" id="world">
+  <div class="section-inner">
+    <div class="world-grid">
+      <div>
+        <div class="section-label reveal" data-en="// Dystopian Future" data-zh="// 反乌托邦未来">// Dystopian Future</div>
+        <h2 class="section-title reveal reveal-delay-1" data-en="The World of 2049" data-zh="2049年的世界">The World of 2049</h2>
+        <div class="divider reveal reveal-delay-1"></div>
+        <p class="section-subtitle reveal reveal-delay-2" data-en="Earth's ecosystem has collapsed. Synthetic farming sustains a decimated population. The line between born and manufactured has blurred beyond recognition. The Tyrell Corporation fell, and in its place rose Wallace — a blind god who creates beings more perfect than any human." data-zh="地球的生态系统已经崩溃。合成农业勉强维持着锐减的人口。天生与制造之间的界限已模糊到无法辨认。泰瑞公司倒下了，取而代之的是华莱士——一个创造出比任何人类都更完美的存在的盲眼之神。">Earth's ecosystem has collapsed. Synthetic farming sustains a decimated population. The line between born and manufactured has blurred beyond recognition. The Tyrell Corporation fell, and in its place rose Wallace — a blind god who creates beings more perfect than any human.</p>
+        <div class="world-stats reveal reveal-delay-3">
+          <div class="stat">
+            <div class="stat-num">10B+</div>
+            <div class="stat-label" data-en="Replicants Made" data-zh="已制造复制人">Replicants Made</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">9</div>
+            <div class="stat-label" data-en="Off-World Colonies" data-zh="世外殖民地">Off-World Colonies</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">2022</div>
+            <div class="stat-label" data-en="The Blackout" data-zh="大停电事件">The Blackout</div>
+          </div>
+        </div>
+      </div>
+      <div class="world-visual reveal holo-scanline">
+        <div class="world-visual-label" data-en="Sector 4A — Greater Los Angeles" data-zh="第4A区 — 大洛杉矶">Sector 4A — Greater Los Angeles</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== REPLICANT FILES ==================== -->
+<section class="section replicant-section neon-border-top" id="replicants">
+  <div class="section-inner">
+    <div class="section-label reveal" data-en="// Classified Files" data-zh="// 机密档案">// Classified Files</div>
+    <h2 class="section-title reveal reveal-delay-1" data-en="Replicant Dossiers" data-zh="复制人档案">Replicant Dossiers</h2>
+    <p class="section-subtitle reveal reveal-delay-2" data-en="Nexus-9 models — obedient by design, haunted by something deeper. Each one a miracle of bioengineering, each one a question without an answer." data-zh="Nexus-9型号——设计上服从，内心深处却被某种东西困扰。每一个都是生物工程的奇迹，每一个都是没有答案的问题。">Nexus-9 models — obedient by design, haunted by something deeper. Each one a miracle of bioengineering, each one a question without an answer.</p>
+    <div class="replicant-grid">
+      <!-- K -->
+      <div class="replicant-card reveal">
+        <div class="replicant-card-header k-bg">
+          <div class="replicant-card-id">KD6-3.7</div>
+        </div>
+        <div class="replicant-card-body">
+          <div class="replicant-card-name" data-en="Officer K" data-zh="警员 K">Officer K</div>
+          <div class="replicant-card-model">Nexus-9 // Blade Runner</div>
+          <p class="replicant-card-desc" data-en="A blade runner who retires older replicant models. His discovery of a buried secret sends him on a journey that challenges everything he believes about his own existence." data-zh="一名负责退役旧型复制人的银翼杀手。他发现的一个被掩埋的秘密，让他踏上了挑战自身存在信念的旅程。">A blade runner who retires older replicant models. His discovery of a buried secret sends him on a journey that challenges everything he believes about his own existence.</p>
+          <div class="replicant-card-tags">
+            <span class="tag" data-en="Blade Runner" data-zh="银翼杀手">Blade Runner</span>
+            <span class="tag" data-en="Obedient" data-zh="服从">Obedient</span>
+            <span class="tag">LAPD</span>
+          </div>
+        </div>
+      </div>
+      <!-- Luv -->
+      <div class="replicant-card reveal reveal-delay-1">
+        <div class="replicant-card-header luv-bg">
+          <div class="replicant-card-id">LUV-A1</div>
+        </div>
+        <div class="replicant-card-body">
+          <div class="replicant-card-name" data-en="Luv" data-zh="拉芙">Luv</div>
+          <div class="replicant-card-model">Nexus-9 // Wallace Enforcer</div>
+          <p class="replicant-card-desc" data-en="Wallace's best angel. Ruthlessly efficient, emotionally volatile. She kills with precision and weeps without understanding why. The most dangerous replicant alive." data-zh="华莱士最好的天使。冷酷高效，情绪不稳定。她精准地杀戮，却不明白自己为何流泪。最危险的在世复制人。">Wallace's best angel. Ruthlessly efficient, emotionally volatile. She kills with precision and weeps without understanding why. The most dangerous replicant alive.</p>
+          <div class="replicant-card-tags">
+            <span class="tag" data-en="Enforcer" data-zh="执行者">Enforcer</span>
+            <span class="tag" data-en="Combat" data-zh="战斗">Combat</span>
+            <span class="tag" data-en="Unstable" data-zh="不稳定">Unstable</span>
+          </div>
+        </div>
+      </div>
+      <!-- Sapper -->
+      <div class="replicant-card reveal reveal-delay-2">
+        <div class="replicant-card-header sapper-bg">
+          <div class="replicant-card-id">SM-N8</div>
+        </div>
+        <div class="replicant-card-body">
+          <div class="replicant-card-name" data-en="Sapper Morton" data-zh="萨珀·莫顿">Sapper Morton</div>
+          <div class="replicant-card-model">Nexus-8 // Protein Farmer</div>
+          <p class="replicant-card-desc" data-en="A combat medic turned protein farmer, hiding in the wasteland. Beneath his garlic farm lies a secret that could ignite a war — or birth a revolution." data-zh="一名战斗医疗兵转型为蛋白质农场主，隐藏在荒原中。在他的大蒜农场之下，埋藏着一个可能引发战争——或催生革命的秘密。">A combat medic turned protein farmer, hiding in the wasteland. Beneath his garlic farm lies a secret that could ignite a war — or birth a revolution.</p>
+          <div class="replicant-card-tags">
+            <span class="tag" data-en="Retired" data-zh="已退役">Retired</span>
+            <span class="tag">Nexus-8</span>
+            <span class="tag" data-en="Witness" data-zh="目击者">Witness</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== WALLACE CORPORATION ==================== -->
+<section class="section wallace-section" id="wallace">
+  <div class="section-inner">
+    <div class="section-label reveal" data-en="// Wallace Corporation" data-zh="// 华莱士公司">// Wallace Corporation</div>
+    <h2 class="section-title reveal reveal-delay-1" data-en="Technology of Gods" data-zh="神的科技">Technology of Gods</h2>
+    <p class="section-subtitle reveal reveal-delay-2" data-en="Niander Wallace saved civilization from famine, then bought Tyrell's legacy. Now he builds life itself — and dreams of making it multiply beyond his control." data-zh="尼安德·华莱士将文明从饥荒中拯救出来，然后收购了泰瑞的遗产。现在他创造生命本身——并梦想让它在他无法控制的范围之外繁衍。">Niander Wallace saved civilization from famine, then bought Tyrell's legacy. Now he builds life itself — and dreams of making it multiply beyond his control.</p>
+    <div class="wallace-feature-grid">
+      <div class="wallace-feature reveal holo-scanline">
+        <div class="wallace-feature-icon">01</div>
+        <div class="wallace-feature-title" data-en="Nexus-9 Program" data-zh="Nexus-9 计划">Nexus-9 Program</div>
+        <p class="wallace-feature-desc" data-en="The latest generation of replicants. Perfectly obedient, incapable of defiance — or so the programming claims. Built with open-ended lifespans and implanted memories designed by artisans." data-zh="最新一代复制人。完全服从，无法违抗——至少程序是这样声称的。拥有开放式寿命和由工匠设计的植入记忆。">The latest generation of replicants. Perfectly obedient, incapable of defiance — or so the programming claims. Built with open-ended lifespans and implanted memories designed by artisans.</p>
+        <div class="neon-line"></div>
+      </div>
+      <div class="wallace-feature reveal reveal-delay-1">
+        <div class="wallace-feature-icon">02</div>
+        <div class="wallace-feature-title" data-en="Synthetic Agriculture" data-zh="合成农业">Synthetic Agriculture</div>
+        <p class="wallace-feature-desc" data-en="Wallace's genetically modified crops ended the global famine after the Blackout. This single achievement gave him the power and resources to acquire Tyrell Corporation's remaining assets." data-zh="华莱士的转基因作物在大停电之后终结了全球饥荒。这一成就赋予了他获取泰瑞公司剩余资产的权力和资源。">Wallace's genetically modified crops ended the global famine after the Blackout. This single achievement gave him the power and resources to acquire Tyrell Corporation's remaining assets.</p>
+        <div class="neon-line"></div>
+      </div>
+      <div class="wallace-feature reveal reveal-delay-2">
+        <div class="wallace-feature-icon">03</div>
+        <div class="wallace-feature-title" data-en="Memory Fabrication" data-zh="记忆制造">Memory Fabrication</div>
+        <p class="wallace-feature-desc" data-en="Dr. Ana Stelline designs memories for replicants in a sterile bubble — dreams of birthday parties, childhood rain, a mother's touch. Fictions that feel more real than most humans' lives." data-zh="安娜·斯特林博士在无菌气泡中为复制人设计记忆——生日派对的梦、童年的雨、母亲的触碰。比大多数人类的生活更真实的虚构。">Dr. Ana Stelline designs memories for replicants in a sterile bubble — dreams of birthday parties, childhood rain, a mother's touch. Fictions that feel more real than most humans' lives.</p>
+        <div class="neon-line"></div>
+      </div>
+      <div class="wallace-feature reveal reveal-delay-3">
+        <div class="wallace-feature-icon">04</div>
+        <div class="wallace-feature-title" data-en="Off-World Colonization" data-zh="世外殖民">Off-World Colonization</div>
+        <p class="wallace-feature-desc" data-en="Nine colonies thrive beyond Earth, built on replicant labor. Wallace needs replicants that can reproduce — an army that builds itself. The final frontier of his ambition." data-zh="九个殖民地在地球之外蓬勃发展，建立在复制人劳动之上。华莱士需要能够繁殖的复制人——一支自我建设的军队。这是他野心的最终边疆。">Nine colonies thrive beyond Earth, built on replicant labor. Wallace needs replicants that can reproduce — an army that builds itself. The final frontier of his ambition.</p>
+        <div class="neon-line"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== LOCATIONS ==================== -->
+<section class="section neon-border-top" id="locations">
+  <div class="section-inner">
+    <div class="section-label reveal" data-en="// Coordinates" data-zh="// 坐标">// Coordinates</div>
+    <h2 class="section-title reveal reveal-delay-1" data-en="Key Locations" data-zh="关键地点">Key Locations</h2>
+    <p class="section-subtitle reveal reveal-delay-2" data-en="From rain-soaked megalopolis to irradiated desert, each landscape tells the story of a world abandoned by hope." data-zh="从雨水浸泡的巨型城市到辐射沙漠，每一片风景都诉说着一个被希望遗弃的世界的故事。">From rain-soaked megalopolis to irradiated desert, each landscape tells the story of a world abandoned by hope.</p>
+    <div class="locations-grid reveal">
+      <!-- LA -->
+      <div class="location-card">
+        <div class="location-card-bg la-bg"></div>
+        <div class="location-card-overlay"></div>
+        <div class="location-card-content">
+          <div class="location-card-name" data-en="Los Angeles" data-zh="洛杉矶">Los Angeles</div>
+          <div class="location-card-sub">34.0522° N, 118.2437° W</div>
+          <p class="location-card-desc" data-en="Perpetual rain. Neon-lit towers pierce a poisoned sky. Millions crowd the lower levels while the wealthy ascend. K's beat — the city that never sees the sun." data-zh="永不停歇的雨。霓虹灯塔刺穿中毒的天空。数百万人挤在底层，而富人向上攀升。K的管辖区——一座永远看不到太阳的城市。">Perpetual rain. Neon-lit towers pierce a poisoned sky. Millions crowd the lower levels while the wealthy ascend. K's beat — the city that never sees the sun.</p>
+        </div>
+      </div>
+      <!-- Las Vegas -->
+      <div class="location-card">
+        <div class="location-card-bg vegas-bg"></div>
+        <div class="location-card-overlay"></div>
+        <div class="location-card-content">
+          <div class="location-card-name" data-en="Las Vegas" data-zh="拉斯维加斯">Las Vegas</div>
+          <div class="location-card-sub">36.1699° N, 115.1398° W</div>
+          <p class="location-card-desc" data-en="A radioactive amber wasteland. Colossal statues stand half-buried in sand. In the ruins of a casino, a ghost from the past waits with a dog and a glass of whiskey." data-zh="一片放射性的琥珀色荒原。巨大的雕像半埋在沙中。在赌场的废墟里，一个来自过去的幽灵带着一条狗和一杯威士忌等待着。">A radioactive amber wasteland. Colossal statues stand half-buried in sand. In the ruins of a casino, a ghost from the past waits with a dog and a glass of whiskey.</p>
+        </div>
+      </div>
+      <!-- San Diego -->
+      <div class="location-card">
+        <div class="location-card-bg sandiego-bg"></div>
+        <div class="location-card-overlay"></div>
+        <div class="location-card-content">
+          <div class="location-card-name" data-en="San Diego" data-zh="圣地亚哥">San Diego</div>
+          <div class="location-card-sub">32.7157° N, 117.1611° W</div>
+          <p class="location-card-desc" data-en="The Trash Mesa. A massive scrapyard where orphans sift through the refuse of civilization. Here, among the discarded, a resistance quietly grows." data-zh="垃圾高地。一个巨大的废品场，孤儿们在文明的废墟中翻找。在这些被遗弃者之中，一场抵抗运动悄然成长。">The Trash Mesa. A massive scrapyard where orphans sift through the refuse of civilization. Here, among the discarded, a resistance quietly grows.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MEMORY ==================== -->
+<section class="section memory-section" id="memory">
+  <div class="section-inner">
+    <div class="section-label reveal" data-en="// Memory Fragment" data-zh="// 记忆碎片">// Memory Fragment</div>
+    <h2 class="memory-title reveal reveal-delay-1" data-en="What is it that makes you <em>you</em>? Is it your memories? Your desires? Or just the belief that you are <em>real</em>?" data-zh="是什么让你成为<em>你</em>？是你的记忆？你的渴望？还是仅仅是你是<em>真实</em>的信念？">What is it that makes you <em>you</em>? Is it your memories? Your desires? Or just the belief that you are <em>real</em>?</h2>
+    <div class="divider reveal reveal-delay-2" style="margin:40px auto"></div>
+    <p class="memory-desc reveal reveal-delay-3" data-en="Dr. Ana Stelline crafts memories so vivid they blur the boundary between experience and fabrication. Every replicant carries a past that never happened — and feels it more deeply than any human ever could." data-zh="安娜·斯特林博士制作的记忆如此生动，以至于模糊了体验与虚构之间的界限。每个复制人都承载着从未发生过的过去——并且比任何人类都更深刻地感受它。">Dr. Ana Stelline crafts memories so vivid they blur the boundary between experience and fabrication. Every replicant carries a past that never happened — and feels it more deeply than any human ever could.</p>
+  </div>
+</section>
+
+<!-- ==================== QUOTE ==================== -->
+<section class="section quote-section">
+  <div class="section-inner">
+    <p class="quote-text reveal" data-en="&ldquo;All those <span class='highlight'>moments</span> will be lost in time, like <span class='highlight'>tears</span>&hellip; in rain.&rdquo;" data-zh="&ldquo;所有那些<span class='highlight'>瞬间</span>都将消逝在时间里，如同<span class='highlight'>泪水</span>&hellip;消融在雨中。&rdquo;">&ldquo;All those <span class="highlight">moments</span> will be lost in time, like <span class="highlight">tears</span>&hellip; in rain.&rdquo;</p>
+    <div class="quote-attr reveal reveal-delay-1" data-en="Roy Batty — Nexus-6 — Final Soliloquy" data-zh="罗伊·巴蒂 — Nexus-6 — 最终独白">Roy Batty — Nexus-6 — Final Soliloquy</div>
+  </div>
+</section>
+
+<!-- ==================== CTA ==================== -->
+<section class="section cta-section">
+  <div class="section-inner">
+    <h2 class="cta-title reveal holo-flicker" data-en="Wake Up. Time to Live." data-zh="醒来吧。是时候活着了。">Wake Up. Time to Live.</h2>
+    <p class="cta-desc reveal reveal-delay-1" data-en="The question was never whether replicants could feel. The question is whether you can tell the difference — and whether it matters." data-zh="问题从来不是复制人能否感受。问题是你能否分辨出区别——以及这是否重要。">The question was never whether replicants could feel. The question is whether you can tell the difference — and whether it matters.</p>
+    <button class="cta-btn reveal reveal-delay-2" data-en="Enter the Archive" data-zh="进入档案库">Enter the Archive</button>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">BLADE RUNNER 2049</div>
+    <div class="footer-links">
+      <a href="#" data-en="Tyrell Archive" data-zh="泰瑞档案">Tyrell Archive</a>
+      <a href="#" data-en="Wallace Corp" data-zh="华莱士公司">Wallace Corp</a>
+      <a href="#" data-en="LAPD Files" data-zh="洛杉矶警局档案">LAPD Files</a>
+      <a href="#" data-en="Off-World" data-zh="世外殖民">Off-World</a>
+    </div>
+    <div class="footer-copy" data-en="Fan tribute page. Blade Runner 2049 &copy; Alcon Entertainment / Warner Bros." data-zh="粉丝致敬页面。银翼杀手2049 &copy; Alcon Entertainment / 华纳兄弟">Fan tribute page. Blade Runner 2049 &copy; Alcon Entertainment / Warner Bros.</div>
+  </div>
+</footer>
+
+<script>
+/* ======================== CANVAS — RAIN + DUST ======================== */
+(function(){
+  const canvas = document.getElementById('atmosphere-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const raindrops = [];
+  const dustParticles = [];
+  const RAIN_COUNT = 180;
+  const DUST_COUNT = 60;
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Init rain
+  for(let i = 0; i < RAIN_COUNT; i++){
+    raindrops.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      len: 8 + Math.random() * 20,
+      speed: 4 + Math.random() * 8,
+      opacity: 0.03 + Math.random() * 0.08,
+      wind: -1 - Math.random() * 2
+    });
+  }
+
+  // Init dust
+  for(let i = 0; i < DUST_COUNT; i++){
+    dustParticles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.5 + Math.random() * 2,
+      speedX: -0.2 + Math.random() * 0.4,
+      speedY: -0.1 + Math.random() * 0.2,
+      opacity: 0.05 + Math.random() * 0.15,
+      hue: Math.random() > 0.5 ? '200,160,80' : '160,200,210'
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+
+    // Rain
+    for(let r of raindrops){
+      ctx.beginPath();
+      ctx.moveTo(r.x, r.y);
+      ctx.lineTo(r.x + r.wind, r.y + r.len);
+      ctx.strokeStyle = `rgba(160,190,210,${r.opacity})`;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      r.x += r.wind * 0.5;
+      r.y += r.speed;
+      if(r.y > H){
+        r.y = -r.len;
+        r.x = Math.random() * W;
+      }
+      if(r.x < -20) r.x = W + 20;
+    }
+
+    // Dust / haze particles
+    for(let d of dustParticles){
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${d.hue},${d.opacity})`;
+      ctx.fill();
+
+      d.x += d.speedX;
+      d.y += d.speedY;
+      // gentle sine drift
+      d.x += Math.sin(Date.now() * 0.0005 + d.y * 0.01) * 0.15;
+
+      if(d.x < -10) d.x = W + 10;
+      if(d.x > W + 10) d.x = -10;
+      if(d.y < -10) d.y = H + 10;
+      if(d.y > H + 10) d.y = -10;
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ======================== SCROLL REVEAL ======================== */
+(function(){
+  const els = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+      }
+    });
+  }, {threshold: 0.15});
+  els.forEach(el => obs.observe(el));
+})();
+
+/* ======================== NAV SCROLL ======================== */
+(function(){
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 80);
+  });
+})();
+
+/* ======================== LANGUAGE TOGGLE ======================== */
+let currentLang = 'en';
+function toggleLang(){
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  document.getElementById('lang-toggle').textContent = currentLang === 'en' ? '中文' : 'EN';
+  document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh';
+
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const text = el.getAttribute('data-' + currentLang);
+    if(text) el.innerHTML = text;
+  });
+}
+
+/* ======================== THEME TOGGLE ======================== */
+function toggleTheme(){
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-toggle').textContent = isDark ? 'Dark' : 'Light';
+}
+
+/* ======================== CLOSE MOBILE NAV ON LINK CLICK ======================== */
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('nav-links').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

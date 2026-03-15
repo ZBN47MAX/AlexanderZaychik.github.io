@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOOM - 1993 | id Software</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* ============ RESET & BASE ============ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blood:#cc0000;--blood-dark:#990000;--blood-deeper:#660000;
+  --hellfire:#ff6600;--hellfire-bright:#ff9900;
+  --toxic:#00ff00;--toxic-dim:#00cc00;
+  --stone-dark:#404040;--stone-mid:#606060;--stone-light:#808080;
+  --bg:#0a0a0a;--bg-alt:#111111;--text:#cccccc;--text-bright:#ffffff;
+  --automap-green:#00ff00;--automap-bg:#000000;
+  --bfg-green:#00ff44;--ssg-amber:#cc8800;
+  --hud-bg:#3a3a3a;--hud-border:#555555;
+  --mars-tan:#b89060;--mars-gray:#a09080;
+  --font-doom:'Press Start 2P',monospace;
+  --font-pixel:'VT323',monospace;
+  --font-cn:'Noto Sans SC',sans-serif;
+  --dither:url("data:image/svg+xml,%3Csvg width='4' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='2' height='2' fill='%23ffffff08'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%23ffffff08'/%3E%3C/svg%3E");
+}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{
+  font-family:var(--font-pixel);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  image-rendering:pixelated;
+  cursor:crosshair;
+  padding-bottom:80px;
+}
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background:
+    repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px),
+    repeating-linear-gradient(90deg,
+      rgba(64,48,32,0.08) 0px,rgba(64,48,32,0.08) 32px,
+      rgba(48,36,24,0.06) 32px,rgba(48,36,24,0.06) 64px
+    ),
+    repeating-linear-gradient(0deg,
+      rgba(80,60,40,0.06) 0px,rgba(80,60,40,0.06) 16px,
+      rgba(60,44,28,0.04) 16px,rgba(60,44,28,0.04) 32px
+    );
+  pointer-events:none;z-index:1;
+}
+/* stone brick texture overlay */
+body::after{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background:var(--dither);
+  pointer-events:none;z-index:2;opacity:0.5;
+}
+
+/* ============ LIGHT THEME ============ */
+body.light{
+  --bg:#c0a880;--bg-alt:#b09870;--text:#2a2018;--text-bright:#1a1008;
+  --stone-dark:#8a7a60;--stone-mid:#a09078;--stone-light:#b8a888;
+  --hud-bg:#7a6a50;--hud-border:#9a8a70;
+  --automap-bg:#2a2018;
+}
+body.light{background:var(--bg);}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar{width:12px;background:#1a0000;}
+::-webkit-scrollbar-thumb{background:var(--blood-dark);border:2px solid #1a0000;}
+::-webkit-scrollbar-thumb:hover{background:var(--blood);}
+
+/* ============ CANVAS ============ */
+#ember-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
+
+/* ============ TOP BAR ============ */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:linear-gradient(180deg,#1a1a1a 0%,#0d0d0d 100%);
+  border-bottom:3px solid var(--blood-dark);
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 20px;
+  font-family:var(--font-doom);font-size:10px;
+  image-rendering:pixelated;
+}
+.top-bar .nav-links{display:flex;gap:16px;flex-wrap:wrap;}
+.top-bar .nav-links a{
+  color:var(--stone-light);text-decoration:none;
+  text-transform:uppercase;letter-spacing:1px;
+  transition:color 0.2s;font-size:9px;
+}
+.top-bar .nav-links a:hover{color:var(--blood);text-shadow:0 0 8px rgba(204,0,0,0.6);}
+.top-bar .controls{display:flex;gap:10px;align-items:center;}
+.toggle-btn{
+  background:var(--stone-dark);color:var(--toxic);
+  border:2px solid var(--stone-mid);
+  font-family:var(--font-doom);font-size:9px;
+  padding:4px 10px;cursor:pointer;
+  text-transform:uppercase;
+  image-rendering:pixelated;
+}
+.toggle-btn:hover{background:var(--blood-dark);border-color:var(--blood);}
+
+/* ============ SECTION BASE ============ */
+.section{
+  position:relative;z-index:10;
+  max-width:960px;margin:0 auto;
+  padding:60px 20px;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 0.6s ease,transform 0.6s ease;
+}
+.section.visible{opacity:1;transform:translateY(0);}
+.section-title{
+  font-family:var(--font-doom);
+  font-size:clamp(18px,4vw,28px);
+  color:var(--blood);
+  text-transform:uppercase;
+  letter-spacing:3px;
+  margin-bottom:30px;
+  text-shadow:2px 2px 0 #000,0 0 10px rgba(204,0,0,0.4);
+  border-bottom:3px solid var(--blood-dark);
+  padding-bottom:10px;
+  position:relative;
+}
+.section-title::before{
+  content:'> ';color:var(--toxic);
+}
+/* pentagram motif */
+.section-title::after{
+  content:'\\2720';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  color:var(--blood-dark);font-size:20px;opacity:0.5;
+}
+
+/* ============ HERO ============ */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  text-align:center;padding-top:60px;
+  position:relative;z-index:10;
+  background:
+    radial-gradient(ellipse at 50% 80%,rgba(204,0,0,0.15) 0%,transparent 60%),
+    radial-gradient(ellipse at 50% 20%,rgba(255,102,0,0.08) 0%,transparent 50%);
+}
+.doom-logo{
+  font-family:var(--font-doom);
+  font-size:clamp(48px,12vw,120px);
+  color:var(--blood);
+  text-transform:uppercase;
+  letter-spacing:8px;
+  line-height:1;
+  text-shadow:
+    /* main shadow layers */
+    3px 3px 0 #660000,
+    6px 6px 0 #330000,
+    /* blood drip effect - multiple offset shadows */
+    0 8px 0 var(--blood-dark),
+    0 16px 0 var(--blood-dark),
+    0 24px 0 rgba(153,0,0,0.8),
+    0 32px 0 rgba(153,0,0,0.6),
+    0 40px 0 rgba(153,0,0,0.4),
+    0 48px 0 rgba(153,0,0,0.2),
+    0 56px 0 rgba(153,0,0,0.1),
+    /* glow */
+    0 0 30px rgba(204,0,0,0.5),
+    0 0 60px rgba(204,0,0,0.3),
+    0 0 120px rgba(204,0,0,0.15);
+  margin-bottom:40px;
+  animation:doom-pulse 3s ease-in-out infinite;
+  position:relative;
+}
+/* individual letter drips */
+.doom-logo span{position:relative;display:inline-block;}
+.doom-logo span::after{
+  content:'';position:absolute;bottom:-10px;left:50%;
+  width:4px;background:linear-gradient(180deg,var(--blood),transparent);
+  animation:drip 2s ease-in infinite;
+  transform:translateX(-50%);
+}
+.doom-logo span:nth-child(1)::after{height:20px;animation-delay:0s;}
+.doom-logo span:nth-child(2)::after{height:35px;animation-delay:0.5s;}
+.doom-logo span:nth-child(3)::after{height:15px;animation-delay:1s;}
+.doom-logo span:nth-child(4)::after{height:28px;animation-delay:1.5s;}
+
+@keyframes drip{
+  0%,100%{opacity:0.4;height:inherit;}
+  50%{opacity:1;height:calc(inherit + 10px);}
+}
+@keyframes doom-pulse{
+  0%,100%{filter:brightness(1);}
+  50%{filter:brightness(1.15);}
+}
+.hero-sub{
+  font-family:var(--font-pixel);font-size:clamp(16px,3vw,28px);
+  color:var(--hellfire);letter-spacing:4px;
+  text-transform:uppercase;margin-bottom:20px;
+}
+.hero-tagline{
+  font-family:var(--font-pixel);font-size:18px;
+  color:var(--stone-light);max-width:600px;
+  margin-bottom:30px;
+}
+.hero-prompt{
+  font-family:var(--font-pixel);font-size:16px;
+  color:var(--toxic);
+  animation:blink 1s step-end infinite;
+}
+.hero-prompt::after{content:'_';animation:blink 0.7s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* pentagram decoration */
+.pentagram-deco{
+  width:120px;height:120px;margin:30px auto 0;
+  position:relative;opacity:0.15;
+}
+.pentagram-deco::before{
+  content:'\\2606';font-size:100px;color:var(--blood);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+}
+
+/* ============ UAC SECTION ============ */
+.uac-section{
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(64,64,64,0.1) 0px,rgba(64,64,64,0.1) 1px,transparent 1px,transparent 8px
+    ),
+    repeating-linear-gradient(90deg,
+      rgba(64,64,64,0.1) 0px,rgba(64,64,64,0.1) 1px,transparent 1px,transparent 8px
+    );
+  border:2px solid var(--stone-dark);
+  padding:30px;margin:20px 0;
+  position:relative;
+}
+.uac-section::before{
+  content:'UAC // CLASSIFIED';
+  position:absolute;top:-12px;left:20px;
+  background:var(--bg);padding:0 10px;
+  font-family:var(--font-doom);font-size:10px;
+  color:var(--hellfire);letter-spacing:2px;
+}
+.uac-text{
+  font-family:var(--font-pixel);font-size:20px;
+  color:var(--text);line-height:1.8;
+}
+.uac-text .highlight{color:var(--blood);font-weight:bold;}
+.uac-text .toxic{color:var(--toxic);}
+.uac-terminal{
+  background:#0a0a0a;border:2px solid var(--toxic-dim);
+  padding:20px;margin-top:20px;
+  font-family:var(--font-pixel);font-size:16px;
+  color:var(--toxic);
+  position:relative;overflow:hidden;
+}
+.uac-terminal::before{
+  content:'C:\\UAC\\MARS>';color:var(--stone-light);
+}
+.uac-terminal .cursor{animation:blink 0.7s step-end infinite;}
+
+/* ============ EPISODES ============ */
+.episode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
+.episode-card{
+  background:linear-gradient(180deg,rgba(30,20,10,0.9),rgba(15,10,5,0.95));
+  border:2px solid var(--stone-dark);
+  padding:20px;position:relative;
+  overflow:hidden;
+  transition:border-color 0.3s,transform 0.2s;
+}
+.episode-card:hover{
+  border-color:var(--blood);
+  transform:scale(1.02);
+}
+.episode-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+}
+.episode-card:nth-child(1)::before{background:var(--toxic);}
+.episode-card:nth-child(2)::before{background:var(--blood);}
+.episode-card:nth-child(3)::before{background:var(--hellfire);}
+.episode-card:nth-child(4)::before{background:#aa00aa;}
+.episode-num{
+  font-family:var(--font-doom);font-size:11px;
+  color:var(--stone-light);margin-bottom:5px;
+}
+.episode-name{
+  font-family:var(--font-doom);font-size:14px;
+  color:var(--blood);margin-bottom:10px;
+  text-transform:uppercase;
+  text-shadow:1px 1px 0 #000;
+}
+.episode-desc{
+  font-family:var(--font-pixel);font-size:18px;
+  color:var(--text);line-height:1.6;
+}
+/* inverted cross for hell episodes */
+.episode-card:nth-child(3) .episode-name::after,
+.episode-card:nth-child(4) .episode-name::after{
+  content:' \\2020';color:var(--hellfire);
+}
+
+/* ============ WEAPONS ============ */
+.weapon-list{display:flex;flex-direction:column;gap:12px;}
+.weapon-item{
+  display:flex;align-items:center;gap:16px;
+  background:rgba(20,20,20,0.8);
+  border:1px solid var(--stone-dark);
+  border-left:4px solid var(--blood);
+  padding:12px 16px;
+  transition:border-color 0.3s,background 0.3s;
+  position:relative;
+}
+.weapon-item:hover{
+  border-left-color:var(--hellfire);
+  background:rgba(40,20,10,0.8);
+}
+.weapon-item[data-slot="8"]{border-left-color:var(--bfg-green);}
+.weapon-item[data-slot="8"]:hover{
+  border-left-color:var(--bfg-green);
+  box-shadow:0 0 20px rgba(0,255,68,0.2);
+}
+.weapon-item[data-slot="3b"]{border-left-color:var(--ssg-amber);}
+.weapon-slot{
+  font-family:var(--font-doom);font-size:12px;
+  color:var(--hellfire);min-width:30px;text-align:center;
+}
+.weapon-icon{
+  font-size:28px;min-width:40px;text-align:center;
+  image-rendering:pixelated;
+}
+.weapon-info{flex:1;}
+.weapon-name{
+  font-family:var(--font-doom);font-size:11px;
+  color:var(--text-bright);text-transform:uppercase;
+}
+.weapon-desc{
+  font-family:var(--font-pixel);font-size:16px;
+  color:var(--stone-light);margin-top:2px;
+}
+.weapon-bar{
+  width:100px;height:8px;background:#1a1a1a;
+  border:1px solid var(--stone-dark);
+  position:relative;overflow:hidden;
+}
+.weapon-bar-fill{
+  height:100%;transition:width 1s ease;
+}
+.weapon-bar-fill.low{background:var(--toxic);}
+.weapon-bar-fill.mid{background:var(--hellfire);}
+.weapon-bar-fill.high{background:var(--blood);}
+.weapon-bar-fill.bfg{background:var(--bfg-green);box-shadow:0 0 6px var(--bfg-green);}
+
+/* ============ BESTIARY ============ */
+.bestiary-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;
+}
+.demon-card{
+  background:rgba(15,5,5,0.9);
+  border:2px solid var(--blood-dark);
+  padding:16px;text-align:center;
+  position:relative;overflow:hidden;
+  transition:transform 0.2s,box-shadow 0.3s;
+}
+.demon-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 8px 24px rgba(204,0,0,0.3);
+}
+.demon-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--blood),transparent);
+}
+.demon-pixel{
+  font-size:48px;margin-bottom:10px;
+  filter:contrast(1.5);
+  image-rendering:pixelated;
+  display:block;
+}
+.demon-name{
+  font-family:var(--font-doom);font-size:12px;
+  color:var(--blood);text-transform:uppercase;
+  margin-bottom:6px;letter-spacing:1px;
+}
+.demon-desc{
+  font-family:var(--font-pixel);font-size:16px;
+  color:var(--stone-light);line-height:1.5;
+}
+.demon-hp{
+  font-family:var(--font-doom);font-size:9px;
+  color:var(--hellfire);margin-top:8px;
+}
+
+/* ============ AUTOMAP SECTION ============ */
+.automap-section{
+  background:var(--automap-bg);
+  border:2px solid var(--automap-green);
+  padding:30px;position:relative;
+  overflow:hidden;
+}
+.automap-section::before{
+  content:'AM_MAP // E1M1: HANGAR';
+  position:absolute;top:8px;left:12px;
+  font-family:var(--font-doom);font-size:9px;
+  color:var(--automap-green);opacity:0.7;
+}
+.automap-grid{
+  display:grid;grid-template-columns:repeat(12,1fr);
+  grid-template-rows:repeat(8,24px);
+  gap:1px;margin-top:20px;
+}
+.automap-cell{
+  border:1px solid transparent;
+  position:relative;
+}
+.automap-cell.wall{
+  border-color:var(--automap-green);
+  box-shadow:0 0 4px rgba(0,255,0,0.3);
+}
+.automap-cell.door{
+  border-color:#ffff00;
+  box-shadow:0 0 4px rgba(255,255,0,0.3);
+}
+.automap-cell.secret{
+  border-color:#ff00ff;
+  box-shadow:0 0 4px rgba(255,0,255,0.3);
+}
+.automap-cell.player::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:6px;height:6px;background:var(--automap-green);
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 8px var(--automap-green);
+  animation:player-blink 1s ease infinite;
+}
+@keyframes player-blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.automap-legend{
+  display:flex;gap:20px;margin-top:16px;flex-wrap:wrap;
+  font-family:var(--font-pixel);font-size:16px;
+}
+.automap-legend span{display:flex;align-items:center;gap:6px;}
+.automap-legend .swatch{width:12px;height:12px;border:1px solid;}
+.swatch.wall-s{border-color:var(--automap-green);background:rgba(0,255,0,0.15);}
+.swatch.door-s{border-color:#ffff00;background:rgba(255,255,0,0.15);}
+.swatch.secret-s{border-color:#ff00ff;background:rgba(255,0,255,0.15);}
+.swatch.player-s{background:var(--automap-green);border-color:var(--automap-green);}
+
+/* ============ INTERMISSION STATS ============ */
+.intermission{
+  background:rgba(10,10,10,0.95);
+  border:3px solid var(--stone-dark);
+  padding:30px;text-align:center;
+}
+.intermission-header{
+  font-family:var(--font-doom);font-size:16px;
+  color:var(--blood);margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:4px;
+}
+.intermission-level{
+  font-family:var(--font-doom);font-size:11px;
+  color:var(--stone-light);margin-bottom:24px;
+}
+.stat-row{
+  display:flex;justify-content:space-between;align-items:center;
+  max-width:400px;margin:12px auto;
+  font-family:var(--font-doom);font-size:14px;
+  padding:4px 0;
+  border-bottom:1px solid rgba(64,64,64,0.3);
+}
+.stat-label{color:var(--text);text-transform:uppercase;}
+.stat-value{color:var(--hellfire);}
+.stat-value.perfect{color:var(--toxic);text-shadow:0 0 8px rgba(0,255,0,0.4);}
+.par-time{
+  margin-top:20px;font-family:var(--font-doom);font-size:11px;
+  color:var(--stone-light);
+}
+.par-time .time{color:var(--toxic);}
+
+/* ============ CHEAT CODES ============ */
+.cheat-section{
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(0,255,0,0.02) 0px,rgba(0,255,0,0.02) 1px,
+      transparent 1px,transparent 3px
+    );
+  border:2px solid var(--toxic-dim);
+  padding:24px;
+}
+.cheat-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;
+}
+.cheat-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:10px;background:rgba(0,20,0,0.5);
+  border:1px solid rgba(0,255,0,0.15);
+  transition:border-color 0.3s;
+}
+.cheat-item:hover{border-color:var(--toxic);}
+.cheat-code{
+  font-family:var(--font-doom);font-size:11px;
+  color:var(--toxic);min-width:80px;
+  text-shadow:0 0 6px rgba(0,255,0,0.3);
+}
+.cheat-desc{
+  font-family:var(--font-pixel);font-size:16px;
+  color:var(--stone-light);
+}
+
+/* ============ QUOTE ============ */
+.quote-section{
+  text-align:center;padding:60px 20px;
+  position:relative;
+}
+.quote-text{
+  font-family:var(--font-doom);
+  font-size:clamp(14px,3vw,22px);
+  color:var(--blood);
+  text-transform:uppercase;
+  letter-spacing:2px;
+  line-height:1.8;
+  text-shadow:2px 2px 0 #000,0 0 20px rgba(204,0,0,0.3);
+}
+.quote-attr{
+  font-family:var(--font-pixel);font-size:18px;
+  color:var(--stone-light);margin-top:16px;
+}
+
+/* ============ DOS PROMPT ============ */
+.dos-prompt-section{
+  background:#000;border:2px solid var(--stone-dark);
+  padding:20px;margin:20px 0;
+  font-family:var(--font-pixel);font-size:18px;
+  color:var(--stone-light);
+}
+.dos-line{margin:4px 0;}
+.dos-line .cmd{color:var(--text-bright);}
+.dos-line .path{color:var(--stone-light);}
+.dos-input{
+  display:flex;align-items:center;margin-top:10px;
+}
+.dos-input span{color:var(--stone-light);}
+.dos-input-field{
+  background:transparent;border:none;outline:none;
+  font-family:var(--font-pixel);font-size:18px;
+  color:var(--text-bright);flex:1;margin-left:4px;
+  caret-color:var(--text-bright);
+}
+
+/* ============ STATUS BAR HUD ============ */
+.status-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:
+    linear-gradient(180deg,#4a4a4a 0%,#3a3a3a 3%,#2a2a2a 100%);
+  border-top:3px solid #5a5a5a;
+  display:flex;align-items:center;justify-content:center;
+  height:72px;
+  padding:0 8px;
+  image-rendering:pixelated;
+}
+.hud-section{
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px;
+  border-right:3px solid #555;
+  height:100%;
+}
+.hud-section:last-child{border-right:none;}
+.hud-label{
+  font-family:var(--font-doom);font-size:9px;
+  color:#888;text-transform:uppercase;
+  letter-spacing:1px;
+}
+.hud-value{
+  font-family:var(--font-doom);font-size:24px;
+  color:var(--blood);
+  text-shadow:1px 1px 0 #000;
+  min-width:60px;text-align:right;
+}
+.hud-value.health{color:var(--blood);}
+.hud-value.armor{color:#4488ff;}
+.hud-value.ammo{color:var(--hellfire);}
+.hud-pct{
+  font-family:var(--font-doom);font-size:14px;
+  color:#666;margin-left:2px;
+}
+/* Doomguy face */
+.doomguy-face{
+  width:56px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    linear-gradient(180deg,#555 0%,#3a3a3a 100%);
+  border:3px inset #666;
+  margin:0 8px;
+  position:relative;
+  image-rendering:pixelated;
+  overflow:hidden;
+}
+.doomguy-pixel{
+  display:grid;
+  grid-template-columns:repeat(7,6px);
+  grid-template-rows:repeat(7,6px);
+  image-rendering:pixelated;
+}
+.doomguy-pixel .p{background:#d4a574;}/* skin */
+.doomguy-pixel .h{background:#5a4020;}/* hair */
+.doomguy-pixel .e{background:#ffffff;}/* eye white */
+.doomguy-pixel .i{background:#442200;}/* iris */
+.doomguy-pixel .m{background:#882222;}/* mouth */
+.doomguy-pixel .n{background:#c49464;}/* nose/shadow */
+.doomguy-pixel .x{background:transparent;}
+
+/* Arms indicator */
+.arms-section{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:2px;
+  font-family:var(--font-doom);font-size:10px;
+}
+.arms-section .arm-num{
+  background:#2a2a2a;border:1px solid #444;
+  width:20px;height:16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--hellfire);
+}
+.arms-section .arm-num.active{color:var(--toxic);}
+
+/* ============ SCROLL REVEAL ============ */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:768px){
+  .top-bar{flex-direction:column;gap:8px;padding:6px 12px;}
+  .top-bar .nav-links{gap:8px;justify-content:center;}
+  .status-bar{height:60px;}
+  .hud-value{font-size:18px;}
+  .hud-section{padding:0 8px;}
+  .doomguy-face{width:44px;height:44px;}
+  .doomguy-pixel{grid-template-columns:repeat(7,5px);grid-template-rows:repeat(7,5px);}
+  .episode-grid{grid-template-columns:1fr;}
+  .bestiary-grid{grid-template-columns:1fr;}
+  .automap-grid{grid-template-columns:repeat(8,1fr);}
+  body{padding-bottom:64px;}
+  .arms-section{display:none;}
+}
+@media(max-width:480px){
+  .hud-label{display:none;}
+  .doomguy-face{width:36px;height:36px;margin:0 4px;}
+  .doomguy-pixel{grid-template-columns:repeat(7,4px);grid-template-rows:repeat(7,4px);}
+}
+
+/* ============ DITHER OVERLAY ============ */
+.dither-border{
+  position:relative;
+}
+.dither-border::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:var(--dither);
+  pointer-events:none;opacity:0.3;
+}
+
+/* imp silhouette decorative */
+.imp-silhouette{
+  position:absolute;right:-20px;bottom:0;
+  width:60px;height:80px;
+  background:var(--blood-dark);
+  clip-path:polygon(30% 0%,70% 0%,80% 15%,90% 10%,85% 25%,75% 20%,80% 35%,100% 50%,85% 55%,90% 70%,70% 60%,65% 80%,75% 100%,55% 90%,50% 100%,45% 90%,25% 100%,35% 80%,30% 60%,10% 70%,15% 55%,0% 50%,20% 35%,25% 20%,15% 25%,10% 10%,20% 15%);
+  opacity:0.15;
+}
+</style>
+</head>
+<body>
+
+<!-- Ember particle canvas -->
+<canvas id="ember-canvas"></canvas>
+
+<!-- Top navigation bar -->
+<nav class="top-bar">
+  <div class="nav-links">
+    <a href="#hero" data-en="HOME" data-cn="首页">HOME</a>
+    <a href="#uac" data-en="UAC" data-cn="UAC基地">UAC</a>
+    <a href="#episodes" data-en="EPISODES" data-cn="章节">EPISODES</a>
+    <a href="#weapons" data-en="WEAPONS" data-cn="武器">WEAPONS</a>
+    <a href="#bestiary" data-en="BESTIARY" data-cn="恶魔图鉴">BESTIARY</a>
+    <a href="#automap" data-en="AUTOMAP" data-cn="地图">AUTOMAP</a>
+    <a href="#stats" data-en="STATS" data-cn="统计">STATS</a>
+    <a href="#cheats" data-en="CHEATS" data-cn="秘籍">CHEATS</a>
+  </div>
+  <div class="controls">
+    <button class="toggle-btn" id="lang-toggle" onclick="toggleLang()">中/EN</button>
+    <button class="toggle-btn" id="theme-toggle" onclick="toggleTheme()">LIGHT</button>
+  </div>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section class="hero section" id="hero">
+  <div class="doom-logo"><span>D</span><span>O</span><span>O</span><span>M</span></div>
+  <div class="hero-sub" data-en="id Software &bull; 1993" data-cn="id Software &bull; 1993年">id Software &bull; 1993</div>
+  <div class="hero-tagline" data-en="A space marine's last stand against the hordes of Hell on the moons of Mars. The game that defined the first-person shooter." data-cn="一位太空陆战队员在火星卫星上对抗地狱大军的最后抵抗。定义第一人称射击游戏的传奇之作。">A space marine's last stand against the hordes of Hell on the moons of Mars. The game that defined the first-person shooter.</div>
+  <div class="hero-prompt" data-en="PRESS ANY KEY TO START" data-cn="按任意键开始">PRESS ANY KEY TO START</div>
+  <div class="pentagram-deco"></div>
+</section>
+
+<!-- ====== UAC MARS FACILITY ====== -->
+<section class="section reveal" id="uac">
+  <h2 class="section-title" data-en="UAC Mars Facility" data-cn="UAC 火星基地">UAC Mars Facility</h2>
+  <div class="uac-section">
+    <div class="uac-text" data-en="The <span class='highlight'>Union Aerospace Corporation</span> operated research facilities on the moons of Mars: <span class='toxic'>Phobos</span> and <span class='toxic'>Deimos</span>. Secret teleportation experiments opened gateways to <span class='highlight'>Hell itself</span>. When the demons poured through, only one marine survived the initial assault — <span class='highlight'>Doomguy</span>.<br><br>Armed with nothing but a pistol and an iron will, you must fight through overrun military bases, corrupted techbases, and the burning pits of Hell to stop the demonic invasion and avenge your fallen comrades." data-cn="<span class='highlight'>联合航天公司（UAC）</span>在火星的卫星<span class='toxic'>火卫一</span>和<span class='toxic'>火卫二</span>上运营研究设施。秘密的传送实验打开了通往<span class='highlight'>地狱</span>的大门。当恶魔涌入时，只有一名陆战队员在最初的袭击中幸存下来——<span class='highlight'>毁灭战士（Doomguy）</span>。<br><br>仅凭一把手枪和钢铁般的意志，你必须穿越被占领的军事基地、被腐化的科技设施和地狱的烈焰深渊，阻止恶魔入侵，为阵亡的战友复仇。">The <span class="highlight">Union Aerospace Corporation</span> operated research facilities on the moons of Mars: <span class="toxic">Phobos</span> and <span class="toxic">Deimos</span>. Secret teleportation experiments opened gateways to <span class="highlight">Hell itself</span>. When the demons poured through, only one marine survived the initial assault — <span class="highlight">Doomguy</span>.<br><br>Armed with nothing but a pistol and an iron will, you must fight through overrun military bases, corrupted techbases, and the burning pits of Hell to stop the demonic invasion and avenge your fallen comrades.</div>
+    <div class="uac-terminal">
+      <span data-en=" DIR /S MARS_BASE" data-cn=" DIR /S 火星基地"> DIR /S MARS_BASE</span><br>
+      <span style="color:#888;">3 File(s) &nbsp;&nbsp;&nbsp; 666,999 bytes</span><br>
+      <span style="color:#888;">ANOMALY DETECTED IN SECTOR 7-G</span><br>
+      <span style="color:var(--blood);">WARNING: DEMONIC PRESENCE DETECTED</span><br>
+      <span class="cursor">_</span>
+    </div>
+    <div class="imp-silhouette"></div>
+  </div>
+</section>
+
+<!-- ====== EPISODES ====== -->
+<section class="section reveal" id="episodes">
+  <h2 class="section-title" data-en="Episodes" data-cn="游戏章节">Episodes</h2>
+  <p style="font-family:var(--font-pixel);font-size:18px;color:var(--stone-light);margin-bottom:20px;" data-en="Choose your nightmare. Each episode descends deeper into darkness." data-cn="选择你的噩梦。每个章节都将你拖入更深的黑暗。">Choose your nightmare. Each episode descends deeper into darkness.</p>
+  <div class="episode-grid">
+    <div class="episode-card">
+      <div class="episode-num" data-en="Episode 1" data-cn="第一章">Episode 1</div>
+      <div class="episode-name" data-en="Knee-Deep in the Dead" data-cn="深陷死亡">Knee-Deep in the Dead</div>
+      <div class="episode-desc" data-en="The Phobos moon base has been overrun. Fight through corrupted techbases, computer stations, and military complexes as you search for an escape from the demon-infested moon. 9 levels of pure carnage." data-cn="火卫一月球基地已被攻陷。穿越被腐化的科技基地、计算机站和军事综合体，在恶魔横行的卫星上寻找逃生之路。9个关卡的纯粹杀戮。">The Phobos moon base has been overrun. Fight through corrupted techbases, computer stations, and military complexes as you search for an escape from the demon-infested moon. 9 levels of pure carnage.</div>
+    </div>
+    <div class="episode-card">
+      <div class="episode-num" data-en="Episode 2" data-cn="第二章">Episode 2</div>
+      <div class="episode-name" data-en="The Shores of Hell" data-cn="地狱海岸">The Shores of Hell</div>
+      <div class="episode-desc" data-en="Deimos floats above Hell itself. The UAC facilities here have been twisted and merged with hellish architecture. Stone and flesh replace metal and concrete. The Cyberdemon awaits." data-cn="火卫二悬浮在地狱之上。这里的UAC设施已被扭曲，与地狱建筑融为一体。石头和血肉取代了金属和混凝土。电子恶魔正在等待。">Deimos floats above Hell itself. The UAC facilities here have been twisted and merged with hellish architecture. Stone and flesh replace metal and concrete. The Cyberdemon awaits.</div>
+    </div>
+    <div class="episode-card">
+      <div class="episode-num" data-en="Episode 3" data-cn="第三章">Episode 3</div>
+      <div class="episode-name" data-en="Inferno" data-cn="地狱炼狱">Inferno</div>
+      <div class="episode-desc" data-en="You have descended into Hell. Rivers of lava, cathedrals of bone, and the Spider Mastermind's domain. This is where nightmares are born. Defeat the ultimate evil and return to Earth." data-cn="你已经降临地狱。熔岩之河、骨骸教堂和蜘蛛首脑的领地。这是噩梦诞生之地。击败终极邪恶，重返地球。">You have descended into Hell. Rivers of lava, cathedrals of bone, and the Spider Mastermind's domain. This is where nightmares are born. Defeat the ultimate evil and return to Earth.</div>
+    </div>
+    <div class="episode-card">
+      <div class="episode-num" data-en="Episode 4" data-cn="第四章">Episode 4</div>
+      <div class="episode-name" data-en="Thy Flesh Consumed" data-cn="你的血肉已被吞噬">Thy Flesh Consumed</div>
+      <div class="episode-desc" data-en="Added in The Ultimate DOOM. Hell's forces have invaded Earth. Battle through twisted, nightmarish levels of extreme difficulty. The hardest episode — only for true marines." data-cn="在《终极毁灭战士》中追加。地狱军团已入侵地球。在极端困难的扭曲噩梦关卡中战斗。最难的章节——只属于真正的陆战队员。">Added in The Ultimate DOOM. Hell's forces have invaded Earth. Battle through twisted, nightmarish levels of extreme difficulty. The hardest episode — only for true marines.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== WEAPONS ARSENAL ====== -->
+<section class="section reveal" id="weapons">
+  <h2 class="section-title" data-en="Weapons Arsenal" data-cn="武器库">Weapons Arsenal</h2>
+  <div class="weapon-list">
+    <div class="weapon-item" data-slot="1">
+      <div class="weapon-slot">1</div>
+      <div class="weapon-icon">&#x1F44A;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Fist / Brass Knuckles" data-cn="拳头 / 铜指节">Fist / Brass Knuckles</div>
+        <div class="weapon-desc" data-en="Your bare hands. Berserk pack turns them into demon-pulping machines." data-cn="你的拳头。狂暴背包将它们变成恶魔粉碎机。">Your bare hands. Berserk pack turns them into demon-pulping machines.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill low" style="width:15%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="1">
+      <div class="weapon-slot">1</div>
+      <div class="weapon-icon">&#x1FA93;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Chainsaw" data-cn="电锯">Chainsaw</div>
+        <div class="weapon-desc" data-en="Find some meat! The great communicator — rip and tear through demons." data-cn="找点肉！伟大的沟通者——撕裂恶魔。">Find some meat! The great communicator — rip and tear through demons.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill low" style="width:25%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="2">
+      <div class="weapon-slot">2</div>
+      <div class="weapon-icon">&#x1F52B;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Pistol" data-cn="手枪">Pistol</div>
+        <div class="weapon-desc" data-en="Standard UAC sidearm. Accurate but weak. Your starting companion." data-cn="标准UAC佩枪。精准但威力不足。你的初始伙伴。">Standard UAC sidearm. Accurate but weak. Your starting companion.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill low" style="width:20%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="3">
+      <div class="weapon-slot">3</div>
+      <div class="weapon-icon">&#x1F4A5;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Shotgun" data-cn="霰弹枪">Shotgun</div>
+        <div class="weapon-desc" data-en="The workhorse. Devastating at close range, reliable at medium." data-cn="主力武器。近距离毁灭性打击，中距离可靠。">The workhorse. Devastating at close range, reliable at medium.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill mid" style="width:50%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="3b">
+      <div class="weapon-slot">3</div>
+      <div class="weapon-icon">&#x1F4A3;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Super Shotgun" data-cn="超级霰弹枪">Super Shotgun</div>
+        <div class="weapon-desc" data-en="Double-barreled devastation. Added in DOOM II. The fan favorite." data-cn="双管毁灭。DOOM II中追加。玩家最爱。">Double-barreled devastation. Added in DOOM II. The fan favorite.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill mid" style="width:65%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="4">
+      <div class="weapon-slot">4</div>
+      <div class="weapon-icon">&#x1F525;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Chaingun" data-cn="链炮">Chaingun</div>
+        <div class="weapon-desc" data-en="Rapid-fire bullet hose. Chews through ammo and demons alike." data-cn="高速射击弹雨。同时消耗弹药和恶魔。">Rapid-fire bullet hose. Chews through ammo and demons alike.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill mid" style="width:55%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="5">
+      <div class="weapon-slot">5</div>
+      <div class="weapon-icon">&#x1F680;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Rocket Launcher" data-cn="火箭发射器">Rocket Launcher</div>
+        <div class="weapon-desc" data-en="Explosive ordnance. Watch for splash damage — it hurts you too." data-cn="爆炸弹药。注意溅射伤害——也会伤到自己。">Explosive ordnance. Watch for splash damage — it hurts you too.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill high" style="width:75%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="6">
+      <div class="weapon-slot">6</div>
+      <div class="weapon-icon">&#x26A1;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" data-en="Plasma Rifle" data-cn="等离子步枪">Plasma Rifle</div>
+        <div class="weapon-desc" data-en="Blue energy projectiles at rapid speed. Melts most demons fast." data-cn="高速蓝色能量弹。快速融化大多数恶魔。">Blue energy projectiles at rapid speed. Melts most demons fast.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill high" style="width:80%"></div></div>
+    </div>
+    <div class="weapon-item" data-slot="8">
+      <div class="weapon-slot">7</div>
+      <div class="weapon-icon" style="color:var(--bfg-green);text-shadow:0 0 12px rgba(0,255,68,0.6);">&#x2622;</div>
+      <div class="weapon-info">
+        <div class="weapon-name" style="color:var(--bfg-green);" data-en="BFG 9000" data-cn="BFG 9000">BFG 9000</div>
+        <div class="weapon-desc" data-en="Big. Freakin'. Gun. The ultimate weapon. Clears entire rooms of demons in one shot." data-cn="大。该死的。枪。终极武器。一发清空整个房间的恶魔。">Big. Freakin'. Gun. The ultimate weapon. Clears entire rooms of demons in one shot.</div>
+      </div>
+      <div class="weapon-bar"><div class="weapon-bar-fill bfg" style="width:100%"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== BESTIARY ====== -->
+<section class="section reveal" id="bestiary">
+  <h2 class="section-title" data-en="Bestiary" data-cn="恶魔图鉴">Bestiary</h2>
+  <div class="bestiary-grid">
+    <div class="demon-card">
+      <span class="demon-pixel">&#x1F47F;</span>
+      <div class="demon-name" data-en="Imp" data-cn="小恶魔">Imp</div>
+      <div class="demon-desc" data-en="The basic foot soldier of Hell. Hurls fireballs and claws at close range. Brown, spiny, and everywhere." data-cn="地狱的基础步兵。投掷火球，近距离用爪攻击。棕色、多刺、无处不在。">The basic foot soldier of Hell. Hurls fireballs and claws at close range. Brown, spiny, and everywhere.</div>
+      <div class="demon-hp">HP: 60</div>
+    </div>
+    <div class="demon-card">
+      <span class="demon-pixel">&#x1F479;</span>
+      <div class="demon-name" data-en="Pinky Demon" data-cn="恶魔（粉红）">Pinky Demon</div>
+      <div class="demon-desc" data-en="Pink, muscular, and hungry. Charges straight at you with gnashing teeth. No ranged attack — all bite." data-cn="粉红色、肌肉发达、饥饿。张着利齿直冲向你。没有远程攻击——全靠撕咬。">Pink, muscular, and hungry. Charges straight at you with gnashing teeth. No ranged attack — all bite.</div>
+      <div class="demon-hp">HP: 150</div>
+    </div>
+    <div class="demon-card">
+      <span class="demon-pixel">&#x1F480;</span>
+      <div class="demon-name" data-en="Cacodemon" data-cn="恶魔之眼">Cacodemon</div>
+      <div class="demon-desc" data-en="A floating red orb of fury with one giant eye. Spits lightning balls. Iconic and terrifying." data-cn="漂浮的红色愤怒球体，只有一只巨眼。喷射闪电球。标志性且令人恐惧。">A floating red orb of fury with one giant eye. Spits lightning balls. Iconic and terrifying.</div>
+      <div class="demon-hp">HP: 400</div>
+    </div>
+    <div class="demon-card">
+      <span class="demon-pixel">&#x1F4A0;</span>
+      <div class="demon-name" data-en="Baron of Hell" data-cn="地狱男爵">Baron of Hell</div>
+      <div class="demon-desc" data-en="The elite of Hell's army. Tall, muscular, goat-legged. Hurls green plasma and takes massive punishment." data-cn="地狱军队的精锐。高大、肌肉发达、山羊腿。投掷绿色等离子体，能承受巨大伤害。">The elite of Hell's army. Tall, muscular, goat-legged. Hurls green plasma and takes massive punishment.</div>
+      <div class="demon-hp">HP: 1000</div>
+    </div>
+    <div class="demon-card">
+      <span class="demon-pixel" style="color:var(--blood);">&#x1F916;</span>
+      <div class="demon-name" data-en="Cyberdemon" data-cn="电子恶魔">Cyberdemon</div>
+      <div class="demon-desc" data-en="Part demon, part machine. Fires rockets from its arm cannon. The ultimate boss — a towering nightmare of flesh and steel." data-cn="半恶魔半机器。从手臂炮发射火箭。终极首领——血肉与钢铁的高耸噩梦。">Part demon, part machine. Fires rockets from its arm cannon. The ultimate boss — a towering nightmare of flesh and steel.</div>
+      <div class="demon-hp">HP: 4000</div>
+    </div>
+    <div class="demon-card">
+      <span class="demon-pixel" style="color:var(--hellfire);">&#x1F577;</span>
+      <div class="demon-name" data-en="Spider Mastermind" data-cn="蜘蛛首脑">Spider Mastermind</div>
+      <div class="demon-desc" data-en="A giant brain on mechanical spider legs, wielding a super chaingun. The final boss of DOOM. Terrifyingly fast fire rate." data-cn="机械蜘蛛腿上的巨大脑体，装备超级链炮。DOOM的最终首领。恐怖的射速。">A giant brain on mechanical spider legs, wielding a super chaingun. The final boss of DOOM. Terrifyingly fast fire rate.</div>
+      <div class="demon-hp">HP: 3000</div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== AUTOMAP ====== -->
+<section class="section reveal" id="automap">
+  <h2 class="section-title" style="color:var(--automap-green);border-bottom-color:var(--automap-green);" data-en="Automap" data-cn="自动地图">Automap</h2>
+  <div class="automap-section">
+    <div class="automap-grid" id="automap-grid"></div>
+    <div class="automap-legend">
+      <span><div class="swatch wall-s"></div> <span data-en="Wall" data-cn="墙壁">Wall</span></span>
+      <span><div class="swatch door-s"></div> <span data-en="Door" data-cn="门">Door</span></span>
+      <span><div class="swatch secret-s"></div> <span data-en="Secret" data-cn="秘密">Secret</span></span>
+      <span><div class="swatch player-s"></div> <span data-en="Player" data-cn="玩家">Player</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ====== INTERMISSION STATS ====== -->
+<section class="section reveal" id="stats">
+  <h2 class="section-title" data-en="Intermission" data-cn="结算画面">Intermission</h2>
+  <div class="intermission">
+    <div class="intermission-header" data-en="Level Complete!" data-cn="关卡完成！">Level Complete!</div>
+    <div class="intermission-level">E1M1: Hangar</div>
+    <div class="stat-row">
+      <span class="stat-label" data-en="Kills" data-cn="击杀">Kills</span>
+      <span class="stat-value perfect" id="stat-kills">0%</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label" data-en="Items" data-cn="物品">Items</span>
+      <span class="stat-value" id="stat-items">0%</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label" data-en="Secrets" data-cn="秘密">Secrets</span>
+      <span class="stat-value" id="stat-secrets">0%</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label" data-en="Time" data-cn="时间">Time</span>
+      <span class="stat-value" id="stat-time">0:00</span>
+    </div>
+    <div class="par-time" data-en="Par Time: <span class='time'>0:30</span>" data-cn="标准时间: <span class='time'>0:30</span>">Par Time: <span class="time">0:30</span></div>
+  </div>
+</section>
+
+<!-- ====== CHEAT CODES ====== -->
+<section class="section reveal" id="cheats">
+  <h2 class="section-title" style="color:var(--toxic);border-bottom-color:var(--toxic-dim);" data-en="Cheat Codes" data-cn="秘籍代码">Cheat Codes</h2>
+  <div class="cheat-section">
+    <div class="cheat-grid">
+      <div class="cheat-item">
+        <div class="cheat-code">IDDQD</div>
+        <div class="cheat-desc" data-en="God Mode — Invulnerability. Degreelessness mode." data-cn="上帝模式——无敌。无阶段模式。">God Mode — Invulnerability. Degreelessness mode.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDKFA</div>
+        <div class="cheat-desc" data-en="All weapons, full ammo, 200% armor, all keys." data-cn="所有武器、满弹药、200%护甲、所有钥匙。">All weapons, full ammo, 200% armor, all keys.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDCLIP</div>
+        <div class="cheat-desc" data-en="No-clip mode. Walk through walls." data-cn="穿墙模式。穿过所有墙壁。">No-clip mode. Walk through walls.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDBEHOLD</div>
+        <div class="cheat-desc" data-en="Power-up menu: Invulnerability, Berserk, Invisibility, Rad Suit, Automap, Lite-Amp." data-cn="增强菜单：无敌、狂暴、隐身、防辐射服、自动地图、夜视仪。">Power-up menu: Invulnerability, Berserk, Invisibility, Rad Suit, Automap, Lite-Amp.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDDT</div>
+        <div class="cheat-desc" data-en="Reveal entire automap. Use twice for all things." data-cn="显示完整地图。使用两次显示所有物品。">Reveal entire automap. Use twice for all things.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDCLEV##</div>
+        <div class="cheat-desc" data-en="Level warp. Replace ## with episode and map number." data-cn="关卡传送。##替换为章节和地图编号。">Level warp. Replace ## with episode and map number.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDMUS##</div>
+        <div class="cheat-desc" data-en="Change music to level ##." data-cn="切换到##关卡的音乐。">Change music to level ##.</div>
+      </div>
+      <div class="cheat-item">
+        <div class="cheat-code">IDFA</div>
+        <div class="cheat-desc" data-en="All weapons and ammo, but no keys." data-cn="所有武器和弹药，但没有钥匙。">All weapons and ammo, but no keys.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== DOS PROMPT ====== -->
+<section class="section reveal" id="dos-prompt">
+  <div class="dos-prompt-section">
+    <div class="dos-line"><span class="path">C:\DOOM></span> <span class="cmd">DOOM.EXE -WARP 1 1 -SKILL 4</span></div>
+    <div class="dos-line" style="color:#666;">DOOM v1.9 - id Software, 1993</div>
+    <div class="dos-line" style="color:#666;">V_Init: allocate screens.</div>
+    <div class="dos-line" style="color:#666;">M_LoadDefaults: Load system defaults.</div>
+    <div class="dos-line" style="color:#666;">Z_Init: Init zone memory allocation daemon.</div>
+    <div class="dos-line" style="color:#666;">W_Init: Init WADfiles.</div>
+    <div class="dos-line" style="color:var(--toxic);">Commercial product - do not distribute!</div>
+    <div class="dos-input">
+      <span>C:\DOOM></span>
+      <input type="text" class="dos-input-field" id="dos-input" placeholder="" autocomplete="off" spellcheck="false">
+    </div>
+  </div>
+</section>
+
+<!-- ====== QUOTE ====== -->
+<section class="section reveal quote-section" id="quote">
+  <div class="quote-text" data-en="&ldquo;Rip and tear, until it is done.&rdquo;" data-cn="&ldquo;撕裂与毁灭，直到一切终结。&rdquo;">&ldquo;Rip and tear, until it is done.&rdquo;</div>
+  <div class="quote-attr" data-en="&mdash; The Doom Slayer's Creed" data-cn="&mdash; 毁灭战士的信条">&mdash; The Doom Slayer's Creed</div>
+</section>
+
+<!-- ====== STATUS BAR HUD ====== -->
+<div class="status-bar" id="status-bar">
+  <div class="hud-section">
+    <div class="hud-label" data-en="AMMO" data-cn="弹药">AMMO</div>
+    <div class="hud-value ammo" id="hud-ammo">50</div>
+  </div>
+  <div class="hud-section">
+    <div class="hud-label" data-en="HEALTH" data-cn="生命">HEALTH</div>
+    <div class="hud-value health" id="hud-health">100</div>
+    <div class="hud-pct">%</div>
+  </div>
+  <div class="hud-section">
+    <div class="arms-section">
+      <div class="arm-num active">1</div>
+      <div class="arm-num active">2</div>
+      <div class="arm-num active">3</div>
+      <div class="arm-num">4</div>
+      <div class="arm-num">5</div>
+      <div class="arm-num">6</div>
+    </div>
+  </div>
+  <!-- Doomguy face -->
+  <div class="doomguy-face" id="doomguy-face" title="Doomguy">
+    <div class="doomguy-pixel">
+      <div class="x"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="x"></div>
+      <div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div>
+      <div class="x"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="x"></div>
+      <div class="p"></div><div class="e"></div><div class="i"></div><div class="n"></div><div class="i"></div><div class="e"></div><div class="p"></div>
+      <div class="x"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="x"></div>
+      <div class="x"></div><div class="p"></div><div class="m"></div><div class="m"></div><div class="m"></div><div class="p"></div><div class="x"></div>
+      <div class="x"></div><div class="x"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="x"></div><div class="x"></div>
+    </div>
+  </div>
+  <div class="hud-section">
+    <div class="hud-label" data-en="ARMOR" data-cn="护甲">ARMOR</div>
+    <div class="hud-value armor" id="hud-armor">0</div>
+    <div class="hud-pct">%</div>
+  </div>
+  <div class="hud-section" style="border-right:none;">
+    <div class="hud-label" data-en="AMMO" data-cn="弹药">AMMO</div>
+    <div class="hud-value ammo" id="hud-ammo2">200</div>
+  </div>
+</div>
+
+<script>
+/* ============ LANGUAGE TOGGLE ============ */
+let lang = 'en';
+function toggleLang(){
+  lang = lang==='en'?'cn':'en';
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    if(el.tagName==='INPUT'){
+      el.placeholder=el.getAttribute('data-'+lang)||'';
+    } else {
+      el.innerHTML=el.getAttribute('data-'+lang)||el.textContent;
+    }
+  });
+}
+
+/* ============ THEME TOGGLE ============ */
+let isDark = true;
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  document.getElementById('theme-toggle').textContent=isDark?'LIGHT':'DARK';
+}
+
+/* ============ SCROLL REVEAL ============ */
+const revealObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.section, .reveal').forEach(el=>revealObserver.observe(el));
+
+/* ============ EMBER PARTICLES ============ */
+const canvas = document.getElementById('ember-canvas');
+const ctx = canvas.getContext('2d');
+let embers = [];
+const EMBER_COUNT = 60;
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Ember {
+  constructor(){this.reset();}
+  reset(){
+    this.x = Math.random()*canvas.width;
+    this.y = canvas.height + Math.random()*20;
+    this.size = Math.random()*3+1;
+    this.speedY = -(Math.random()*1.5+0.5);
+    this.speedX = (Math.random()-0.5)*0.8;
+    this.life = 1;
+    this.decay = Math.random()*0.005+0.003;
+    const colors = ['#cc0000','#ff3300','#ff6600','#ff9900','#ff4400'];
+    this.color = colors[Math.floor(Math.random()*colors.length)];
+    this.flicker = Math.random()*Math.PI*2;
+  }
+  update(){
+    this.x += this.speedX + Math.sin(this.flicker)*0.3;
+    this.y += this.speedY;
+    this.life -= this.decay;
+    this.flicker += 0.05;
+    if(this.life<=0 || this.y<-10) this.reset();
+  }
+  draw(){
+    const alpha = this.life * (0.6 + Math.sin(this.flicker)*0.3);
+    ctx.globalAlpha = Math.max(0,alpha);
+    ctx.fillStyle = this.color;
+    // pixelated square embers
+    const s = Math.ceil(this.size);
+    ctx.fillRect(Math.floor(this.x),Math.floor(this.y),s,s);
+    // glow
+    ctx.globalAlpha = Math.max(0,alpha*0.3);
+    ctx.fillRect(Math.floor(this.x)-1,Math.floor(this.y)-1,s+2,s+2);
+  }
+}
+
+for(let i=0;i<EMBER_COUNT;i++){
+  const e = new Ember();
+  e.y = Math.random()*canvas.height;
+  e.life = Math.random();
+  embers.push(e);
+}
+
+function animateEmbers(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  embers.forEach(e=>{e.update();e.draw();});
+  ctx.globalAlpha=1;
+  requestAnimationFrame(animateEmbers);
+}
+animateEmbers();
+
+/* ============ AUTOMAP GENERATION ============ */
+const mapLayout = [
+  'WWWWWWWWWWWW',
+  'W....W.....W',
+  'W....D.....W',
+  'W....W..S..W',
+  'WWDWWW..WWWW',
+  'W..........W',
+  'W...P......W',
+  'WWWWWWWWWWWW'
+];
+const grid = document.getElementById('automap-grid');
+mapLayout.forEach(row=>{
+  for(let c=0;c<12;c++){
+    const cell = document.createElement('div');
+    cell.className='automap-cell';
+    const ch = c<row.length?row[c]:'.';
+    if(ch==='W') cell.classList.add('wall');
+    else if(ch==='D') cell.classList.add('wall','door');
+    else if(ch==='S') cell.classList.add('wall','secret');
+    else if(ch==='P') cell.classList.add('player');
+    grid.appendChild(cell);
+  }
+});
+
+/* ============ INTERMISSION COUNTER ANIMATION ============ */
+let statsAnimated = false;
+const statsObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting && !statsAnimated){
+      statsAnimated = true;
+      animateStat('stat-kills',100,2000,'%',true);
+      animateStat('stat-items',97,2000,'%',false);
+      animateStat('stat-secrets',66,2000,'%',false);
+      animateTime('stat-time',45,2000);
+    }
+  });
+},{threshold:0.3});
+statsObserver.observe(document.getElementById('stats'));
+
+function animateStat(id,target,duration,suffix,isPerfect){
+  const el = document.getElementById(id);
+  const start = performance.now();
+  function tick(now){
+    const progress = Math.min((now-start)/duration,1);
+    const val = Math.floor(progress*target);
+    el.textContent = val+suffix;
+    if(progress>=1){
+      el.textContent = target+suffix;
+      if(isPerfect||target===100) el.classList.add('perfect');
+    } else {
+      requestAnimationFrame(tick);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+function animateTime(id,targetSec,duration){
+  const el = document.getElementById(id);
+  const start = performance.now();
+  function tick(now){
+    const progress = Math.min((now-start)/duration,1);
+    const sec = Math.floor(progress*targetSec);
+    const m = Math.floor(sec/60);
+    const s = sec%60;
+    el.textContent = m+':'+(s<10?'0':'')+s;
+    if(progress<1) requestAnimationFrame(tick);
+    else el.textContent = Math.floor(targetSec/60)+':'+(targetSec%60<10?'0':'')+(targetSec%60);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ============ HUD ANIMATION ============ */
+let hudHealth = 100;
+let hudArmor = 0;
+// Slowly change HUD values for effect
+setInterval(()=>{
+  hudHealth = Math.max(20, hudHealth + (Math.random()>0.5?-1:1)*Math.floor(Math.random()*3));
+  hudArmor = Math.min(200, Math.max(0, hudArmor + (Math.random()>0.4?1:-1)*Math.floor(Math.random()*2)));
+  if(hudHealth>100) hudHealth=100;
+  document.getElementById('hud-health').textContent = hudHealth;
+  document.getElementById('hud-armor').textContent = hudArmor;
+  // Change face based on health
+  updateDoomguyFace(hudHealth);
+},2000);
+
+function updateDoomguyFace(hp){
+  const face = document.getElementById('doomguy-face');
+  if(hp>80) face.style.borderColor='#666';
+  else if(hp>50) face.style.borderColor='#886600';
+  else if(hp>25) face.style.borderColor='#884400';
+  else face.style.borderColor='#880000';
+}
+
+/* ============ DOS INPUT EASTER EGG ============ */
+const dosInput = document.getElementById('dos-input');
+dosInput.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){
+    const cmd = dosInput.value.toUpperCase().trim();
+    dosInput.value='';
+    if(cmd==='IDDQD'){
+      document.body.style.boxShadow='inset 0 0 200px rgba(255,255,255,0.3)';
+      setTimeout(()=>document.body.style.boxShadow='',1500);
+      hudHealth=100;
+      document.getElementById('hud-health').textContent='100';
+      document.getElementById('hud-health').style.color='var(--toxic)';
+    } else if(cmd==='IDKFA'){
+      document.querySelectorAll('.arm-num').forEach(a=>a.classList.add('active'));
+      document.getElementById('hud-ammo').textContent='999';
+      document.getElementById('hud-ammo2').textContent='999';
+      hudArmor=200;
+      document.getElementById('hud-armor').textContent='200';
+    } else if(cmd==='IDCLIP'){
+      document.body.style.opacity='0.7';
+      setTimeout(()=>document.body.style.opacity='1',2000);
+    }
+  }
+});
+
+/* ============ WEAPON BAR ANIMATION ============ */
+const weaponObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.weapon-bar-fill').forEach(bar=>{
+        const w = bar.style.width;
+        bar.style.width='0';
+        setTimeout(()=>bar.style.width=w,100);
+      });
+    }
+  });
+},{threshold:0.2});
+document.querySelectorAll('.weapon-list').forEach(el=>weaponObserver.observe(el));
+</script>
+</body>
+</html>

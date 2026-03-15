@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hades - Escape the Underworld</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--crimson:#8b0000;--crimson-light:#a01010;--crimson-bright:#c41818;
+--gold:#d4a030;--gold-light:#e8b830;--gold-pale:#f0d070;
+--purple-deep:#2a0845;--purple:#3a1060;
+--warm-black:#1a0a0a;--warm-dark:#120808;
+--olympian-blue:#2060a0;--sea-green:#208060;
+--zeus-blue:#3080d0;--ares-red:#c02020;--athena-gold:#d4a030;
+--artemis-green:#30a050;--aphrodite-pink:#d06090;--poseidon-teal:#20a0a0;
+--bg-primary:#1a0a0a;--bg-secondary:#220e0e;--bg-card:#2a1212;
+--text-primary:#f0e0d0;--text-secondary:#c0a898;--text-muted:#907868;
+--border-color:#4a2020;
+--ember-glow:0 0 10px rgba(255,120,30,0.4),0 0 20px rgba(255,80,20,0.2);
+--fire-glow:0 0 15px rgba(255,100,20,0.5),0 0 30px rgba(200,50,10,0.3);
+}
+.light-theme{
+--bg-primary:#f5efe8;--bg-secondary:#ebe0d2;--bg-card:#fff8f0;
+--text-primary:#2a1510;--text-secondary:#5a3a2a;--text-muted:#8a6a58;
+--border-color:#c8a888;--warm-black:#f5efe8;--warm-dark:#ebe0d2;
+}
+html{scroll-behavior:smooth}
+body{
+font-family:'Noto Sans SC','Cinzel',serif;
+background:var(--bg-primary);color:var(--text-primary);
+overflow-x:hidden;line-height:1.7;
+}
+h1,h2,h3,h4,h5,h6,.cinzel{font-family:'Cinzel','Noto Sans SC',serif}
+
+/* Greek Key Meander Border Pattern */
+.meander-border{
+position:relative;
+border-top:3px solid var(--gold);
+border-bottom:3px solid var(--gold);
+}
+.meander-border::before,.meander-border::after{
+content:'';position:absolute;left:0;right:0;height:12px;
+background:
+  linear-gradient(90deg,var(--gold) 25%,transparent 25%) 0 0/16px 4px repeat-x,
+  linear-gradient(90deg,transparent 75%,var(--gold) 75%) 0 0/16px 4px repeat-x,
+  linear-gradient(0deg,var(--gold) 25%,transparent 25%) 0 0/4px 16px repeat-y,
+  linear-gradient(0deg,transparent 75%,var(--gold) 75%) 0 0/4px 16px repeat-y;
+background-size:16px 4px,16px 4px,4px 12px,4px 12px;
+background-position:0 0,8px 0,0 0,12px 4px;
+opacity:0.5;
+}
+.meander-border::before{top:-15px}
+.meander-border::after{bottom:-15px;transform:rotate(180deg)}
+
+.meander-line{
+width:100%;height:20px;margin:20px 0;
+background:repeating-linear-gradient(
+  90deg,
+  transparent 0px,transparent 4px,
+  var(--gold) 4px,var(--gold) 8px,
+  transparent 8px,transparent 12px,
+  var(--gold) 12px,var(--gold) 16px,
+  var(--gold) 16px,var(--gold) 20px,
+  transparent 20px,transparent 24px,
+  var(--gold) 24px,var(--gold) 28px,
+  transparent 28px,transparent 32px
+);
+background-size:32px 4px;
+background-repeat:repeat-x;
+background-position:center;
+opacity:0.3;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--warm-dark)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--crimson),var(--gold));border-radius:4px}
+
+/* Canvas */
+#ember-canvas{
+position:fixed;top:0;left:0;width:100%;height:100%;
+pointer-events:none;z-index:0;
+}
+
+/* Navigation */
+nav{
+position:fixed;top:0;left:0;right:0;z-index:1000;
+background:linear-gradient(180deg,rgba(26,10,10,0.98),rgba(26,10,10,0.85));
+backdrop-filter:blur(12px);
+border-bottom:2px solid var(--gold);
+transition:all 0.4s;
+}
+.light-theme nav{
+background:linear-gradient(180deg,rgba(245,239,232,0.98),rgba(245,239,232,0.85));
+}
+nav.scrolled{
+box-shadow:0 4px 30px rgba(139,0,0,0.3);
+}
+.nav-inner{
+max-width:1200px;margin:0 auto;padding:12px 24px;
+display:flex;justify-content:space-between;align-items:center;
+}
+.nav-brand{
+font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;
+color:var(--gold);letter-spacing:4px;text-transform:uppercase;
+text-shadow:var(--ember-glow);
+}
+.nav-links{display:flex;gap:24px;align-items:center;list-style:none}
+.nav-links a{
+color:var(--text-secondary);text-decoration:none;font-family:'Cinzel',serif;
+font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;
+transition:all 0.3s;position:relative;
+}
+.nav-links a::after{
+content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;
+background:var(--gold);transition:width 0.3s;
+}
+.nav-links a:hover{color:var(--gold);text-shadow:var(--ember-glow)}
+.nav-links a:hover::after{width:100%}
+
+.toggle-group{display:flex;gap:12px;align-items:center}
+.toggle-btn{
+background:rgba(139,0,0,0.3);border:1px solid var(--gold);
+color:var(--gold);padding:6px 14px;border-radius:4px;
+cursor:pointer;font-family:'Cinzel',serif;font-size:0.75rem;
+letter-spacing:1px;transition:all 0.3s;
+}
+.toggle-btn:hover{background:rgba(212,160,48,0.2);box-shadow:var(--ember-glow)}
+.toggle-btn.active{background:rgba(212,160,48,0.3)}
+
+/* Mobile menu */
+.mobile-toggle{
+display:none;background:none;border:none;cursor:pointer;
+flex-direction:column;gap:5px;padding:8px;
+}
+.mobile-toggle span{
+display:block;width:24px;height:2px;background:var(--gold);
+transition:all 0.3s;
+}
+@media(max-width:900px){
+.mobile-toggle{display:flex}
+.nav-links{
+position:fixed;top:60px;left:0;right:0;
+background:rgba(26,10,10,0.98);
+flex-direction:column;padding:24px;gap:16px;
+transform:translateY(-120%);transition:transform 0.4s;
+border-bottom:2px solid var(--gold);
+}
+.light-theme .nav-links{background:rgba(245,239,232,0.98)}
+.nav-links.open{transform:translateY(0)}
+}
+
+/* Section base */
+section{position:relative;z-index:1;padding:100px 24px}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-title{
+font-family:'Cinzel',serif;font-size:clamp(2rem,5vw,3rem);
+font-weight:900;text-align:center;margin-bottom:16px;
+color:var(--gold);text-shadow:var(--fire-glow);
+letter-spacing:4px;text-transform:uppercase;
+}
+.section-subtitle{
+text-align:center;color:var(--text-secondary);font-size:1rem;
+margin-bottom:60px;font-style:italic;
+}
+.laurel{
+text-align:center;font-size:1.5rem;color:var(--gold);
+margin-bottom:8px;letter-spacing:8px;opacity:0.6;
+}
+
+/* Pillar Divider */
+.pillar-divider{
+display:flex;align-items:center;justify-content:center;
+gap:16px;margin:0 auto;max-width:400px;padding:20px 0;
+}
+.pillar{
+width:8px;height:50px;
+background:linear-gradient(180deg,var(--gold),var(--gold-light),var(--gold));
+border-radius:2px;position:relative;
+}
+.pillar::before,.pillar::after{
+content:'';position:absolute;left:-3px;width:14px;height:6px;
+background:var(--gold);border-radius:2px;
+}
+.pillar::before{top:-3px}
+.pillar::after{bottom:-3px}
+.pillar-line{
+flex:1;height:2px;
+background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+
+/* Scroll Reveal */
+.reveal{
+opacity:0;transform:translateY(40px);
+transition:opacity 0.8s ease,transform 0.8s ease;
+}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.15s}
+.reveal-delay-2{transition-delay:0.3s}
+.reveal-delay-3{transition-delay:0.45s}
+.reveal-delay-4{transition-delay:0.6s}
+.reveal-delay-5{transition-delay:0.75s}
+
+/* ===== HERO ===== */
+#hero{
+min-height:100vh;display:flex;align-items:center;justify-content:center;
+text-align:center;position:relative;
+background:
+  radial-gradient(ellipse at 50% 80%,rgba(139,0,0,0.25),transparent 60%),
+  radial-gradient(ellipse at 30% 20%,rgba(42,8,69,0.3),transparent 50%),
+  radial-gradient(ellipse at 70% 30%,rgba(160,16,16,0.15),transparent 50%),
+  var(--bg-primary);
+}
+#hero::before{
+content:'';position:absolute;bottom:0;left:0;right:0;height:200px;
+background:linear-gradient(transparent,var(--bg-primary));
+}
+.hero-content{position:relative;z-index:2}
+.hero-icon{
+font-size:4rem;margin-bottom:20px;
+animation:flicker 3s ease-in-out infinite;
+}
+@keyframes flicker{
+0%,100%{text-shadow:0 0 20px rgba(255,100,20,0.8),0 0 40px rgba(255,60,10,0.4);opacity:1}
+50%{text-shadow:0 0 30px rgba(255,120,30,1),0 0 60px rgba(255,80,20,0.6);opacity:0.9}
+}
+.hero-title{
+font-family:'Cinzel',serif;font-size:clamp(3rem,8vw,6rem);
+font-weight:900;color:var(--gold);
+letter-spacing:12px;text-transform:uppercase;
+text-shadow:0 0 30px rgba(212,160,48,0.5),0 0 60px rgba(255,100,20,0.3);
+margin-bottom:8px;line-height:1.1;
+}
+.hero-subtitle{
+font-family:'Cinzel',serif;font-size:clamp(1rem,2.5vw,1.4rem);
+color:var(--crimson-bright);letter-spacing:8px;text-transform:uppercase;
+margin-bottom:30px;
+}
+.hero-desc{
+font-size:1.1rem;color:var(--text-secondary);max-width:600px;
+margin:0 auto 40px;line-height:1.8;
+}
+.hero-cta{
+display:inline-block;padding:16px 48px;
+background:linear-gradient(135deg,var(--crimson),var(--crimson-light));
+color:var(--gold);font-family:'Cinzel',serif;font-size:1rem;
+font-weight:700;letter-spacing:3px;text-transform:uppercase;
+text-decoration:none;border:2px solid var(--gold);
+position:relative;overflow:hidden;transition:all 0.4s;
+}
+.hero-cta::before{
+content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+background:linear-gradient(90deg,transparent,rgba(212,160,48,0.2),transparent);
+transition:left 0.6s;
+}
+.hero-cta:hover{
+box-shadow:var(--fire-glow);transform:translateY(-2px);
+}
+.hero-cta:hover::before{left:100%}
+.scroll-hint{
+position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+color:var(--gold);font-size:0.8rem;letter-spacing:3px;
+animation:bob 2s ease-in-out infinite;opacity:0.6;
+font-family:'Cinzel',serif;
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ===== UNDERWORLD ===== */
+#underworld{
+background:
+  radial-gradient(ellipse at 20% 50%,rgba(42,8,69,0.2),transparent 50%),
+  var(--bg-primary);
+}
+.underworld-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:40px;margin-top:40px;
+}
+.uw-card{
+background:linear-gradient(135deg,var(--bg-card),rgba(42,8,69,0.15));
+border:1px solid var(--border-color);
+padding:36px;position:relative;overflow:hidden;
+transition:all 0.4s;
+}
+.uw-card::before{
+content:'';position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--crimson),var(--gold),var(--crimson));
+}
+.uw-card:hover{
+transform:translateY(-4px);
+box-shadow:0 8px 30px rgba(139,0,0,0.3);
+border-color:var(--gold);
+}
+.uw-card-icon{font-size:2.5rem;margin-bottom:16px}
+.uw-card h3{
+font-family:'Cinzel',serif;color:var(--gold);font-size:1.2rem;
+margin-bottom:12px;letter-spacing:2px;
+}
+.uw-card p{color:var(--text-secondary);font-size:0.95rem;line-height:1.8}
+
+/* ===== BOONS ===== */
+#boons{
+background:
+  radial-gradient(ellipse at 80% 30%,rgba(139,0,0,0.12),transparent 50%),
+  var(--bg-primary);
+}
+.boons-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:30px;
+}
+.boon-card{
+background:var(--bg-card);
+border:2px solid var(--border-color);
+padding:0;overflow:hidden;transition:all 0.4s;
+position:relative;
+}
+.boon-card::before{
+content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+opacity:0;transition:opacity 0.4s;
+pointer-events:none;
+}
+.boon-card:hover{transform:translateY(-6px)}
+.boon-card:hover::before{opacity:1}
+
+.boon-header{
+padding:20px 24px;position:relative;
+display:flex;align-items:center;gap:16px;
+}
+.boon-god-icon{
+font-size:2rem;width:52px;height:52px;
+display:flex;align-items:center;justify-content:center;
+border-radius:50%;border:2px solid currentColor;
+flex-shrink:0;
+}
+.boon-god-name{
+font-family:'Cinzel',serif;font-size:1.1rem;
+font-weight:700;letter-spacing:2px;text-transform:uppercase;
+}
+.boon-god-title{font-size:0.8rem;opacity:0.7;margin-top:2px}
+.boon-body{padding:0 24px 24px}
+.boon-ability{
+background:rgba(0,0,0,0.2);border-radius:6px;
+padding:14px;margin-bottom:10px;
+border-left:3px solid currentColor;
+}
+.boon-ability-name{
+font-family:'Cinzel',serif;font-size:0.85rem;
+font-weight:600;margin-bottom:4px;
+}
+.boon-ability-desc{font-size:0.82rem;color:var(--text-secondary);line-height:1.6}
+
+/* God Colors */
+.boon-zeus{border-color:var(--zeus-blue);color:var(--zeus-blue)}
+.boon-zeus .boon-header{background:linear-gradient(135deg,rgba(48,128,208,0.15),transparent)}
+.boon-zeus:hover{box-shadow:0 8px 30px rgba(48,128,208,0.3)}
+.boon-zeus::before{background:radial-gradient(ellipse at center,rgba(48,128,208,0.08),transparent)}
+
+.boon-ares{border-color:var(--ares-red);color:var(--ares-red)}
+.boon-ares .boon-header{background:linear-gradient(135deg,rgba(192,32,32,0.15),transparent)}
+.boon-ares:hover{box-shadow:0 8px 30px rgba(192,32,32,0.3)}
+.boon-ares::before{background:radial-gradient(ellipse at center,rgba(192,32,32,0.08),transparent)}
+
+.boon-athena{border-color:var(--athena-gold);color:var(--athena-gold)}
+.boon-athena .boon-header{background:linear-gradient(135deg,rgba(212,160,48,0.15),transparent)}
+.boon-athena:hover{box-shadow:0 8px 30px rgba(212,160,48,0.3)}
+.boon-athena::before{background:radial-gradient(ellipse at center,rgba(212,160,48,0.08),transparent)}
+
+.boon-artemis{border-color:var(--artemis-green);color:var(--artemis-green)}
+.boon-artemis .boon-header{background:linear-gradient(135deg,rgba(48,160,80,0.15),transparent)}
+.boon-artemis:hover{box-shadow:0 8px 30px rgba(48,160,80,0.3)}
+.boon-artemis::before{background:radial-gradient(ellipse at center,rgba(48,160,80,0.08),transparent)}
+
+.boon-aphrodite{border-color:var(--aphrodite-pink);color:var(--aphrodite-pink)}
+.boon-aphrodite .boon-header{background:linear-gradient(135deg,rgba(208,96,144,0.15),transparent)}
+.boon-aphrodite:hover{box-shadow:0 8px 30px rgba(208,96,144,0.3)}
+.boon-aphrodite::before{background:radial-gradient(ellipse at center,rgba(208,96,144,0.08),transparent)}
+
+.boon-poseidon{border-color:var(--poseidon-teal);color:var(--poseidon-teal)}
+.boon-poseidon .boon-header{background:linear-gradient(135deg,rgba(32,160,160,0.15),transparent)}
+.boon-poseidon:hover{box-shadow:0 8px 30px rgba(32,160,160,0.3)}
+.boon-poseidon::before{background:radial-gradient(ellipse at center,rgba(32,160,160,0.08),transparent)}
+
+/* ===== WEAPONS ===== */
+#weapons{
+background:
+  radial-gradient(ellipse at 50% 80%,rgba(139,0,0,0.1),transparent 50%),
+  var(--bg-primary);
+}
+.weapons-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:24px;
+}
+.weapon-card{
+background:var(--bg-card);border:1px solid var(--border-color);
+padding:32px 24px;text-align:center;position:relative;
+transition:all 0.4s;overflow:hidden;
+}
+.weapon-card::after{
+content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,transparent,var(--crimson),var(--gold),var(--crimson),transparent);
+transform:scaleX(0);transition:transform 0.4s;
+}
+.weapon-card:hover{
+transform:translateY(-4px);
+box-shadow:0 6px 25px rgba(139,0,0,0.25);
+}
+.weapon-card:hover::after{transform:scaleX(1)}
+.weapon-icon{font-size:2.8rem;margin-bottom:16px;display:block}
+.weapon-card h3{
+font-family:'Cinzel',serif;color:var(--gold);
+font-size:1rem;letter-spacing:2px;margin-bottom:4px;
+}
+.weapon-card .weapon-name-sub{
+font-size:0.8rem;color:var(--crimson-bright);
+font-family:'Cinzel',serif;margin-bottom:12px;
+font-style:italic;
+}
+.weapon-card p{font-size:0.88rem;color:var(--text-secondary);line-height:1.7}
+
+/* ===== REGIONS TIMELINE ===== */
+#regions{
+background:
+  radial-gradient(ellipse at 30% 40%,rgba(42,8,69,0.15),transparent 50%),
+  var(--bg-primary);
+}
+.timeline{
+position:relative;max-width:800px;margin:0 auto;
+padding:20px 0;
+}
+.timeline::before{
+content:'';position:absolute;left:50%;top:0;bottom:0;
+width:3px;background:linear-gradient(var(--crimson),var(--gold),var(--crimson));
+transform:translateX(-50%);
+}
+.timeline-item{
+position:relative;width:50%;padding:20px 40px;
+margin-bottom:40px;
+}
+.timeline-item:nth-child(odd){left:0;text-align:right}
+.timeline-item:nth-child(even){left:50%;text-align:left}
+.timeline-item::before{
+content:'';position:absolute;top:28px;
+width:16px;height:16px;background:var(--gold);
+border:3px solid var(--crimson);border-radius:50%;
+z-index:2;
+}
+.timeline-item:nth-child(odd)::before{right:-8px}
+.timeline-item:nth-child(even)::before{left:-8px}
+.timeline-card{
+background:var(--bg-card);border:1px solid var(--border-color);
+padding:24px;position:relative;transition:all 0.4s;
+}
+.timeline-card:hover{
+border-color:var(--gold);
+box-shadow:0 4px 20px rgba(139,0,0,0.2);
+}
+.timeline-card h3{
+font-family:'Cinzel',serif;color:var(--gold);
+font-size:1.1rem;letter-spacing:2px;margin-bottom:4px;
+}
+.timeline-card .region-icon{font-size:1.8rem;margin-bottom:8px;display:block}
+.timeline-card p{font-size:0.9rem;color:var(--text-secondary);line-height:1.7}
+
+@media(max-width:700px){
+.timeline::before{left:20px}
+.timeline-item{width:100%;left:0!important;text-align:left!important;padding-left:50px;padding-right:0}
+.timeline-item::before{left:12px!important;right:auto!important}
+}
+
+/* ===== QUOTE ===== */
+#quote{
+background:
+  linear-gradient(135deg,rgba(42,8,69,0.3),rgba(139,0,0,0.15)),
+  var(--bg-primary);
+padding:120px 24px;text-align:center;
+}
+.quote-mark{
+font-size:5rem;color:var(--gold);opacity:0.3;
+font-family:'Cinzel',serif;line-height:1;
+}
+.quote-text{
+font-family:'Cinzel',serif;font-size:clamp(1.2rem,3vw,1.8rem);
+color:var(--text-primary);max-width:800px;margin:0 auto 24px;
+line-height:1.8;font-style:italic;
+text-shadow:0 0 20px rgba(212,160,48,0.15);
+}
+.quote-author{
+color:var(--gold);font-family:'Cinzel',serif;
+font-size:1rem;letter-spacing:4px;text-transform:uppercase;
+}
+
+/* ===== CTA ===== */
+#cta{
+background:
+  radial-gradient(ellipse at 50% 50%,rgba(139,0,0,0.2),transparent 60%),
+  var(--bg-primary);
+text-align:center;padding:100px 24px;
+}
+.cta-title{
+font-family:'Cinzel',serif;font-size:clamp(1.8rem,4vw,2.8rem);
+color:var(--gold);font-weight:900;letter-spacing:4px;
+text-shadow:var(--fire-glow);margin-bottom:16px;
+}
+.cta-desc{
+color:var(--text-secondary);max-width:600px;margin:0 auto 40px;
+font-size:1.05rem;line-height:1.8;
+}
+.cta-buttons{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.btn-primary{
+padding:16px 48px;
+background:linear-gradient(135deg,var(--crimson),var(--crimson-light));
+color:var(--gold);font-family:'Cinzel',serif;font-size:1rem;
+font-weight:700;letter-spacing:3px;text-transform:uppercase;
+text-decoration:none;border:2px solid var(--gold);
+cursor:pointer;transition:all 0.4s;
+}
+.btn-primary:hover{
+box-shadow:var(--fire-glow);transform:translateY(-2px);
+background:linear-gradient(135deg,var(--crimson-light),var(--crimson-bright));
+}
+.btn-secondary{
+padding:16px 48px;
+background:transparent;
+color:var(--gold);font-family:'Cinzel',serif;font-size:1rem;
+font-weight:700;letter-spacing:3px;text-transform:uppercase;
+text-decoration:none;border:2px solid var(--gold);
+cursor:pointer;transition:all 0.4s;
+}
+.btn-secondary:hover{
+background:rgba(212,160,48,0.1);
+box-shadow:var(--ember-glow);transform:translateY(-2px);
+}
+
+/* ===== FOOTER ===== */
+footer{
+background:var(--warm-dark);border-top:2px solid var(--gold);
+padding:60px 24px 30px;position:relative;z-index:1;
+}
+.footer-inner{
+max-width:1100px;margin:0 auto;
+display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:40px;margin-bottom:40px;
+}
+.footer-col h4{
+font-family:'Cinzel',serif;color:var(--gold);
+font-size:0.9rem;letter-spacing:3px;text-transform:uppercase;
+margin-bottom:16px;
+}
+.footer-col p,.footer-col a{
+color:var(--text-muted);font-size:0.88rem;
+text-decoration:none;line-height:2;display:block;
+transition:color 0.3s;
+}
+.footer-col a:hover{color:var(--gold)}
+.footer-bottom{
+text-align:center;padding-top:30px;
+border-top:1px solid var(--border-color);
+color:var(--text-muted);font-size:0.8rem;
+letter-spacing:2px;
+}
+.footer-bottom .laurel-footer{
+color:var(--gold);font-size:1.2rem;margin-bottom:8px;opacity:0.4;
+}
+</style>
+</head>
+<body>
+
+<canvas id="ember-canvas"></canvas>
+
+<!-- Navigation -->
+<nav id="navbar">
+<div class="nav-inner">
+<div class="nav-brand">HADES</div>
+<button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+<span></span><span></span><span></span>
+</button>
+<ul class="nav-links">
+<li><a href="#hero" data-en="Home" data-zh="首页">Home</a></li>
+<li><a href="#underworld" data-en="Underworld" data-zh="冥界">Underworld</a></li>
+<li><a href="#boons" data-en="Boons" data-zh="神恩">Boons</a></li>
+<li><a href="#weapons" data-en="Weapons" data-zh="武器">Weapons</a></li>
+<li><a href="#regions" data-en="Regions" data-zh="区域">Regions</a></li>
+<li>
+<div class="toggle-group">
+<button class="toggle-btn" id="langToggle" onclick="toggleLang()">中/EN</button>
+<button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">☀/☽</button>
+</div>
+</li>
+</ul>
+</div>
+</nav>
+
+<!-- Hero Section -->
+<section id="hero">
+<div class="hero-content">
+<div class="hero-icon">🔥</div>
+<h1 class="hero-title" data-en="HADES" data-zh="哈迪斯">HADES</h1>
+<p class="hero-subtitle" data-en="Defy the God of the Dead" data-zh="反抗死神的统治">Defy the God of the Dead</p>
+<div class="laurel">☽ ✦ ☽</div>
+<p class="hero-desc" data-en="Battle out of the Underworld in this rogue-like dungeon crawler from Supergiant Games. As the immortal Prince Zagreus, wield the powers of Olympus to break free from the clutches of Hades himself." data-zh="在Supergiant Games制作的这款肉鸽地牢探索游戏中，杀出冥界。作为不朽的王子扎格列欧斯，借助奥林匹斯众神之力，从冥王哈迪斯的掌控中挣脱。">Battle out of the Underworld in this rogue-like dungeon crawler from Supergiant Games. As the immortal Prince Zagreus, wield the powers of Olympus to break free from the clutches of Hades himself.</p>
+<a href="#underworld" class="hero-cta" data-en="Begin the Escape" data-zh="开始逃亡">Begin the Escape</a>
+</div>
+<div class="scroll-hint" data-en="▼ DESCEND ▼" data-zh="▼ 向下探索 ▼">▼ DESCEND ▼</div>
+</section>
+
+<!-- Underworld Section -->
+<section id="underworld">
+<div class="section-inner">
+<div class="laurel reveal">☽ ✦ ☽</div>
+<h2 class="section-title reveal" data-en="The Underworld" data-zh="冥界">The Underworld</h2>
+<p class="section-subtitle reveal" data-en="A realm of darkness, death, and defiance" data-zh="黑暗、死亡与反抗的领域">A realm of darkness, death, and defiance</p>
+<div class="pillar-divider reveal">
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+</div>
+<div class="underworld-grid">
+<div class="uw-card reveal reveal-delay-1">
+<div class="uw-card-icon">👑</div>
+<h3 data-en="The House of Hades" data-zh="哈迪斯之殿">The House of Hades</h3>
+<p data-en="The central hub of the Underworld where Hades himself presides. Here, Zagreus plots his escape, speaks with shades and allies, and prepares for each attempt to reach the surface." data-zh="冥界的中枢，哈迪斯亲自坐镇。扎格列欧斯在此谋划逃亡，与亡魂和盟友交谈，为每一次冲向地面的尝试做准备。">The central hub of the Underworld where Hades himself presides. Here, Zagreus plots his escape, speaks with shades and allies, and prepares for each attempt to reach the surface.</p>
+</div>
+<div class="uw-card reveal reveal-delay-2">
+<div class="uw-card-icon">💀</div>
+<h3 data-en="Death is Not the End" data-zh="死亡并非终点">Death is Not the End</h3>
+<p data-en="Each death returns Zagreus to the House of Hades, but with new knowledge, relationships, and power. The story unfolds across countless escape attempts, revealing deeper truths with every run." data-zh="每次死亡都会将扎格列欧斯送回哈迪斯之殿，但带着新的知识、关系与力量。故事在无数次逃亡中展开，每次都揭示更深层的真相。">Each death returns Zagreus to the House of Hades, but with new knowledge, relationships, and power. The story unfolds across countless escape attempts, revealing deeper truths with every run.</p>
+</div>
+<div class="uw-card reveal reveal-delay-3">
+<div class="uw-card-icon">⚡</div>
+<h3 data-en="Olympian Aid" data-zh="奥林匹斯之助">Olympian Aid</h3>
+<p data-en="The gods of Olympus reach out to Zagreus, offering their blessings to aid his escape. Each god grants unique powers that can be combined in countless ways to create devastating builds." data-zh="奥林匹斯众神向扎格列欧斯伸出援手，赐予他们的祝福来帮助他逃亡。每位神祇都赋予独特的力量，可以无数种方式组合出毁灭性的配置。">The gods of Olympus reach out to Zagreus, offering their blessings to aid his escape. Each god grants unique powers that can be combined in countless ways to create devastating builds.</p>
+</div>
+</div>
+</div>
+</section>
+
+<div class="meander-line"></div>
+
+<!-- Boons Section -->
+<section id="boons">
+<div class="section-inner">
+<div class="laurel reveal">☽ ✦ ☽</div>
+<h2 class="section-title reveal" data-en="Olympian Boons" data-zh="奥林匹斯神恩">Olympian Boons</h2>
+<p class="section-subtitle reveal" data-en="Gifts from the gods to aid your escape" data-zh="众神赐予的逃亡之力">Gifts from the gods to aid your escape</p>
+<div class="pillar-divider reveal">
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+</div>
+<div class="boons-grid">
+<!-- Zeus -->
+<div class="boon-card boon-zeus reveal reveal-delay-1">
+<div class="boon-header">
+<div class="boon-god-icon">⚡</div>
+<div>
+<div class="boon-god-name" data-en="Zeus" data-zh="宙斯">Zeus</div>
+<div class="boon-god-title" data-en="God of Thunder" data-zh="雷霆之神">God of Thunder</div>
+</div>
+</div>
+<div class="boon-body">
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Lightning Strike" data-zh="闪电打击">Lightning Strike</div>
+<div class="boon-ability-desc" data-en="Your Attack emits chain lightning that bounces between foes." data-zh="你的攻击释放连锁闪电，在敌人之间弹射。">Your Attack emits chain lightning that bounces between foes.</div>
+</div>
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Thunder Dash" data-zh="雷霆冲刺">Thunder Dash</div>
+<div class="boon-ability-desc" data-en="Your Dash creates a thunder strike at your starting position." data-zh="你的冲刺在起始位置产生雷击。">Your Dash creates a thunder strike at your starting position.</div>
+</div>
+</div>
+</div>
+<!-- Ares -->
+<div class="boon-card boon-ares reveal reveal-delay-2">
+<div class="boon-header">
+<div class="boon-god-icon">🗡</div>
+<div>
+<div class="boon-god-name" data-en="Ares" data-zh="阿瑞斯">Ares</div>
+<div class="boon-god-title" data-en="God of War" data-zh="战争之神">God of War</div>
+</div>
+</div>
+<div class="boon-body">
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Curse of Agony" data-zh="苦痛诅咒">Curse of Agony</div>
+<div class="boon-ability-desc" data-en="Your Attack inflicts Doom, dealing delayed burst damage to foes." data-zh="你的攻击施加厄运，对敌人造成延迟的爆发伤害。">Your Attack inflicts Doom, dealing delayed burst damage to foes.</div>
+</div>
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Blade Rifts" data-zh="刀锋裂隙">Blade Rifts</div>
+<div class="boon-ability-desc" data-en="Your Cast creates a slow-moving vortex of blades that deal rapid damage." data-zh="你的法术创造一个缓慢移动的刀刃漩涡，造成快速伤害。">Your Cast creates a slow-moving vortex of blades that deal rapid damage.</div>
+</div>
+</div>
+</div>
+<!-- Athena -->
+<div class="boon-card boon-athena reveal reveal-delay-3">
+<div class="boon-header">
+<div class="boon-god-icon">🛡</div>
+<div>
+<div class="boon-god-name" data-en="Athena" data-zh="雅典娜">Athena</div>
+<div class="boon-god-title" data-en="Goddess of Wisdom" data-zh="智慧女神">Goddess of Wisdom</div>
+</div>
+</div>
+<div class="boon-body">
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Divine Strike" data-zh="神圣打击">Divine Strike</div>
+<div class="boon-ability-desc" data-en="Your Attack deflects projectiles back at foes for bonus damage." data-zh="你的攻击将投射物反弹回敌人并造成额外伤害。">Your Attack deflects projectiles back at foes for bonus damage.</div>
+</div>
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Divine Dash" data-zh="神圣冲刺">Divine Dash</div>
+<div class="boon-ability-desc" data-en="Your Dash deflects all incoming attacks for a brief moment." data-zh="你的冲刺在短暂时间内反弹所有来袭攻击。">Your Dash deflects all incoming attacks for a brief moment.</div>
+</div>
+</div>
+</div>
+<!-- Artemis -->
+<div class="boon-card boon-artemis reveal reveal-delay-1">
+<div class="boon-header">
+<div class="boon-god-icon">🏹</div>
+<div>
+<div class="boon-god-name" data-en="Artemis" data-zh="阿尔忒弥斯">Artemis</div>
+<div class="boon-god-title" data-en="Goddess of the Hunt" data-zh="狩猎女神">Goddess of the Hunt</div>
+</div>
+</div>
+<div class="boon-body">
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Deadly Strike" data-zh="致命打击">Deadly Strike</div>
+<div class="boon-ability-desc" data-en="Your Attack gains increased critical hit chance." data-zh="你的攻击获得更高的暴击几率。">Your Attack gains increased critical hit chance.</div>
+</div>
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Hunter's Mark" data-zh="猎人印记">Hunter's Mark</div>
+<div class="boon-ability-desc" data-en="After you deal critical damage, foes near the target are also marked for crits." data-zh="你造成暴击伤害后，目标附近的敌人也会被标记为暴击目标。">After you deal critical damage, foes near the target are also marked for crits.</div>
+</div>
+</div>
+</div>
+<!-- Aphrodite -->
+<div class="boon-card boon-aphrodite reveal reveal-delay-2">
+<div class="boon-header">
+<div class="boon-god-icon">💗</div>
+<div>
+<div class="boon-god-name" data-en="Aphrodite" data-zh="阿佛洛狄忒">Aphrodite</div>
+<div class="boon-god-title" data-en="Goddess of Love" data-zh="爱之女神">Goddess of Love</div>
+</div>
+</div>
+<div class="boon-body">
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Heartbreak Strike" data-zh="心碎打击">Heartbreak Strike</div>
+<div class="boon-ability-desc" data-en="Your Attack deals more damage and inflicts Weak on foes." data-zh="你的攻击造成更多伤害并使敌人虚弱。">Your Attack deals more damage and inflicts Weak on foes.</div>
+</div>
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Dying Lament" data-zh="临终哀歌">Dying Lament</div>
+<div class="boon-ability-desc" data-en="Foes damaged by your abilities deal less damage to you." data-zh="被你技能伤害的敌人对你造成的伤害降低。">Foes damaged by your abilities deal less damage to you.</div>
+</div>
+</div>
+</div>
+<!-- Poseidon -->
+<div class="boon-card boon-poseidon reveal reveal-delay-3">
+<div class="boon-header">
+<div class="boon-god-icon">🔱</div>
+<div>
+<div class="boon-god-name" data-en="Poseidon" data-zh="波塞冬">Poseidon</div>
+<div class="boon-god-title" data-en="God of the Sea" data-zh="海洋之神">God of the Sea</div>
+</div>
+</div>
+<div class="boon-body">
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Tempest Strike" data-zh="风暴打击">Tempest Strike</div>
+<div class="boon-ability-desc" data-en="Your Attack knocks foes away with a powerful wave, dealing bonus wall slam damage." data-zh="你的攻击以强力波浪击退敌人，造成额外的撞墙伤害。">Your Attack knocks foes away with a powerful wave, dealing bonus wall slam damage.</div>
+</div>
+<div class="boon-ability">
+<div class="boon-ability-name" data-en="Tidal Dash" data-zh="潮汐冲刺">Tidal Dash</div>
+<div class="boon-ability-desc" data-en="Your Dash damages and pushes foes back with a surge of water." data-zh="你的冲刺以水浪伤害并击退敌人。">Your Dash damages and pushes foes back with a surge of water.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="meander-line"></div>
+
+<!-- Weapons Section -->
+<section id="weapons">
+<div class="section-inner">
+<div class="laurel reveal">☽ ✦ ☽</div>
+<h2 class="section-title reveal" data-en="Infernal Arms" data-zh="冥界神兵">Infernal Arms</h2>
+<p class="section-subtitle reveal" data-en="Six legendary weapons forged for the war against the Titans" data-zh="为对抗泰坦之战锻造的六件传说武器">Six legendary weapons forged for the war against the Titans</p>
+<div class="pillar-divider reveal">
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+</div>
+<div class="weapons-grid">
+<div class="weapon-card reveal reveal-delay-1">
+<span class="weapon-icon">⚔️</span>
+<h3 data-en="Stygius" data-zh="冥河之刃">Stygius</h3>
+<div class="weapon-name-sub" data-en="Blade of the Underworld" data-zh="冥界之剑">Blade of the Underworld</div>
+<p data-en="A versatile sword with fast, sweeping strikes. Perfect for aggressive close-range combat and rapid combo chains." data-zh="一把多功能的剑，拥有快速的横扫攻击。适合近距离激进战斗和快速连击。">A versatile sword with fast, sweeping strikes. Perfect for aggressive close-range combat and rapid combo chains.</p>
+</div>
+<div class="weapon-card reveal reveal-delay-2">
+<span class="weapon-icon">🔱</span>
+<h3 data-en="Varatha" data-zh="永恒之枪">Varatha</h3>
+<div class="weapon-name-sub" data-en="Eternal Spear" data-zh="永恒之矛">Eternal Spear</div>
+<p data-en="A long-reaching spear that can be thrown and recalled. Excellent for maintaining distance while punishing foes." data-zh="一把可投掷并召回的长矛。擅长保持距离的同时惩罚敌人。">A long-reaching spear that can be thrown and recalled. Excellent for maintaining distance while punishing foes.</p>
+</div>
+<div class="weapon-card reveal reveal-delay-3">
+<span class="weapon-icon">🛡️</span>
+<h3 data-en="Aegis" data-zh="混沌之盾">Aegis</h3>
+<div class="weapon-name-sub" data-en="Shield of Chaos" data-zh="混沌之盾">Shield of Chaos</div>
+<p data-en="A shield that blocks all frontal attacks and can be thrown like a discus, bouncing between enemies." data-zh="一面可格挡所有正面攻击的盾牌，能像铁饼一样投掷，在敌人之间弹射。">A shield that blocks all frontal attacks and can be thrown like a discus, bouncing between enemies.</p>
+</div>
+<div class="weapon-card reveal reveal-delay-1">
+<span class="weapon-icon">🏹</span>
+<h3 data-en="Coronacht" data-zh="碎心之弓">Coronacht</h3>
+<div class="weapon-name-sub" data-en="Heart-Seeking Bow" data-zh="追心之弓">Heart-Seeking Bow</div>
+<p data-en="A powerful bow with charged shots and a special volley attack. Masters of range keep enemies at bay." data-zh="一把强力弓箭，拥有蓄力射击和特殊齐射攻击。远程大师让敌人无法靠近。">A powerful bow with charged shots and a special volley attack. Masters of range keep enemies at bay.</p>
+</div>
+<div class="weapon-card reveal reveal-delay-2">
+<span class="weapon-icon">💀</span>
+<h3 data-en="Malphon" data-zh="冥拳">Malphon</h3>
+<div class="weapon-name-sub" data-en="Twin Fists" data-zh="双子之拳">Twin Fists</div>
+<p data-en="Blazing-fast twin fists for relentless close-quarters combat. Unleash devastating rapid-fire punches." data-zh="极速的双拳用于无情的近身战斗。释放毁灭性的连续拳击。">Blazing-fast twin fists for relentless close-quarters combat. Unleash devastating rapid-fire punches.</p>
+</div>
+<div class="weapon-card reveal reveal-delay-3">
+<span class="weapon-icon">🔫</span>
+<h3 data-en="Exagryph" data-zh="冥府炮">Exagryph</h3>
+<div class="weapon-name-sub" data-en="Adamant Rail" data-zh="精钢铁轨">Adamant Rail</div>
+<p data-en="A rapid-fire ranged weapon with a special grenade launcher. The most unconventional of the Infernal Arms." data-zh="一把速射远程武器，配备特殊榴弹发射器。冥界神兵中最非传统的武器。">A rapid-fire ranged weapon with a special grenade launcher. The most unconventional of the Infernal Arms.</p>
+</div>
+</div>
+</div>
+</section>
+
+<div class="meander-line"></div>
+
+<!-- Regions Timeline -->
+<section id="regions">
+<div class="section-inner">
+<div class="laurel reveal">☽ ✦ ☽</div>
+<h2 class="section-title reveal" data-en="Realms of the Dead" data-zh="亡者的领域">Realms of the Dead</h2>
+<p class="section-subtitle reveal" data-en="Four treacherous regions stand between Zagreus and freedom" data-zh="四个危险的区域横亘在扎格列欧斯与自由之间">Four treacherous regions stand between Zagreus and freedom</p>
+<div class="pillar-divider reveal">
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+<div class="pillar"></div>
+<div class="pillar-line"></div>
+</div>
+<div class="timeline">
+<div class="timeline-item reveal">
+<div class="timeline-card">
+<span class="region-icon">🟢</span>
+<h3 data-en="Tartarus" data-zh="塔尔塔罗斯">Tartarus</h3>
+<p data-en="The deepest pit of the Underworld. Green-tinted halls of stone and bone, home to the Wretched and lesser shades. The Fury Sisters — Megaera, Alecto, and Tisiphone — guard the exit." data-zh="冥界最深的深渊。绿色调的石骨大厅，是卑贱者和低等亡魂的家园。复仇三女神——墨嘉拉、阿勒克托和提西福涅——守护着出口。">The deepest pit of the Underworld. Green-tinted halls of stone and bone, home to the Wretched and lesser shades. The Fury Sisters — Megaera, Alecto, and Tisiphone — guard the exit.</p>
+</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-card">
+<span class="region-icon">🔴</span>
+<h3 data-en="Asphodel" data-zh="阿斯福德尔">Asphodel</h3>
+<p data-en="A scorching landscape of lava rivers and floating islands. Once beautiful meadows, now a burning wasteland. The Bone Hydra — Lernie — awaits as the region's fearsome guardian." data-zh="一片灼热的熔岩河流与漂浮岛屿的景观。曾经是美丽的草地，如今是燃烧的荒原。骨之九头蛇——勒尼——作为该区域可怕的守护者等待着。">A scorching landscape of lava rivers and floating islands. Once beautiful meadows, now a burning wasteland. The Bone Hydra — Lernie — awaits as the region's fearsome guardian.</p>
+</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-card">
+<span class="region-icon">🟡</span>
+<h3 data-en="Elysium" data-zh="至福乐土">Elysium</h3>
+<p data-en="The paradise reserved for legendary heroes. Golden halls and grand arenas where the greatest warriors of myth eternally spar. Theseus and the Minotaur defend this blessed realm." data-zh="为传奇英雄保留的乐园。金色的大厅和宏伟的竞技场，神话中最伟大的战士在此永恒对战。忒修斯和弥诺陶洛斯守护着这片受福之地。">The paradise reserved for legendary heroes. Golden halls and grand arenas where the greatest warriors of myth eternally spar. Theseus and the Minotaur defend this blessed realm.</p>
+</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-card">
+<span class="region-icon">🌿</span>
+<h3 data-en="Temple of Styx" data-zh="冥河神殿">Temple of Styx</h3>
+<p data-en="The final gauntlet before the surface. A labyrinthine temple infested with vermin, standing at the border between the Underworld and the mortal realm. Cerberus guards the final door." data-zh="通往地面前的最后考验。一座迷宫般的神殿遍布害虫，矗立在冥界与凡间的边界。刻耳柏洛斯守护着最后的大门。">The final gauntlet before the surface. A labyrinthine temple infested with vermin, standing at the border between the Underworld and the mortal realm. Cerberus guards the final door.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Quote Section -->
+<section id="quote" class="meander-border">
+<div class="section-inner reveal">
+<div class="quote-mark">"</div>
+<p class="quote-text" data-en="There is no escape... or so they say. But I have to try. Every time. No matter how many times I fall." data-zh="没有逃脱的可能……他们是这么说的。但我必须尝试。每一次。无论我倒下多少次。">There is no escape... or so they say. But I have to try. Every time. No matter how many times I fall.</p>
+<p class="quote-author" data-en="— Zagreus, Prince of the Underworld" data-zh="— 扎格列欧斯，冥界王子">— Zagreus, Prince of the Underworld</p>
+</div>
+</section>
+
+<!-- CTA Section -->
+<section id="cta">
+<div class="section-inner">
+<div class="laurel reveal">☽ ✦ ☽</div>
+<h2 class="cta-title reveal" data-en="Ready to Defy Death?" data-zh="准备好反抗死亡了吗？">Ready to Defy Death?</h2>
+<p class="cta-desc reveal" data-en="Join Zagreus on his relentless quest to escape the Underworld. Every run is different. Every death brings you closer to the truth." data-zh="加入扎格列欧斯无尽的逃亡之旅。每次旅程都不同。每次死亡都让你更接近真相。">Join Zagreus on his relentless quest to escape the Underworld. Every run is different. Every death brings you closer to the truth.</p>
+<div class="cta-buttons reveal">
+<a href="#" class="btn-primary" data-en="Enter the Underworld" data-zh="进入冥界">Enter the Underworld</a>
+<a href="#" class="btn-secondary" data-en="Learn More" data-zh="了解更多">Learn More</a>
+</div>
+</div>
+</section>
+
+<!-- Footer -->
+<footer>
+<div class="footer-inner">
+<div class="footer-col">
+<h4 data-en="Hades" data-zh="哈迪斯">Hades</h4>
+<p data-en="A rogue-like dungeon crawler by Supergiant Games. Winner of multiple Game of the Year awards. A masterpiece of narrative design and action gameplay." data-zh="Supergiant Games制作的肉鸽地牢探索游戏。多次荣获年度最佳游戏。叙事设计与动作玩法的杰作。">A rogue-like dungeon crawler by Supergiant Games. Winner of multiple Game of the Year awards. A masterpiece of narrative design and action gameplay.</p>
+</div>
+<div class="footer-col">
+<h4 data-en="Explore" data-zh="探索">Explore</h4>
+<a href="#underworld" data-en="The Underworld" data-zh="冥界">The Underworld</a>
+<a href="#boons" data-en="Olympian Boons" data-zh="奥林匹斯神恩">Olympian Boons</a>
+<a href="#weapons" data-en="Infernal Arms" data-zh="冥界神兵">Infernal Arms</a>
+<a href="#regions" data-en="Realms of the Dead" data-zh="亡者的领域">Realms of the Dead</a>
+</div>
+<div class="footer-col">
+<h4 data-en="Supergiant Games" data-zh="Supergiant Games">Supergiant Games</h4>
+<a href="#" data-en="Official Website" data-zh="官方网站">Official Website</a>
+<a href="#" data-en="Hades II" data-zh="哈迪斯 II">Hades II</a>
+<a href="#" data-en="Community" data-zh="社区">Community</a>
+<a href="#" data-en="Press Kit" data-zh="媒体资料">Press Kit</a>
+</div>
+</div>
+<div class="footer-bottom">
+<div class="laurel-footer">☽ ✦ ☽</div>
+<p data-en="Fan tribute page — Hades © Supergiant Games" data-zh="粉丝致敬页面 — 哈迪斯 © Supergiant Games">Fan tribute page — Hades © Supergiant Games</p>
+</div>
+</footer>
+
+<script>
+// ===== EMBER PARTICLE CANVAS =====
+(function(){
+const canvas=document.getElementById('ember-canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();
+window.addEventListener('resize',resize);
+
+class Ember{
+constructor(){this.reset()}
+reset(){
+this.x=Math.random()*W;
+this.y=H+Math.random()*100;
+this.size=Math.random()*3+1;
+this.speedY=-(Math.random()*1.5+0.3);
+this.speedX=(Math.random()-0.5)*0.8;
+this.opacity=Math.random()*0.6+0.2;
+this.life=0;
+this.maxLife=Math.random()*300+200;
+this.hue=Math.random()*30+10; // 10-40 range for warm orange/red
+this.flicker=Math.random()*0.02+0.005;
+}
+update(){
+this.x+=this.speedX+Math.sin(this.life*0.02)*0.3;
+this.y+=this.speedY;
+this.life++;
+this.opacity=Math.max(0,(1-this.life/this.maxLife)*(0.4+Math.sin(this.life*this.flicker*10)*0.15));
+if(this.life>=this.maxLife||this.y<-20)this.reset();
+}
+draw(ctx){
+ctx.beginPath();
+ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+const r=Math.min(255,200+this.hue*2);
+const g=Math.min(255,60+this.hue*2);
+const b=10;
+ctx.fillStyle=`rgba(${r},${g},${b},${this.opacity})`;
+ctx.shadowBlur=this.size*4;
+ctx.shadowColor=`rgba(${r},${g},${b},${this.opacity*0.5})`;
+ctx.fill();
+}
+}
+
+const embers=[];
+const count=60;
+for(let i=0;i<count;i++){
+const e=new Ember();
+e.y=Math.random()*H;
+e.life=Math.random()*e.maxLife;
+embers.push(e);
+}
+
+function animate(){
+ctx.clearRect(0,0,W,H);
+ctx.shadowBlur=0;
+for(const e of embers){e.update();e.draw(ctx)}
+requestAnimationFrame(animate);
+}
+animate();
+})();
+
+// ===== SCROLL REVEAL =====
+(function(){
+const reveals=document.querySelectorAll('.reveal');
+const observer=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}});
+},{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+reveals.forEach(el=>observer.observe(el));
+})();
+
+// ===== NAV SCROLL =====
+(function(){
+const nav=document.getElementById('navbar');
+window.addEventListener('scroll',()=>{
+nav.classList.toggle('scrolled',window.scrollY>50);
+});
+// Close mobile menu on link click
+document.querySelectorAll('.nav-links a').forEach(a=>{
+a.addEventListener('click',()=>{
+document.querySelector('.nav-links').classList.remove('open');
+});
+});
+})();
+
+// ===== LANGUAGE TOGGLE =====
+let currentLang='en';
+function toggleLang(){
+currentLang=currentLang==='en'?'zh':'en';
+document.querySelectorAll('[data-en]').forEach(el=>{
+const text=el.getAttribute('data-'+currentLang);
+if(text){
+if(el.tagName==='INPUT'||el.tagName==='TEXTAREA'){
+el.placeholder=text;
+}else{
+el.textContent=text;
+}
+}
+});
+document.documentElement.lang=currentLang==='zh'?'zh-CN':'en';
+}
+
+// ===== THEME TOGGLE =====
+function toggleTheme(){
+document.body.classList.toggle('light-theme');
+}
+</script>
+</body>
+</html>

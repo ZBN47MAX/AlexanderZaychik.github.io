@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Black Mesa Research Facility - Intranet</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   CSS RESET & BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ============================================
+   TILED BACKGROUND PATTERN
+   ============================================ */
+:root {
+  --bg-primary: #2a2a1a;
+  --bg-secondary: #3a3a2a;
+  --bg-tertiary: #4a4a3a;
+  --text-primary: #ccbb99;
+  --text-secondary: #aa9977;
+  --accent-orange: #ff8800;
+  --accent-amber: #ffaa00;
+  --accent-yellow: #ffcc00;
+  --border-brown: #554433;
+  --border-light: #776655;
+  --link-blue: #5599ff;
+  --link-visited: #aa77cc;
+  --table-header-bg: #3a3520;
+  --table-row-alt: #2f2f1f;
+  --classified-red: #cc3300;
+  --inset-dark: #1a1a10;
+  --inset-light: #6a6a5a;
+  --hr-color: #665544;
+  --font-en: Georgia, 'Times New Roman', Times, serif;
+  --font-zh: 'Noto Sans SC', sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+}
+
+[data-theme="light"] {
+  --bg-primary: #d4c8a0;
+  --bg-secondary: #e0d4b0;
+  --bg-tertiary: #c8bc94;
+  --text-primary: #2a2210;
+  --text-secondary: #4a3a20;
+  --accent-orange: #cc6600;
+  --accent-amber: #bb8800;
+  --accent-yellow: #aa7700;
+  --border-brown: #8a7755;
+  --border-light: #b0a080;
+  --link-blue: #0000ee;
+  --link-visited: #800080;
+  --table-header-bg: #b8a878;
+  --table-row-alt: #ccc0a0;
+  --classified-red: #aa0000;
+  --inset-dark: #9a8a6a;
+  --inset-light: #ece0c0;
+  --hr-color: #a09070;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-en);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.05) 3px,
+      rgba(0,0,0,0.05) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.05) 3px,
+      rgba(0,0,0,0.05) 4px
+    );
+  line-height: 1.5;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+[data-lang="zh"] body,
+[data-lang="zh"] .main-content,
+[data-lang="zh"] td,
+[data-lang="zh"] th,
+[data-lang="zh"] li,
+[data-lang="zh"] p,
+[data-lang="zh"] h1,
+[data-lang="zh"] h2,
+[data-lang="zh"] h3,
+[data-lang="zh"] span,
+[data-lang="zh"] a,
+[data-lang="zh"] .btn-retro,
+[data-lang="zh"] .footer-text,
+[data-lang="zh"] .marquee-text {
+  font-family: var(--font-zh);
+}
+
+/* ============================================
+   LAYOUT - TABLE-LIKE GRID
+   ============================================ */
+.page-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  border: 3px outset var(--border-light);
+  background: var(--bg-primary);
+}
+
+.top-bar {
+  background: linear-gradient(180deg, var(--bg-tertiary), var(--bg-secondary));
+  border-bottom: 3px ridge var(--border-brown);
+  padding: 6px 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  min-height: 80vh;
+}
+
+@media (max-width: 680px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    border-right: none !important;
+    border-bottom: 3px ridge var(--border-brown);
+  }
+}
+
+/* ============================================
+   3D BEVELED BUTTONS
+   ============================================ */
+.btn-retro {
+  font-family: var(--font-en);
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 3px outset var(--border-light);
+  background: linear-gradient(180deg, var(--bg-tertiary), var(--bg-secondary));
+  color: var(--accent-amber);
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.btn-retro:active {
+  border-style: inset;
+}
+.btn-retro:hover {
+  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-tertiary));
+  color: var(--accent-yellow);
+}
+
+/* ============================================
+   HEADER / BANNER
+   ============================================ */
+.site-header {
+  background: linear-gradient(180deg, #1a1a0f, var(--bg-secondary), #1a1a0f);
+  border-bottom: 3px ridge var(--border-brown);
+  padding: 16px 20px;
+  text-align: center;
+  position: relative;
+}
+
+.header-banner {
+  border: 3px outset var(--border-light);
+  background: linear-gradient(180deg, var(--bg-tertiary), var(--bg-primary), var(--bg-tertiary));
+  padding: 14px 20px;
+  display: inline-block;
+}
+
+.header-banner h1 {
+  font-family: var(--font-en);
+  font-size: clamp(18px, 4vw, 28px);
+  color: var(--accent-orange);
+  text-shadow: 2px 2px 0 #000, -1px -1px 0 rgba(255,136,0,0.3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+[data-lang="zh"] .header-banner h1 {
+  font-family: var(--font-zh);
+  letter-spacing: 6px;
+}
+
+.header-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.lambda-deco {
+  color: var(--accent-orange);
+  font-size: 48px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.3;
+  font-weight: bold;
+  font-family: Georgia, serif;
+}
+.lambda-left { left: 20px; }
+.lambda-right { right: 20px; }
+
+@media (max-width: 680px) {
+  .lambda-deco { display: none; }
+}
+
+/* ============================================
+   MARQUEE SCROLL
+   ============================================ */
+.marquee-bar {
+  background: var(--inset-dark);
+  border-top: 2px inset var(--border-brown);
+  border-bottom: 2px inset var(--border-brown);
+  overflow: hidden;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+.marquee-text {
+  display: inline-block;
+  animation: marquee-scroll 28s linear infinite;
+  color: var(--accent-yellow);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  padding-left: 100%;
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
+  border-right: 3px ridge var(--border-brown);
+  padding: 12px 8px;
+}
+
+.sidebar-title {
+  font-size: 13px;
+  color: var(--accent-orange);
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border-bottom: 2px groove var(--border-brown);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.sidebar-nav {
+  list-style: none;
+}
+.sidebar-nav li {
+  padding: 3px 0;
+  padding-left: 8px;
+  font-size: 13px;
+}
+.sidebar-nav li::before {
+  content: "\25C6 ";
+  color: var(--accent-amber);
+  font-size: 8px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+.sidebar-nav a {
+  color: var(--link-blue);
+  text-decoration: underline;
+  font-size: 12px;
+}
+.sidebar-nav a:visited {
+  color: var(--link-visited);
+}
+.sidebar-nav a:hover {
+  color: var(--accent-yellow);
+}
+
+.sidebar-decoration {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  border-top: 2px groove var(--border-brown);
+  padding-top: 8px;
+}
+.sidebar-lambda {
+  font-size: 40px;
+  color: var(--accent-orange);
+  opacity: 0.5;
+  display: block;
+  margin-bottom: 4px;
+  font-family: Georgia, serif;
+}
+
+/* ============================================
+   CONSTRUCTION STRIPES
+   ============================================ */
+.construction-stripe {
+  height: 14px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--accent-yellow),
+    var(--accent-yellow) 10px,
+    #222 10px,
+    #222 20px
+  );
+  animation: stripe-move 1s linear infinite;
+  border-top: 2px solid #000;
+  border-bottom: 2px solid #000;
+}
+@keyframes stripe-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 28px 0; }
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content {
+  padding: 16px 20px;
+}
+
+.section {
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.section.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Styled HR */
+hr.retro-hr {
+  border: none;
+  border-top: 2px ridge var(--hr-color);
+  border-bottom: 2px groove var(--hr-color);
+  height: 6px;
+  margin: 16px 0;
+}
+
+/* Section headers */
+.section-header {
+  background: linear-gradient(90deg, var(--bg-tertiary), transparent);
+  border: 2px outset var(--border-light);
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-header h2 {
+  font-size: clamp(14px, 2.5vw, 17px);
+  color: var(--accent-orange);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.section-header .star-deco {
+  color: var(--accent-amber);
+  font-size: 12px;
+}
+
+/* Blinking badges */
+.badge-new, .badge-hot {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 5px;
+  margin-left: 6px;
+  animation: blink-badge 1s step-end infinite;
+  border: 1px solid;
+  font-family: Arial, sans-serif;
+}
+.badge-new {
+  color: #00ff00;
+  border-color: #00ff00;
+  background: rgba(0,255,0,0.1);
+}
+.badge-hot {
+  color: #ff3300;
+  border-color: #ff3300;
+  background: rgba(255,51,0,0.1);
+}
+@keyframes blink-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Paragraph text */
+.content-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+/* ============================================
+   RETRO TABLES
+   ============================================ */
+.retro-table-wrap {
+  border: 3px ridge var(--border-brown);
+  overflow-x: auto;
+  margin: 10px 0;
+}
+.retro-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 13px;
+}
+.retro-table th {
+  background: linear-gradient(180deg, var(--bg-tertiary), var(--table-header-bg));
+  color: var(--accent-amber);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  border: 2px outset var(--border-light);
+  text-align: left;
+  white-space: nowrap;
+}
+.retro-table td {
+  padding: 5px 10px;
+  border: 1px inset var(--border-brown);
+  background: var(--bg-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+}
+.retro-table tr:nth-child(even) td {
+  background: var(--table-row-alt);
+}
+
+/* ============================================
+   CLASSIFIED STAMP
+   ============================================ */
+.classified-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.classified-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  font-size: clamp(28px, 6vw, 48px);
+  font-family: Impact, 'Arial Black', sans-serif;
+  color: var(--classified-red);
+  opacity: 0.25;
+  text-transform: uppercase;
+  letter-spacing: 8px;
+  border: 4px solid var(--classified-red);
+  padding: 4px 16px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+/* ============================================
+   INSET PANEL
+   ============================================ */
+.inset-panel {
+  border: 3px inset var(--border-light);
+  background: var(--inset-dark);
+  padding: 12px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.7;
+}
+
+/* ============================================
+   QUOTE BOX
+   ============================================ */
+.quote-box {
+  border: 2px groove var(--border-brown);
+  background: linear-gradient(135deg, rgba(0,0,0,0.2), transparent);
+  padding: 14px 18px;
+  margin: 12px 0;
+  font-style: italic;
+  position: relative;
+}
+.quote-box::before {
+  content: "\201C";
+  font-size: 40px;
+  color: var(--accent-orange);
+  opacity: 0.4;
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  font-family: Georgia, serif;
+}
+.quote-box .quote-text {
+  padding-left: 24px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.quote-box .quote-attr {
+  text-align: right;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* ============================================
+   TIMELINE
+   ============================================ */
+.timeline-item {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dotted var(--border-brown);
+  font-size: 13px;
+}
+.timeline-item:last-child { border-bottom: none; }
+.timeline-date {
+  font-family: var(--font-mono);
+  color: var(--accent-amber);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.timeline-desc {
+  color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+  .timeline-item {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.site-footer {
+  border-top: 3px ridge var(--border-brown);
+  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
+  padding: 16px 20px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Hit counter */
+.hit-counter {
+  display: inline-flex;
+  gap: 2px;
+  margin: 8px auto;
+  justify-content: center;
+}
+.hit-digit {
+  display: inline-block;
+  width: 18px;
+  height: 24px;
+  background: #000;
+  color: #00ff00;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+  border: 2px inset #444;
+}
+
+.footer-badge {
+  display: inline-block;
+  border: 2px outset #888;
+  background: linear-gradient(180deg, #666, #333);
+  color: #ccc;
+  font-size: 10px;
+  padding: 3px 10px;
+  margin: 6px 4px;
+  font-family: var(--font-mono);
+}
+
+.footer-email a {
+  color: var(--link-blue);
+  text-decoration: underline;
+  font-size: 12px;
+  animation: email-pulse 2s ease-in-out infinite;
+}
+@keyframes email-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.footer-text {
+  margin: 4px 0;
+}
+
+/* ============================================
+   SCROLL REVEAL SETUP
+   ============================================ */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   BILINGUAL TEXT
+   ============================================ */
+[data-lang="en"] [data-zh] { display: none; }
+[data-lang="zh"] [data-en] { display: none; }
+
+/* ============================================
+   MISC UTILITIES
+   ============================================ */
+.text-orange { color: var(--accent-orange); }
+.text-amber { color: var(--accent-amber); }
+.text-yellow { color: var(--accent-yellow); }
+.text-mono { font-family: var(--font-mono); }
+.text-center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mb-8 { margin-bottom: 8px; }
+
+/* List with star bullets */
+.star-list {
+  list-style: none;
+  padding-left: 4px;
+}
+.star-list li {
+  padding: 2px 0;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.star-list li::before {
+  content: "\2605 ";
+  color: var(--accent-amber);
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+/* Accessible focus */
+a:focus, button:focus {
+  outline: 2px solid var(--accent-yellow);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- ==========================================
+     PAGE WRAPPER
+     ========================================== -->
+<div class="page-wrapper">
+
+  <!-- TOP BAR: Toggles -->
+  <div class="top-bar">
+    <button class="btn-retro" id="langToggle" onclick="toggleLang()" aria-label="Toggle Language">
+      <span data-en>中文</span><span data-zh>English</span>
+    </button>
+    <button class="btn-retro" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+      <span data-en>Light Mode</span><span data-zh>浅色模式</span>
+    </button>
+  </div>
+
+  <!-- CONSTRUCTION STRIPE -->
+  <div class="construction-stripe"></div>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <span class="lambda-deco lambda-left">&lambda;</span>
+    <span class="lambda-deco lambda-right">&lambda;</span>
+    <div class="header-banner">
+      <h1>
+        <span data-en>Black Mesa Research Facility</span>
+        <span data-zh>黑山研究设施</span>
+      </h1>
+      <div class="header-subtitle">
+        <span data-en>&#9733; Classified Intranet Portal &#9733;</span>
+        <span data-zh>&#9733; 机密内部网络门户 &#9733;</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div class="marquee-bar">
+    <span class="marquee-text">
+      <span data-en>*** NOTICE: All personnel must report to Sector C for mandatory HEV suit calibration by 08:00 --- Anti-Mass Spectrometer test scheduled for tomorrow --- Remember: A safe workplace is a productive workplace --- Report any anomalous readings to Dr. Eli Vance immediately ***</span>
+      <span data-zh>*** 通知：所有人员须于08:00前到C区进行HEV防护服校准 --- 反质量光谱仪测试定于明日进行 --- 切记：安全的工作环境就是高效的工作环境 --- 如发现异常读数请立即向伊莱·万斯博士报告 ***</span>
+    </span>
+  </div>
+
+  <!-- CONSTRUCTION STRIPE -->
+  <div class="construction-stripe"></div>
+
+  <!-- MAIN LAYOUT: SIDEBAR + CONTENT -->
+  <div class="main-layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-title">
+        <span data-en>Navigation</span>
+        <span data-zh>导航菜单</span>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="#welcome"><span data-en>Welcome</span><span data-zh>欢迎</span></a></li>
+        <li><a href="#overview"><span data-en>Facility Overview</span><span data-zh>设施概况</span></a></li>
+        <li><a href="#personnel"><span data-en>Personnel</span><span data-zh>人员名录</span></a></li>
+        <li><a href="#departments"><span data-en>Departments</span><span data-zh>研究部门</span></a></li>
+        <li><a href="#safety"><span data-en>Safety Protocols</span><span data-zh>安全规程</span></a></li>
+        <li><a href="#anomalous"><span data-en>Anomalous Materials</span><span data-zh>异常材料实验室</span></a></li>
+        <li><a href="#hev"><span data-en>HEV Suit Specs</span><span data-zh>HEV防护服规格</span></a></li>
+        <li><a href="#incidents"><span data-en>Recent Incidents</span><span data-zh>近期事件</span></a></li>
+        <li><a href="#requisition"><span data-en>Equipment Req.</span><span data-zh>设备申领</span></a></li>
+        <li><a href="#gman"><span data-en>Classified Intel</span><span data-zh>机密情报</span></a></li>
+      </ul>
+      <div class="sidebar-decoration">
+        <span class="sidebar-lambda">&lambda;</span>
+        <span data-en>Sector C<br>Level 3 Access</span>
+        <span data-zh>C区<br>三级权限</span>
+      </div>
+    </nav>
+
+    <!-- CONTENT AREA -->
+    <main class="main-content">
+
+      <!-- WELCOME -->
+      <section class="section reveal-on-scroll" id="welcome">
+        <div class="section-header">
+          <span class="star-deco">&#9733;</span>
+          <h2>
+            <span data-en>Welcome</span>
+            <span data-zh>欢迎</span>
+          </h2>
+          <span class="badge-new"><span data-en>NEW!</span><span data-zh>新!</span></span>
+          <span class="star-deco">&#9733;</span>
+        </div>
+        <p class="content-text">
+          <span data-en>Welcome to the <strong>Black Mesa Research Facility</strong> intranet. This portal provides authorized personnel with access to facility resources, department information, and safety protocols. All information contained herein is classified under U.S. Government regulations. Unauthorized access will be prosecuted to the fullest extent of the law.</span>
+          <span data-zh>欢迎访问<strong>黑山研究设施</strong>内部网络。本门户为授权人员提供设施资源、部门信息及安全规程的访问权限。此处所有信息均受美国政府法规保密约束。未经授权访问将依法严惩。</span>
+        </p>
+        <p class="content-text" style="font-size:12px;">
+          <span data-en>&#9679; Please bookmark this page for quick access. &#9679; Report technical issues to the IT department at ext. 4523.</span>
+          <span data-zh>&#9679; 请收藏此页面以便快速访问。&#9679; 技术问题请联系IT部门，分机号4523。</span>
+        </p>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- FACILITY OVERVIEW -->
+      <section class="section reveal-on-scroll" id="overview">
+        <div class="section-header">
+          <span class="star-deco">&#9670;</span>
+          <h2>
+            <span data-en>Facility Overview</span>
+            <span data-zh>设施概况</span>
+          </h2>
+          <span class="star-deco">&#9670;</span>
+        </div>
+        <div class="classified-wrap">
+          <div class="classified-stamp">
+            <span data-en>CLASSIFIED</span>
+            <span data-zh>机密</span>
+          </div>
+          <div class="inset-panel">
+            <span data-en>
+              <strong>Location:</strong> Black Mesa, New Mexico, USA<br>
+              <strong>Established:</strong> 1953<br>
+              <strong>Classification:</strong> Top Secret / SCI<br>
+              <strong>Personnel Count:</strong> ~2,700 (as of Dec 1998)<br>
+              <strong>Primary Mission:</strong> Theoretical physics research, advanced materials science, teleportation technology<br>
+              <strong>Sectors:</strong> A (Administration) | B (Biological) | C (Test Labs) | D (Advanced Labs) | E (Personnel) | F (Lambda Complex)
+            </span>
+            <span data-zh>
+              <strong>地点：</strong>美国新墨西哥州 黑山<br>
+              <strong>成立时间：</strong>1953年<br>
+              <strong>密级：</strong>绝密/特殊信息隔离<br>
+              <strong>人员总数：</strong>约2,700人（截至1998年12月）<br>
+              <strong>主要任务：</strong>理论物理研究、先进材料科学、传送技术<br>
+              <strong>区划：</strong>A区（行政）| B区（生物）| C区（试验室）| D区（高级实验室）| E区（人员）| F区（Lambda综合体）
+            </span>
+          </div>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- PERSONNEL DIRECTORY -->
+      <section class="section reveal-on-scroll" id="personnel">
+        <div class="section-header">
+          <span class="star-deco">&#9679;</span>
+          <h2>
+            <span data-en>Personnel Directory</span>
+            <span data-zh>人员名录</span>
+          </h2>
+          <span class="badge-hot"><span data-en>HOT!</span><span data-zh>热门!</span></span>
+          <span class="star-deco">&#9679;</span>
+        </div>
+        <div class="retro-table-wrap">
+          <table class="retro-table">
+            <thead>
+              <tr>
+                <th><span data-en>Name</span><span data-zh>姓名</span></th>
+                <th><span data-en>Position</span><span data-zh>职务</span></th>
+                <th><span data-en>Sector</span><span data-zh>区域</span></th>
+                <th><span data-en>Clearance</span><span data-zh>权限等级</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dr. Gordon Freeman</td>
+                <td><span data-en>Research Associate</span><span data-zh>研究助理</span></td>
+                <td>C</td>
+                <td><span data-en>Level 3</span><span data-zh>三级</span></td>
+              </tr>
+              <tr>
+                <td>Dr. Isaac Kleiner</td>
+                <td><span data-en>Senior Scientist</span><span data-zh>高级科学家</span></td>
+                <td>C</td>
+                <td><span data-en>Level 4</span><span data-zh>四级</span></td>
+              </tr>
+              <tr>
+                <td>Dr. Eli Vance</td>
+                <td><span data-en>Senior Scientist</span><span data-zh>高级科学家</span></td>
+                <td>D</td>
+                <td><span data-en>Level 4</span><span data-zh>四级</span></td>
+              </tr>
+              <tr>
+                <td>Barney Calhoun</td>
+                <td><span data-en>Security Officer</span><span data-zh>安保主管</span></td>
+                <td>A-E</td>
+                <td><span data-en>Level 2</span><span data-zh>二级</span></td>
+              </tr>
+              <tr>
+                <td>Dr. Wallace Breen</td>
+                <td><span data-en>Administrator</span><span data-zh>行政长官</span></td>
+                <td>A</td>
+                <td><span data-en>Level 5</span><span data-zh>五级</span></td>
+              </tr>
+              <tr>
+                <td>Dr. Arne Magnusson</td>
+                <td><span data-en>Rocket Propulsion Lead</span><span data-zh>火箭推进负责人</span></td>
+                <td>D</td>
+                <td><span data-en>Level 4</span><span data-zh>四级</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- RESEARCH DEPARTMENTS -->
+      <section class="section reveal-on-scroll" id="departments">
+        <div class="section-header">
+          <span class="star-deco">&#9733;</span>
+          <h2>
+            <span data-en>Research Departments</span>
+            <span data-zh>研究部门</span>
+          </h2>
+          <span class="star-deco">&#9733;</span>
+        </div>
+        <ul class="star-list">
+          <li><span data-en>Anomalous Materials Laboratory</span><span data-zh>异常材料实验室</span> <span class="badge-hot"><span data-en>HOT!</span><span data-zh>热门!</span></span></li>
+          <li><span data-en>Biodome Complex &amp; Xenobiology</span><span data-zh>生态穹顶综合体与异星生物学</span></li>
+          <li><span data-en>Advanced Biological Research</span><span data-zh>高级生物研究</span></li>
+          <li><span data-en>Theoretical Physics Division</span><span data-zh>理论物理部</span></li>
+          <li><span data-en>Lambda Complex (Teleportation)</span><span data-zh>Lambda综合体（传送技术）</span> <span class="badge-new"><span data-en>NEW!</span><span data-zh>新!</span></span></li>
+          <li><span data-en>Materials Science &amp; Engineering</span><span data-zh>材料科学与工程</span></li>
+          <li><span data-en>Nuclear Physics Laboratory</span><span data-zh>核物理实验室</span></li>
+          <li><span data-en>Hazardous Environment Combat Unit (HECU) Liaison</span><span data-zh>危险环境作战单位(HECU)联络处</span></li>
+        </ul>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- SAFETY PROTOCOLS -->
+      <section class="section reveal-on-scroll" id="safety">
+        <div class="section-header">
+          <span class="star-deco">&#9670;</span>
+          <h2>
+            <span data-en>Safety Protocols</span>
+            <span data-zh>安全规程</span>
+          </h2>
+          <span class="star-deco">&#9670;</span>
+        </div>
+        <div class="inset-panel">
+          <span data-en>
+            <strong style="color:var(--accent-yellow);">&#9888; MANDATORY SAFETY GUIDELINES &#9888;</strong><br><br>
+            1. All Level 3+ personnel must wear HEV suits in test chambers at all times.<br>
+            2. Report any unusual resonance cascade readings to your sector supervisor immediately.<br>
+            3. Headcrabs are NOT pets. Do not attempt to domesticate fauna from Xen.<br>
+            4. Emergency evacuation routes are posted in every corridor. Know your nearest exit.<br>
+            5. The on-site nuclear warhead is for EMERGENCY USE ONLY (see Administrator Breen).<br>
+            6. Do not look directly into the Anti-Mass Spectrometer beam.<br>
+            7. Security doors must remain locked during Code Red. No exceptions.<br>
+            8. All inter-dimensional samples must be stored in quarantine lockers.
+          </span>
+          <span data-zh>
+            <strong style="color:var(--accent-yellow);">&#9888; 强制性安全准则 &#9888;</strong><br><br>
+            1. 所有三级及以上人员在测试室内必须始终穿戴HEV防护服。<br>
+            2. 如发现异常谐振级联读数，立即报告所在区域主管。<br>
+            3. 猎头蟹不是宠物。禁止驯化来自Xen的生物。<br>
+            4. 每条走廊均张贴紧急疏散路线图，请熟知最近出口。<br>
+            5. 现场核弹头仅供紧急情况使用（详情咨询布林行政长官）。<br>
+            6. 请勿直视反质量光谱仪光束。<br>
+            7. 红色警报期间安全门必须保持锁定，无一例外。<br>
+            8. 所有跨维度样本须存放于隔离储物柜中。
+          </span>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- ANOMALOUS MATERIALS LAB -->
+      <section class="section reveal-on-scroll" id="anomalous">
+        <div class="section-header">
+          <span class="star-deco">&#9733;</span>
+          <h2>
+            <span data-en>Anomalous Materials Lab</span>
+            <span data-zh>异常材料实验室</span>
+          </h2>
+          <span class="badge-new"><span data-en>NEW!</span><span data-zh>新!</span></span>
+          <span class="star-deco">&#9733;</span>
+        </div>
+        <div class="classified-wrap">
+          <div class="classified-stamp">
+            <span data-en>TOP SECRET</span>
+            <span data-zh>绝密</span>
+          </div>
+          <p class="content-text">
+            <span data-en>The Anomalous Materials Laboratory (Sector C, Test Lab C-33/a) is the primary site for analysis of exotic materials, including specimens of unknown origin. The Anti-Mass Spectrometer, our facility's most advanced piece of equipment, is housed within this sector.</span>
+            <span data-zh>异常材料实验室（C区，测试实验室C-33/a）是分析奇异材料（包括来源不明样本）的主要场所。我设施最先进的设备——反质量光谱仪即安装于此区域。</span>
+          </p>
+          <div class="inset-panel">
+            <span data-en>
+              <strong>Current Project:</strong> Sample GG-3883 Analysis<br>
+              <strong>Material:</strong> Crystalline artifact, Xen origin (unconfirmed)<br>
+              <strong>Properties:</strong> Emits low-level ionizing radiation; exhibits non-standard quantum behavior<br>
+              <strong>Status:</strong> <span style="color:var(--accent-yellow);">ANALYSIS IN PROGRESS</span><br>
+              <strong>Test Lead:</strong> Dr. Gordon Freeman<br>
+              <strong>Next Test:</strong> Full-power Anti-Mass Spectrometer scan — <span style="color:var(--classified-red);">TOMORROW, 08:30</span>
+            </span>
+            <span data-zh>
+              <strong>当前项目：</strong>样本GG-3883分析<br>
+              <strong>材料：</strong>晶体器物，疑似Xen来源（未确认）<br>
+              <strong>特性：</strong>释放低水平电离辐射；表现出非标准量子行为<br>
+              <strong>状态：</strong><span style="color:var(--accent-yellow);">分析进行中</span><br>
+              <strong>测试负责人：</strong>戈登·弗里曼博士<br>
+              <strong>下次测试：</strong>反质量光谱仪全功率扫描 — <span style="color:var(--classified-red);">明日 08:30</span>
+            </span>
+          </div>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- HEV SUIT SPECS -->
+      <section class="section reveal-on-scroll" id="hev">
+        <div class="section-header">
+          <span class="star-deco">&#9679;</span>
+          <h2>
+            <span data-en>HEV Suit Mark V Specifications</span>
+            <span data-zh>HEV Mark V防护服技术规格</span>
+          </h2>
+          <span class="star-deco">&#9679;</span>
+        </div>
+        <div class="retro-table-wrap">
+          <table class="retro-table">
+            <thead>
+              <tr>
+                <th><span data-en>Parameter</span><span data-zh>参数</span></th>
+                <th><span data-en>Specification</span><span data-zh>规格</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span data-en>Designation</span><span data-zh>型号名称</span></td>
+                <td>Mark V HEV Suit</td>
+              </tr>
+              <tr>
+                <td><span data-en>Manufacturer</span><span data-zh>制造商</span></td>
+                <td>Black Mesa R&D</td>
+              </tr>
+              <tr>
+                <td><span data-en>Radiation Shielding</span><span data-zh>辐射防护</span></td>
+                <td><span data-en>Class IV (up to 500 rads)</span><span data-zh>IV级（最高500拉德）</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Ballistic Protection</span><span data-zh>弹道防护</span></td>
+                <td><span data-en>NIJ Level IIIA equivalent</span><span data-zh>相当于NIJ IIIA级</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Power Supply</span><span data-zh>供电</span></td>
+                <td><span data-en>Integrated fusion cell, 72-hr runtime</span><span data-zh>集成聚变电池，72小时续航</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>HUD System</span><span data-zh>抬头显示系统</span></td>
+                <td><span data-en>Vitals, ammo, Geiger, flashlight, sprint</span><span data-zh>生命体征、弹药、盖革计数、手电筒、冲刺</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Medical Station Compat.</span><span data-zh>医疗站兼容</span></td>
+                <td><span data-en>Auto-inject morphine & antidote system</span><span data-zh>自动注射吗啡及解毒系统</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Long Jump Module</span><span data-zh>远跳模块</span></td>
+                <td><span data-en>Optional add-on (Sector F)</span><span data-zh>可选附加组件（F区）</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Weight</span><span data-zh>重量</span></td>
+                <td>23 kg</td>
+              </tr>
+              <tr>
+                <td><span data-en>Voice System</span><span data-zh>语音系统</span></td>
+                <td><span data-en>Integrated AI — automatic hazard alerts</span><span data-zh>集成AI — 自动危险警报</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- RECENT INCIDENTS -->
+      <section class="section reveal-on-scroll" id="incidents">
+        <div class="section-header">
+          <span class="star-deco">&#9733;</span>
+          <h2>
+            <span data-en>Recent Incidents</span>
+            <span data-zh>近期事件</span>
+          </h2>
+          <span class="badge-hot"><span data-en>HOT!</span><span data-zh>热门!</span></span>
+          <span class="star-deco">&#9733;</span>
+        </div>
+
+        <div class="timeline-item">
+          <span class="timeline-date">1998-12-01</span>
+          <span class="timeline-desc">
+            <span data-en>Minor containment breach in Sector D. Biological samples recontained within 40 minutes. No casualties.</span>
+            <span data-zh>D区发生轻微密封泄漏事故。生物样本在40分钟内重新收容。无人员伤亡。</span>
+          </span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-date">1998-11-22</span>
+          <span class="timeline-desc">
+            <span data-en>Power fluctuation in Lambda Complex. Backup generators activated. Teleportation array offline for 6 hours.</span>
+            <span data-zh>Lambda综合体发生电力波动。备用发电机启动。传送阵列离线6小时。</span>
+          </span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-date">1998-11-15</span>
+          <span class="timeline-desc">
+            <span data-en>Security Officer B. Calhoun reports suspicious individual in suit near Sector A. Investigation inconclusive.</span>
+            <span data-zh>安保人员B.卡尔霍恩报告在A区附近发现身着西装的可疑人员。调查结果不明。</span>
+          </span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-date">1998-10-30</span>
+          <span class="timeline-desc">
+            <span data-en>Unexpected readings from Xen crystal sample GG-3883. Administrator Breen orders full-power spectrometer test.</span>
+            <span data-zh>Xen晶体样本GG-3883出现异常读数。布林行政长官下令进行全功率光谱仪测试。</span>
+          </span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-date">1998-10-12</span>
+          <span class="timeline-desc">
+            <span data-en>Headcrab specimen escapes Lab B-14. Recaptured by security in ventilation shaft B-7. One minor injury.</span>
+            <span data-zh>猎头蟹标本从B-14实验室逃脱。安保人员在B-7通风管道中将其捕获。一人轻伤。</span>
+          </span>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- EQUIPMENT REQUISITION -->
+      <section class="section reveal-on-scroll" id="requisition">
+        <div class="section-header">
+          <span class="star-deco">&#9670;</span>
+          <h2>
+            <span data-en>Equipment Requisition</span>
+            <span data-zh>设备申领</span>
+          </h2>
+          <span class="star-deco">&#9670;</span>
+        </div>
+        <p class="content-text">
+          <span data-en>Use form <strong>BM-7G</strong> (available at Administration, Sector A) to submit equipment requests. Standard processing time is 5-10 business days. Rush requests require Level 4 supervisor approval.</span>
+          <span data-zh>请使用<strong>BM-7G</strong>表格（可在A区行政处领取）提交设备申请。标准处理时间为5-10个工作日。加急申请需四级主管批准。</span>
+        </p>
+        <div class="retro-table-wrap">
+          <table class="retro-table">
+            <thead>
+              <tr>
+                <th><span data-en>Item</span><span data-zh>物品</span></th>
+                <th><span data-en>Stock</span><span data-zh>库存</span></th>
+                <th><span data-en>Clearance Req.</span><span data-zh>所需权限</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span data-en>HEV Suit Battery Pack</span><span data-zh>HEV防护服电池组</span></td>
+                <td style="color:#00cc00;"><span data-en>In Stock</span><span data-zh>有货</span></td>
+                <td><span data-en>Level 2</span><span data-zh>二级</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Crowbar (Standard Issue)</span><span data-zh>撬棍（标准配发）</span></td>
+                <td style="color:#00cc00;"><span data-en>In Stock</span><span data-zh>有货</span></td>
+                <td><span data-en>Level 1</span><span data-zh>一级</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>9mm Sidearm</span><span data-zh>9毫米手枪</span></td>
+                <td style="color:var(--accent-yellow);"><span data-en>Low Stock</span><span data-zh>库存不足</span></td>
+                <td><span data-en>Level 3 (Security)</span><span data-zh>三级（安保）</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Tau Cannon Prototype</span><span data-zh>Tau加农炮原型</span></td>
+                <td style="color:var(--classified-red);"><span data-en>Restricted</span><span data-zh>限制</span></td>
+                <td><span data-en>Level 5</span><span data-zh>五级</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>First Aid Kit</span><span data-zh>急救箱</span></td>
+                <td style="color:#00cc00;"><span data-en>In Stock</span><span data-zh>有货</span></td>
+                <td><span data-en>Level 1</span><span data-zh>一级</span></td>
+              </tr>
+              <tr>
+                <td><span data-en>Long Jump Module</span><span data-zh>远跳模块</span></td>
+                <td style="color:var(--classified-red);"><span data-en>Restricted</span><span data-zh>限制</span></td>
+                <td><span data-en>Level 4</span><span data-zh>四级</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+      <!-- G-MAN / CLASSIFIED INTEL -->
+      <section class="section reveal-on-scroll" id="gman">
+        <div class="section-header">
+          <span class="star-deco">&#9733;</span>
+          <h2>
+            <span data-en>Classified Intel</span>
+            <span data-zh>机密情报</span>
+          </h2>
+          <span class="star-deco">&#9733;</span>
+        </div>
+        <div class="classified-wrap">
+          <div class="classified-stamp">
+            <span data-en>CLASSIFIED</span>
+            <span data-zh>机密</span>
+          </div>
+          <div class="quote-box">
+            <div class="quote-text">
+              <span data-en>Rise and shine, Mister Freeman. Rise... and... shine. Not that I wish to imply you have been sleeping on the job. No one is more deserving of a rest, and all the effort in the world would have gone to waste until... well, let's just say your hour has come again.</span>
+              <span data-zh>起来吧，弗里曼先生。起来吧……我并非暗示您在工作时间睡觉。没有人比您更值得休息，而世上一切努力都将付诸东流，直到……好吧，我们只说，属于您的时刻再度来临了。</span>
+            </div>
+            <div class="quote-attr">
+              <span data-en>-- Unknown Individual (ref: "G-Man"), intercepted transmission, date unknown</span>
+              <span data-zh>-- 身份不明人员（代号："G-Man"），截获通讯，日期不明</span>
+            </div>
+          </div>
+          <p class="content-text" style="font-size:12px; margin-top:8px;">
+            <span data-en>&#9888; <em>Note: Multiple personnel have reported sightings of an unidentified male in a blue suit carrying a briefcase. Subject appears and disappears without explanation. All sightings are to be reported to Security immediately. Do NOT attempt to engage.</em></span>
+            <span data-zh>&#9888; <em>注：多名人员报告目击一名身着蓝色西装、手提公文包的不明男性。该人员出现和消失均无法解释。所有目击情况须立即报告安保部门。请勿尝试接触。</em></span>
+          </p>
+        </div>
+        <hr class="retro-hr">
+      </section>
+
+    </main>
+  </div><!-- /main-layout -->
+
+  <!-- CONSTRUCTION STRIPE -->
+  <div class="construction-stripe"></div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+
+    <!-- Hit counter -->
+    <div class="footer-text">
+      <span data-en>You are visitor number:</span>
+      <span data-zh>您是第</span>
+    </div>
+    <div class="hit-counter" id="hitCounter">
+      <span class="hit-digit">0</span>
+      <span class="hit-digit">1</span>
+      <span class="hit-digit">4</span>
+      <span class="hit-digit">8</span>
+      <span class="hit-digit">5</span>
+      <span class="hit-digit">2</span>
+    </div>
+    <div class="footer-text" style="display:none;" data-zh>位访客</div>
+
+    <br>
+
+    <!-- Badges -->
+    <span class="footer-badge">
+      <span data-en>Best viewed at 800x600</span>
+      <span data-zh>最佳分辨率 800x600</span>
+    </span>
+    <span class="footer-badge">
+      <span data-en>Best viewed in Netscape Navigator 4.0</span>
+      <span data-zh>推荐使用 Netscape Navigator 4.0</span>
+    </span>
+
+    <div class="footer-text mt-8">
+      <span data-en>Last Updated: December 15, 1998</span>
+      <span data-zh>最后更新：1998年12月15日</span>
+    </div>
+
+    <div class="footer-email mt-8">
+      <span data-en>&#9993; Questions? Email the <a href="mailto:webmaster@blackmesa.gov">Webmaster</a></span>
+      <span data-zh>&#9993; 如有疑问请联系 <a href="mailto:webmaster@blackmesa.gov">网站管理员</a></span>
+    </div>
+
+    <div class="footer-text mt-8" style="font-size:10px; opacity:0.6;">
+      <span data-en>&copy; 1998 Black Mesa Research Facility. All rights reserved.<br>Unauthorized access is a federal offense.</span>
+      <span data-zh>&copy; 1998 黑山研究设施 版权所有<br>未经授权访问属联邦犯罪行为</span>
+    </div>
+
+    <!-- Guestbook link -->
+    <div class="footer-text mt-8">
+      <a href="#" style="color:var(--link-blue); font-size:12px;">
+        <span data-en>&#9998; Sign our Guestbook!</span>
+        <span data-zh>&#9998; 签写留言簿！</span>
+      </a>
+    </div>
+
+  </footer>
+
+  <!-- CONSTRUCTION STRIPE -->
+  <div class="construction-stripe"></div>
+
+</div><!-- /page-wrapper -->
+
+<script>
+/* ============================================
+   LANGUAGE TOGGLE
+   ============================================ */
+function toggleLang() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-lang');
+  const next = current === 'en' ? 'zh' : 'en';
+  html.setAttribute('data-lang', next);
+  // Show the zh visitor suffix
+  const zhSuffix = document.querySelector('.footer-text[data-zh]');
+  if (zhSuffix) {
+    zhSuffix.style.display = next === 'zh' ? 'block' : 'none';
+  }
+}
+
+/* ============================================
+   THEME TOGGLE
+   ============================================ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  // Update button text
+  const btn = document.getElementById('themeToggle');
+  const enSpan = btn.querySelector('[data-en]');
+  const zhSpan = btn.querySelector('[data-zh]');
+  if (next === 'dark') {
+    enSpan.textContent = 'Light Mode';
+    zhSpan.textContent = '浅色模式';
+  } else {
+    enSpan.textContent = 'Dark Mode';
+    zhSpan.textContent = '深色模式';
+  }
+}
+
+/* ============================================
+   SCROLL REVEAL
+   ============================================ */
+(function() {
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+      }
+    });
+  }, {
+    threshold: 0.08,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  document.querySelectorAll('.reveal-on-scroll, .section').forEach(function(el) {
+    observer.observe(el);
+  });
+})();
+
+/* ============================================
+   ANIMATED HIT COUNTER (increments on load)
+   ============================================ */
+(function() {
+  const digits = document.querySelectorAll('.hit-digit');
+  const base = [0, 1, 4, 8, 5, 2];
+  const increment = Math.floor(Math.random() * 5) + 1;
+  let num = 0;
+  for (let i = 0; i < base.length; i++) {
+    num = num * 10 + base[i];
+  }
+  num += increment;
+  const str = String(num).padStart(6, '0');
+  setTimeout(function() {
+    for (let i = 0; i < digits.length; i++) {
+      digits[i].textContent = str[i];
+    }
+  }, 800);
+})();
+</script>
+
+</body>
+</html>

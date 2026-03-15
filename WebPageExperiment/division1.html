@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全境封锁 | THE DIVISION</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg: #0c0c0e;
+    --bg2: #121215;
+    --bg3: #1a1a1f;
+    --text: #d4cfc6;
+    --text-dim: #6a665e;
+    --accent: #f58a07;
+    --accent2: #e07000;
+    --accent-glow: rgba(245, 138, 7, 0.15);
+    --shd-orange: #ff6a00;
+    --shd-dim: rgba(255, 106, 0, 0.1);
+    --danger: #c42b2b;
+    --contamination: #d4a017;
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.06);
+    --shadow: 0 8px 32px rgba(0,0,0,0.7);
+    --font-zh: 'Noto Sans SC', sans-serif;
+    --font-en: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] {
+    --bg: #e5e0d5;
+    --bg2: #dad5c9;
+    --bg3: #cec9bd;
+    --text: #1e1d1a;
+    --text-dim: #7a766e;
+    --accent: #d47000;
+    --accent2: #b85e00;
+    --accent-glow: rgba(212, 112, 0, 0.1);
+    --shd-orange: #d45a00;
+    --shd-dim: rgba(212, 90, 0, 0.08);
+    --danger: #a02020;
+    --contamination: #b08a10;
+    --surface: rgba(0, 0, 0, 0.04);
+    --border: rgba(0, 0, 0, 0.08);
+    --shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-zh);
+    line-height: 1.8;
+    transition: background var(--transition), color var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ===== Snow Canvas ===== */
+  #snow-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  [data-theme="light"] #snow-canvas { opacity: 0.25; }
+
+  /* ===== Scanline + Noise ===== */
+  .overlay-noise {
+    position: fixed; inset: 0; z-index: 9998;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .overlay-scanline {
+    position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.012) 2px, rgba(0,0,0,0.012) 4px);
+  }
+
+  /* ===== SHD Circle Deco ===== */
+  .shd-circle {
+    position: fixed;
+    right: -120px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 400px;
+    height: 400px;
+    border: 1px solid var(--shd-dim);
+    border-radius: 50%;
+    z-index: 0;
+    opacity: 0.3;
+  }
+  .shd-circle::before {
+    content: '';
+    position: absolute;
+    inset: 30px;
+    border: 1px solid var(--shd-dim);
+    border-radius: 50%;
+  }
+  .shd-circle::after {
+    content: '';
+    position: absolute;
+    inset: 60px;
+    border: 1px dashed var(--shd-dim);
+    border-radius: 50%;
+    animation: shd-rotate 60s linear infinite;
+  }
+  @keyframes shd-rotate { to { transform: rotate(360deg); } }
+
+  /* ===== HUD left line ===== */
+  .hud-line-left {
+    position: fixed;
+    left: 24px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent 5%, var(--accent) 20%, var(--accent) 80%, transparent 95%);
+    opacity: 0.08;
+    z-index: 1;
+  }
+  .hud-line-left::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: -3px;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    animation: hud-pulse 3s ease-in-out infinite;
+  }
+  @keyframes hud-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== Controls ===== */
+  .controls {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+  }
+  .ctrl-btn {
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 42px; height: 42px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  .ctrl-btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 16px var(--accent-glow);
+    background: var(--shd-dim);
+  }
+
+  /* ===== Nav ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 90;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    backdrop-filter: blur(16px);
+    background: linear-gradient(to bottom, var(--bg), transparent);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-icon::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-en);
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* ===== Hero ===== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 80px;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 60%, var(--shd-dim) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(196, 43, 43, 0.05) 0%, transparent 40%);
+    z-index: 0;
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 700px; }
+
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before {
+    content: '//';
+    opacity: 0.5;
+  }
+
+  .hero h1 {
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: clamp(42px, 7vw, 96px);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .hero h1 .tom {
+    display: block;
+    font-size: 0.2em;
+    letter-spacing: 12px;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+
+  .hero-sub {
+    margin-top: 24px;
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 480px;
+    line-height: 1.9;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .hero-stat-num {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    color: var(--accent);
+  }
+  .hero-stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 80px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+  }
+  .scroll-hint .line {
+    width: 40px;
+    height: 1px;
+    background: var(--text-dim);
+  }
+
+  /* ===== Sections ===== */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 100px 80px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::before {
+    content: '■';
+    font-size: 8px;
+  }
+
+  .section-title {
+    font-size: clamp(26px, 3.5vw, 44px);
+    font-weight: 300;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 580px;
+    margin-bottom: 56px;
+    font-size: 14px;
+  }
+
+  /* ===== Intel Cards ===== */
+  .intel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .intel-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px 28px;
+    position: relative;
+    transition: all 0.4s;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+  .intel-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 3px;
+    background: var(--accent);
+    transition: width 0.4s;
+  }
+  .intel-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow), inset 0 0 40px var(--shd-dim);
+  }
+  .intel-card:hover::before { width: 100%; }
+
+  .intel-card .card-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.6;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+
+  .intel-card h3 {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  .intel-card p {
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .intel-card .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border: 1px solid;
+  }
+  .status-active { color: #4a4; border-color: #4a4; }
+  .status-alert { color: var(--danger); border-color: var(--danger); }
+  .status-warn { color: var(--contamination); border-color: var(--contamination); }
+  .status-info { color: var(--accent); border-color: var(--accent); }
+  .status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: status-blink 2s ease-in-out infinite;
+  }
+  @keyframes status-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ===== Map Section ===== */
+  .map-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-container::before {
+    content: 'MANHATTAN QUARANTINE ZONE';
+    position: absolute;
+    top: 16px; right: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--danger);
+    opacity: 0.5;
+  }
+
+  .zone-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .zone {
+    border: 1px dashed var(--border);
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .zone:hover {
+    border-color: var(--accent);
+    background: var(--shd-dim);
+  }
+  .zone-name {
+    font-family: var(--font-en);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .zone-level {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .zone-threat {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .threat-high { color: var(--danger); }
+  .threat-med { color: var(--contamination); }
+  .threat-low { color: #5a5; }
+
+  /* ===== Faction Section ===== */
+  .faction-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .faction {
+    display: flex;
+    gap: 20px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .faction:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .faction-icon {
+    width: 56px; height: 56px;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: var(--shd-dim);
+  }
+
+  .faction h3 {
+    font-size: 17px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .faction p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ===== ISAC Log ===== */
+  .isac-log {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 32px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 2;
+    position: relative;
+    overflow: hidden;
+  }
+  .isac-log::before {
+    content: 'ISAC // SYSTEM LOG';
+    display: block;
+    color: var(--accent);
+    letter-spacing: 4px;
+    font-size: 11px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-line {
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .log-line .timestamp {
+    color: var(--accent);
+    opacity: 0.6;
+    margin-right: 12px;
+  }
+  .log-line .warn { color: var(--contamination); }
+  .log-line .error { color: var(--danger); }
+  .log-line .ok { color: #5a5; }
+
+  /* ===== Gear Stats ===== */
+  .gear-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin: 60px 0;
+  }
+  .gear-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 36px 20px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .gear-stat:hover {
+    background: var(--shd-dim);
+    border-color: var(--accent);
+  }
+  .gear-stat-num {
+    font-family: var(--font-mono);
+    font-size: 36px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .gear-stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+  .gear-stat-bar {
+    width: 60%;
+    height: 2px;
+    background: var(--border);
+    margin: 12px auto 0;
+    position: relative;
+  }
+  .gear-stat-bar::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--accent);
+    width: var(--fill, 70%);
+  }
+
+  /* ===== Quote ===== */
+  .quote-section {
+    text-align: center;
+    padding: 100px 40px;
+  }
+  .isac-avatar {
+    width: 60px; height: 60px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    position: relative;
+  }
+  .isac-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 1px dashed var(--accent);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: shd-rotate 20s linear infinite;
+  }
+
+  blockquote {
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 300;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .quote-author {
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 4px;
+  }
+
+  /* ===== CTA ===== */
+  .cta-section { text-align: center; padding: 100px 40px; }
+  .cta-btn {
+    display: inline-block;
+    font-family: var(--font-en);
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    padding: 16px 48px;
+    cursor: pointer;
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .cta-btn:hover {
+    box-shadow: 0 0 40px var(--accent-glow);
+    filter: brightness(1.1);
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 40px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    font-family: var(--font-mono);
+  }
+
+  /* ===== Animations ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s, transform 0.7s;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; gap: 16px; }
+    .nav-links { display: none; }
+    .hero { padding: 0 24px; }
+    section { padding: 60px 24px; }
+    .gear-stats { grid-template-columns: repeat(2, 1fr); }
+    .faction-list { grid-template-columns: 1fr; }
+    .zone-grid { grid-template-columns: 1fr; }
+    .hero-stats { flex-wrap: wrap; gap: 24px; }
+    .controls { top: 14px; right: 14px; }
+    .scroll-hint { left: 24px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="snow-canvas"></canvas>
+<div class="overlay-noise"></div>
+<div class="overlay-scanline"></div>
+<div class="shd-circle"></div>
+<div class="hud-line-left"></div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="lang-toggle" title="EN / 中文">文</button>
+  <button class="ctrl-btn" id="theme-toggle" title="Light / Dark">☀</button>
+</div>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon"></div>
+    SHD
+  </div>
+  <ul class="nav-links">
+    <li><a href="#overview" data-zh="概览" data-en="Overview">概览</a></li>
+    <li><a href="#intel" data-zh="情报" data-en="Intel">情报</a></li>
+    <li><a href="#zones" data-zh="区域" data-en="Zones">区域</a></li>
+    <li><a href="#factions" data-zh="势力" data-en="Factions">势力</a></li>
+    <li><a href="#comms" data-zh="通讯" data-en="Comms">通讯</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag" data-zh="SHD 紧急指令 // 纽约市" data-en="SHD DIRECTIVE // NEW YORK CITY">SHD 紧急指令 // 纽约市</div>
+    <h1>
+      <span class="tom">TOM CLANCY'S</span>
+      THE<br>DIVISION
+    </h1>
+    <p class="hero-sub" data-zh="一场致命的瘟疫席卷了纽约市。在短短五天内，基础设施陷入瘫痪，社会秩序土崩瓦解。你是国土战略局（SHD）的一名特工，被激活去拯救残存的一切。" data-en="A deadly pandemic sweeps through New York City. Within five days, infrastructure collapses and social order crumbles. You are a Strategic Homeland Division agent, activated to save what remains.">一场致命的瘟疫席卷了纽约市。在短短五天内，基础设施陷入瘫痪，社会秩序土崩瓦解。你是国土战略局（SHD）的一名特工，被激活去拯救残存的一切。</p>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">DAY 23</div>
+        <div class="hero-stat-label" data-zh="疫情爆发后" data-en="POST-OUTBREAK">疫情爆发后</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">8.4M</div>
+        <div class="hero-stat-label" data-zh="受灾人口" data-en="AFFECTED POP.">受灾人口</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">78%</div>
+        <div class="hero-stat-label" data-zh="基础设施损毁" data-en="INFRA. DAMAGED">基础设施损毁</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span class="line"></span>
+    <span>SCROLL</span>
+  </div>
+</section>
+
+<!-- Overview -->
+<section id="overview">
+  <div class="reveal">
+    <div class="section-label" data-zh="概览 // 美元流感" data-en="OVERVIEW // GREEN POISON">概览 // 美元流感</div>
+    <h2 class="section-title" data-zh=""美元流感"：改变一切的五天" data-en="'Green Poison': Five Days That Changed Everything">"美元流感"：改变一切的五天</h2>
+    <p class="section-desc" data-zh="黑色星期五那天，一种经过基因改造的天花病毒通过纸币传播。被称为"美元流感"的这场瘟疫在几天之内击垮了纽约。政府启动了51号指令，沉睡中的国土战略局特工被逐一激活。" data-en="On Black Friday, a genetically modified smallpox virus spread through banknotes. The pandemic, dubbed 'Green Poison,' brought New York to its knees within days. The government activated Directive 51, waking sleeper agents of the Strategic Homeland Division one by one.">黑色星期五那天，一种经过基因改造的天花病毒通过纸币传播。被称为"美元流感"的这场瘟疫在几天之内击垮了纽约。政府启动了51号指令，沉睡中的国土战略局特工被逐一激活。</p>
+  </div>
+
+  <div class="gear-stats reveal">
+    <div class="gear-stat">
+      <div class="gear-stat-num">47K</div>
+      <div class="gear-stat-label" data-zh="活跃特工" data-en="Active Agents">活跃特工</div>
+      <div class="gear-stat-bar" style="--fill: 62%"></div>
+    </div>
+    <div class="gear-stat">
+      <div class="gear-stat-num">312</div>
+      <div class="gear-stat-label" data-zh="安全屋已建立" data-en="Safe Houses">安全屋已建立</div>
+      <div class="gear-stat-bar" style="--fill: 78%"></div>
+    </div>
+    <div class="gear-stat">
+      <div class="gear-stat-num">89%</div>
+      <div class="gear-stat-label" data-zh="曼哈顿封锁率" data-en="Manhattan Lockdown">曼哈顿封锁率</div>
+      <div class="gear-stat-bar" style="--fill: 89%"></div>
+    </div>
+    <div class="gear-stat">
+      <div class="gear-stat-num">LV30</div>
+      <div class="gear-stat-label" data-zh="威胁等级上限" data-en="Max Threat Level">威胁等级上限</div>
+      <div class="gear-stat-bar" style="--fill: 100%"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Intel -->
+<section id="intel">
+  <div class="reveal">
+    <div class="section-label" data-zh="情报 // 系统档案" data-en="INTEL // SYSTEM FILES">情报 // 系统档案</div>
+    <h2 class="section-title" data-zh="ISAC 系统情报简报" data-en="ISAC Intelligence Briefing">ISAC 系统情报简报</h2>
+    <p class="section-desc" data-zh="以下为ISAC系统汇编的最新行动情报。所有数据经过SHD网络加密验证。" data-en="The following is the latest operational intelligence compiled by ISAC. All data encrypted and verified through the SHD network.">以下为ISAC系统汇编的最新行动情报。所有数据经过SHD网络加密验证。</p>
+  </div>
+
+  <div class="intel-grid reveal">
+    <div class="intel-card">
+      <div class="card-num">INTEL-001</div>
+      <h3 data-zh="51号总统指令" data-en="Presidential Directive 51">51号总统指令</h3>
+      <p data-zh="在国家遭遇灾难性紧急事件时，51号指令授权激活国土战略局。特工被赋予广泛的自主权，在政府功能丧失时维持社会秩序和重建文明。" data-en="In the event of a catastrophic national emergency, Directive 51 authorizes activation of the Strategic Homeland Division. Agents are granted broad autonomy to maintain social order and rebuild civilization when government functions cease.">在国家遭遇灾难性紧急事件时，51号指令授权激活国土战略局。特工被赋予广泛的自主权，在政府功能丧失时维持社会秩序和重建文明。</p>
+      <span class="status status-active">ACTIVE</span>
+    </div>
+    <div class="intel-card">
+      <div class="card-num">INTEL-002</div>
+      <h3 data-zh="暗区协议" data-en="Dark Zone Protocol">暗区协议</h3>
+      <p data-zh="曼哈顿中城被划为暗区——污染最严重的隔离地带。在那里，法律不复存在，叛变特工和各方势力争夺高价值装备。信号干扰使ISAC无法提供支援。" data-en="Midtown Manhattan is designated the Dark Zone — the most contaminated quarantine area. There, law ceases to exist, rogue agents and factions fight over high-value gear. Signal jamming prevents ISAC support.">曼哈顿中城被划为暗区——污染最严重的隔离地带。在那里，法律不复存在，叛变特工和各方势力争夺高价值装备。信号干扰使ISAC无法提供支援。</p>
+      <span class="status status-alert">DANGER</span>
+    </div>
+    <div class="intel-card">
+      <div class="card-num">INTEL-003</div>
+      <h3 data-zh="ISAC 系统" data-en="ISAC System">ISAC 系统</h3>
+      <p data-zh="智能系统分析计算机（ISAC）是SHD特工的核心支援AI。它提供实时战术数据、目标标记、威胁分析和通信加密，是特工在末日中最可靠的伙伴。" data-en="The Intelligent System Analytic Computer (ISAC) is the core support AI for SHD agents. It provides real-time tactical data, target marking, threat analysis, and comm encryption — an agent's most reliable companion in the apocalypse.">智能系统分析计算机（ISAC）是SHD特工的核心支援AI。它提供实时战术数据、目标标记、威胁分析和通信加密，是特工在末日中最可靠的伙伴。</p>
+      <span class="status status-info">ONLINE</span>
+    </div>
+    <div class="intel-card">
+      <div class="card-num">INTEL-004</div>
+      <h3 data-zh="基地行动中心" data-en="Base of Operations">基地行动中心</h3>
+      <p data-zh="邮政大楼被改造为SHD的行动总部。医疗翼、技术翼和安全翼三大设施需要逐步升级，以解锁更多技能和装备。" data-en="The Post Office building has been converted into SHD's operational headquarters. The Medical, Tech, and Security wings must be progressively upgraded to unlock more skills and equipment.">邮政大楼被改造为SHD的行动总部。医疗翼、技术翼和安全翼三大设施需要逐步升级，以解锁更多技能和装备。</p>
+      <span class="status status-warn">UPGRADING</span>
+    </div>
+    <div class="intel-card">
+      <div class="card-num">INTEL-005</div>
+      <h3 data-zh="美元流感源头" data-en="Green Poison Origin">美元流感源头</h3>
+      <p data-zh="病毒由前政府科学家戈登·阿默斯特制造，他相信人类是地球的毒瘤。通过在黑色星期五污染纸币，病毒以惊人速度扩散，数百万人在第一周内感染。" data-en="The virus was created by former government scientist Gordon Amherst, who believed humanity was a plague upon the Earth. By contaminating banknotes on Black Friday, the virus spread at staggering speed, infecting millions in the first week.">病毒由前政府科学家戈登·阿默斯特制造，他相信人类是地球的毒瘤。通过在黑色星期五污染纸币，病毒以惊人速度扩散，数百万人在第一周内感染。</p>
+      <span class="status status-alert">CLASSIFIED</span>
+    </div>
+    <div class="intel-card">
+      <div class="card-num">INTEL-006</div>
+      <h3 data-zh="叛变特工威胁" data-en="Rogue Agent Threat">叛变特工威胁</h3>
+      <p data-zh="亚伦·基纳是第一波被激活的SHD特工，但他在暗区执行任务时叛变。如今他领导着一支叛变特工部队，成为SHD面临的最大内部威胁。" data-en="Aaron Keener was among the first wave of activated SHD agents, but went rogue during a Dark Zone mission. He now leads a rogue agent force, representing the greatest internal threat to the SHD.">亚伦·基纳是第一波被激活的SHD特工，但他在暗区执行任务时叛变。如今他领导着一支叛变特工部队，成为SHD面临的最大内部威胁。</p>
+      <span class="status status-alert">HIGH RISK</span>
+    </div>
+  </div>
+</section>
+
+<!-- Zones -->
+<section id="zones">
+  <div class="reveal">
+    <div class="section-label" data-zh="区域 // 曼哈顿" data-en="ZONES // MANHATTAN">区域 // 曼哈顿</div>
+    <h2 class="section-title" data-zh="曼哈顿隔离区" data-en="Manhattan Quarantine Zone">曼哈顿隔离区</h2>
+    <p class="section-desc" data-zh="曼哈顿已被划分为多个行动区域，每个区域的威胁等级和控制势力各不相同。" data-en="Manhattan has been divided into multiple operational zones, each with different threat levels and controlling factions.">曼哈顿已被划分为多个行动区域，每个区域的威胁等级和控制势力各不相同。</p>
+  </div>
+
+  <div class="map-container reveal">
+    <div class="zone-grid">
+      <div class="zone">
+        <div class="zone-name" data-zh="切尔西" data-en="Chelsea">切尔西</div>
+        <div class="zone-level">LV 10-12</div>
+        <div class="zone-threat threat-med" data-zh="■ 中等威胁" data-en="■ MEDIUM THREAT">■ 中等威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="地狱厨房" data-en="Hell's Kitchen">地狱厨房</div>
+        <div class="zone-level">LV 14-15</div>
+        <div class="zone-threat threat-med" data-zh="■ 中等威胁" data-en="■ MEDIUM THREAT">■ 中等威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="时代广场" data-en="Times Square">时代广场</div>
+        <div class="zone-level">LV 17-19</div>
+        <div class="zone-threat threat-high" data-zh="■ 高威胁" data-en="■ HIGH THREAT">■ 高威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="哈德逊难民营" data-en="Hudson Yards">哈德逊难民营</div>
+        <div class="zone-level">LV 01-04</div>
+        <div class="zone-threat threat-low" data-zh="■ 低威胁" data-en="■ LOW THREAT">■ 低威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="暗区 01" data-en="Dark Zone 01">暗区 01</div>
+        <div class="zone-level">LV 30+</div>
+        <div class="zone-threat threat-high" data-zh="■ 极高威胁" data-en="■ CRITICAL THREAT">■ 极高威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="联合国大楼" data-en="U.N. Building">联合国大楼</div>
+        <div class="zone-level">LV 28-30</div>
+        <div class="zone-threat threat-high" data-zh="■ 高威胁" data-en="■ HIGH THREAT">■ 高威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="格拉梅西" data-en="Gramercy">格拉梅西</div>
+        <div class="zone-level">LV 20-22</div>
+        <div class="zone-threat threat-med" data-zh="■ 中等威胁" data-en="■ MEDIUM THREAT">■ 中等威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="斯塔滕岛" data-en="Stuyvesant">斯塔滕岛</div>
+        <div class="zone-level">LV 24-26</div>
+        <div class="zone-threat threat-high" data-zh="■ 高威胁" data-en="■ HIGH THREAT">■ 高威胁</div>
+      </div>
+      <div class="zone">
+        <div class="zone-name" data-zh="暗区 03" data-en="Dark Zone 03">暗区 03</div>
+        <div class="zone-level">LV 30+</div>
+        <div class="zone-threat threat-high" data-zh="■ 极高威胁" data-en="■ CRITICAL THREAT">■ 极高威胁</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Factions -->
+<section id="factions">
+  <div class="reveal">
+    <div class="section-label" data-zh="势力 // 威胁评估" data-en="FACTIONS // THREAT ASSESSMENT">势力 // 威胁评估</div>
+    <h2 class="section-title" data-zh="敌对势力档案" data-en="Hostile Faction Profiles">敌对势力档案</h2>
+    <p class="section-desc" data-zh="在政府崩溃后，多个武装势力趁乱崛起，各自为战，争夺对纽约的控制权。" data-en="After government collapse, multiple armed factions rose from the chaos, each fighting for control of New York.">在政府崩溃后，多个武装势力趁乱崛起，各自为战，争夺对纽约的控制权。</p>
+  </div>
+
+  <div class="faction-list reveal">
+    <div class="faction">
+      <div class="faction-icon">🔥</div>
+      <div>
+        <h3 data-zh="净化者" data-en="Cleaners">净化者</h3>
+        <p data-zh="由前环卫工人乔·费罗领导的极端组织。他们相信只有用火焰才能净化病毒，不分青红皂白地焚烧一切——包括感染者和未感染者。" data-en="An extremist group led by former sanitation worker Joe Ferro. They believe only fire can purify the virus, burning everything indiscriminately — both infected and healthy alike.">由前环卫工人乔·费罗领导的极端组织。他们相信只有用火焰才能净化病毒，不分青红皂白地焚烧一切——包括感染者和未感染者。</p>
+      </div>
+    </div>
+    <div class="faction">
+      <div class="faction-icon">☠</div>
+      <div>
+        <h3 data-zh="暴徒" data-en="Rikers">暴徒</h3>
+        <p data-zh="从里克斯岛监狱越狱的罪犯组成的武装团伙。由拉罗·巴雷特领导，他们是最无法无天的势力，在城市废墟中肆意抢劫和杀戮。" data-en="An armed gang of criminals who escaped from Rikers Island prison. Led by LaRae Barrett, they are the most lawless faction, looting and killing with impunity across the city ruins.">从里克斯岛监狱越狱的罪犯组成的武装团伙。由拉罗·巴雷特领导，他们是最无法无天的势力，在城市废墟中肆意抢劫和杀戮。</p>
+      </div>
+    </div>
+    <div class="faction">
+      <div class="faction-icon">⚙</div>
+      <div>
+        <h3 data-zh="最后军团（LMB）" data-en="Last Man Battalion">最后军团（LMB）</h3>
+        <p data-zh="前私人军事公司的精锐部队。在查尔斯·布利斯中校的指挥下，他们自封为纽约的新秩序，用军事独裁取代民主政府。" data-en="Elite troops from a former private military company. Under Lt. Col. Charles Bliss, they've declared themselves New York's new order, replacing democratic government with military dictatorship.">前私人军事公司的精锐部队。在查尔斯·布利斯中校的指挥下，他们自封为纽约的新秩序，用军事独裁取代民主政府。</p>
+      </div>
+    </div>
+    <div class="faction">
+      <div class="faction-icon">💀</div>
+      <div>
+        <h3 data-zh="叛变特工" data-en="Rogue Agents">叛变特工</h3>
+        <p data-zh="曾经的SHD精英，如今最危险的敌人。他们拥有与你相同的训练、装备和ISAC权限，却将这些能力用于一己私利。" data-en="Once SHD's finest, now the most dangerous enemies. They possess the same training, equipment, and ISAC access as you, but use these capabilities for their own gain.">曾经的SHD精英，如今最危险的敌人。他们拥有与你相同的训练、装备和ISAC权限，却将这些能力用于一己私利。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ISAC Log -->
+<section>
+  <div class="reveal">
+    <div class="section-label" data-zh="系统 // ISAC 日志" data-en="SYSTEM // ISAC LOG">系统 // ISAC 日志</div>
+    <h2 class="section-title" data-zh="ISAC 系统日志" data-en="ISAC System Log">ISAC 系统日志</h2>
+  </div>
+  <div class="isac-log reveal">
+    <div class="log-line"><span class="timestamp">09:14:22</span> <span data-zh="SHD网络同步完成，当前在线特工数：47,219" data-en="SHD network sync complete. Current online agents: 47,219">SHD网络同步完成，当前在线特工数：47,219</span></div>
+    <div class="log-line"><span class="timestamp">09:15:03</span> <span class="warn" data-zh="[警告] 暗区01检测到大规模交火，信号强度下降至32%" data-en="[WARNING] Heavy firefight detected in DZ01, signal strength dropped to 32%">[警告] 暗区01检测到大规模交火，信号强度下降至32%</span></div>
+    <div class="log-line"><span class="timestamp">09:16:47</span> <span data-zh="安全屋"哈德逊营地"物资补给已确认送达" data-en="Safe house 'Hudson Camp' supply delivery confirmed">安全屋"哈德逊营地"物资补给已确认送达</span></div>
+    <div class="log-line"><span class="timestamp">09:18:11</span> <span class="error" data-zh="[紧急] 叛变特工信号出现在格拉梅西区域，建议保持警戒" data-en="[CRITICAL] Rogue agent signal detected in Gramercy sector. Maintain high alert.">[紧急] 叛变特工信号出现在格拉梅西区域，建议保持警戒</span></div>
+    <div class="log-line"><span class="timestamp">09:19:55</span> <span class="ok" data-zh="[完成] 医疗翼升级完毕——恢复链接已解锁" data-en="[COMPLETE] Medical wing upgrade finished — Recovery Link unlocked">[完成] 医疗翼升级完毕——恢复链接已解锁</span></div>
+    <div class="log-line"><span class="timestamp">09:21:30</span> <span class="warn" data-zh="[警告] 时代广场区域净化者活动频繁，污染等级上升" data-en="[WARNING] Increased Cleaner activity in Times Square. Contamination level rising.">[警告] 时代广场区域净化者活动频繁，污染等级上升</span></div>
+    <div class="log-line"><span class="timestamp">09:23:08</span> <span data-zh="全局扫描完成。下次扫描预计：12:00:00 EST" data-en="Global scan complete. Next scan estimated: 12:00:00 EST">全局扫描完成。下次扫描预计：12:00:00 EST</span></div>
+  </div>
+</section>
+
+<!-- Quote -->
+<section class="quote-section reveal">
+  <div class="isac-avatar">ISAC</div>
+  <blockquote data-zh="当一切都崩塌的时候，我们会站出来。不是因为被命令，而是因为那是我们存在的意义。我们是最后的防线，我们是特工。" data-en="When everything falls apart, we rise. Not because we're ordered to, but because that is why we exist. We are the last line of defense. We are agents.">当一切都崩塌的时候，我们会站出来。不是因为被命令，而是因为那是我们存在的意义。我们是最后的防线，我们是特工。</blockquote>
+  <div class="quote-author">— SHD ACTIVATION BROADCAST</div>
+</section>
+
+<!-- CTA -->
+<section id="comms" class="cta-section">
+  <div class="reveal">
+    <div class="section-label" style="justify-content:center;" data-zh="■ 征召 // 加入SHD" data-en="■ RECRUIT // JOIN SHD">■ 征召 // 加入SHD</div>
+    <h2 class="section-title" style="text-align:center;" data-zh="响应激活号召" data-en="Answer the Call">响应激活号召</h2>
+    <p class="section-desc" style="text-align:center; margin: 14px auto 36px;" data-zh="纽约需要你。加入国土战略局，成为最后的防线。" data-en="New York needs you. Join the Strategic Homeland Division. Be the last line of defense.">纽约需要你。加入国土战略局，成为最后的防线。</p>
+    <button class="cta-btn" data-zh="激活特工身份" data-en="ACTIVATE AGENT">激活特工身份</button>
+  </div>
+</section>
+
+<footer>
+  <p>STRATEGIC HOMELAND DIVISION // <span data-zh="51号指令已激活" data-en="DIRECTIVE 51 ACTIVE">51号指令已激活</span> // ISAC v4.7</p>
+</footer>
+
+<script>
+// ===== Snow =====
+const canvas = document.getElementById('snow-canvas');
+const ctx = canvas.getContext('2d');
+let flakes = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function initFlakes() {
+  flakes = [];
+  const count = Math.floor(window.innerWidth / 6);
+  for (let i = 0; i < count; i++) {
+    flakes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2.5 + 0.5,
+      speed: Math.random() * 1.5 + 0.3,
+      wind: Math.random() * 0.8 - 0.4,
+      opacity: Math.random() * 0.5 + 0.2
+    });
+  }
+}
+initFlakes();
+
+function drawSnow() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  flakes.forEach(f => {
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+    ctx.fillStyle = isDark
+      ? `rgba(220, 225, 235, ${f.opacity})`
+      : `rgba(80, 80, 90, ${f.opacity * 0.5})`;
+    ctx.fill();
+    f.y += f.speed;
+    f.x += f.wind + Math.sin(f.y * 0.01) * 0.3;
+    if (f.y > canvas.height) { f.y = -f.r; f.x = Math.random() * canvas.width; }
+    if (f.x > canvas.width) f.x = 0;
+    if (f.x < 0) f.x = canvas.width;
+  });
+  requestAnimationFrame(drawSnow);
+}
+drawSnow();
+
+// ===== Theme =====
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  this.textContent = isDark ? '☾' : '☀';
+});
+
+// ===== Language =====
+document.getElementById('lang-toggle').addEventListener('click', function() {
+  const html = document.documentElement;
+  const isZh = html.getAttribute('data-lang') === 'zh';
+  const newLang = isZh ? 'en' : 'zh';
+  html.setAttribute('data-lang', newLang);
+  html.setAttribute('lang', newLang === 'zh' ? 'zh-CN' : 'en');
+  this.textContent = isZh ? '中' : '文';
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    el.textContent = el.getAttribute(`data-${newLang}`);
+  });
+});
+
+// ===== Scroll Reveal =====
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>METAL GEAR SOLID V: THE PHANTOM PAIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--sand:#c8a878;--dust-orange:#d08848;--sienna:#a06030;--earth:#2a1e14;
+--golden:#e0a840;--dry-grass:#b8a060;--blood:#8b0000;--blood-glow:#c0392b;
+--steel:#4a5a6a;--cyan:#00b8d4;--cyan-dim:rgba(0,184,212,0.3);
+--bg:#0d0a07;--bg2:#1a1410;--text:#e8dcc8;--text-dim:#8a7e6a;
+--panel-bg:rgba(0,20,30,0.75);--panel-border:rgba(0,184,212,0.4);
+--scanline:rgba(0,184,212,0.03);
+}
+[data-theme="light"]{
+--bg:#f0e8d8;--bg2:#e8dcc8;--text:#2a1e14;--text-dim:#6a5e4a;
+--panel-bg:rgba(200,168,120,0.15);--panel-border:rgba(74,90,106,0.4);
+--scanline:rgba(74,90,106,0.03);
+}
+html{scroll-behavior:smooth}
+body{
+font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);
+overflow-x:hidden;line-height:1.6;transition:background .5s,color .5s;
+}
+canvas#dustCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Scanline overlay */
+.scanlines{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;
+background:repeating-linear-gradient(0deg,var(--scanline) 0px,var(--scanline) 1px,transparent 1px,transparent 3px);
+}
+
+/* ◇ Diamond motif */
+.diamond{display:inline-block;color:var(--cyan);margin:0 4px;font-size:.9em}
+.diamond-sep{text-align:center;padding:20px 0;font-size:1.2rem;letter-spacing:12px;color:var(--cyan);opacity:.5}
+
+/* Top controls */
+.top-controls{
+position:fixed;top:0;right:0;z-index:100;display:flex;gap:8px;padding:14px 20px;
+background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%);
+}
+.ctrl-btn{
+background:var(--panel-bg);border:1px solid var(--panel-border);color:var(--cyan);
+padding:6px 14px;font-family:'Space Mono',monospace;font-size:.7rem;cursor:pointer;
+text-transform:uppercase;letter-spacing:1px;transition:all .3s;
+}
+.ctrl-btn:hover{background:var(--cyan);color:var(--earth)}
+
+/* iDroid Panel */
+.idroid-panel{
+background:var(--panel-bg);border:1px solid var(--panel-border);
+position:relative;overflow:hidden;
+}
+.idroid-panel::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+}
+.idroid-panel::after{
+content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+background:linear-gradient(90deg,transparent,var(--panel-border),transparent);
+}
+.panel-header{
+font-family:'Space Mono',monospace;font-size:.65rem;color:var(--cyan);
+padding:10px 16px 6px;letter-spacing:3px;text-transform:uppercase;
+border-bottom:1px solid var(--cyan-dim);display:flex;align-items:center;gap:8px;
+}
+.panel-header::before{content:'◇';font-size:.8rem}
+
+/* HERO */
+.hero{
+position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+flex-direction:column;overflow:hidden;
+background:linear-gradient(180deg,#1a0e04 0%,#2a1808 30%,#3a2010 50%,#d08848 85%,#e0a840 100%);
+}
+[data-theme="light"] .hero{
+background:linear-gradient(180deg,#c8a060 0%,#d8b878 30%,#e0c888 50%,#e8d8b8 85%,#f0e8d8 100%);
+}
+.hero-overlay{
+position:absolute;inset:0;
+background:radial-gradient(ellipse at 50% 80%,rgba(208,136,72,0.3),transparent 70%);
+}
+.hero-vignette{
+position:absolute;inset:0;
+background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.6) 100%);
+}
+.hero-content{position:relative;z-index:2;text-align:center;padding:20px}
+
+/* Episode title card animation */
+.episode-card{
+opacity:0;animation:episodeReveal 1.5s ease forwards 0.5s;
+}
+@keyframes episodeReveal{
+0%{opacity:0;letter-spacing:20px}
+60%{opacity:1;letter-spacing:8px}
+100%{opacity:1;letter-spacing:4px}
+}
+.episode-label{
+font-family:'Space Mono',monospace;font-size:.75rem;color:var(--cyan);
+letter-spacing:6px;text-transform:uppercase;margin-bottom:8px;
+}
+.episode-title{
+font-family:'Rajdhani',sans-serif;font-size:clamp(2rem,6vw,4.5rem);font-weight:700;
+color:var(--text);text-transform:uppercase;line-height:1.1;margin-bottom:6px;
+text-shadow:0 0 40px rgba(208,136,72,0.5);
+}
+.episode-subtitle{
+font-family:'Space Mono',monospace;font-size:.7rem;color:var(--dust-orange);
+letter-spacing:3px;opacity:0;animation:fadeIn 1s ease forwards 2s;
+}
+.credits-line{
+font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);
+letter-spacing:2px;margin-top:30px;
+opacity:0;animation:creditSlide 1.2s ease forwards;
+}
+.credits-line:nth-child(1){animation-delay:2.5s}
+.credits-line:nth-child(2){animation-delay:3.2s}
+.credits-line:nth-child(3){animation-delay:3.9s}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes creditSlide{
+0%{opacity:0;transform:translateY(10px)}
+100%{opacity:.6;transform:translateY(0)}
+}
+
+/* V Horn accent */
+.horn-accent{
+display:inline-block;width:4px;height:30px;background:var(--blood);
+transform:rotate(15deg);margin-right:6px;vertical-align:middle;
+border-radius:2px 2px 0 0;box-shadow:0 0 10px rgba(139,0,0,0.6);
+}
+
+/* Cassette tape decoration */
+.cassette{
+width:280px;margin:0 auto;padding:20px;background:#1a1410;border-radius:8px;
+border:2px solid #3a3020;position:relative;font-family:'Space Mono',monospace;
+}
+.cassette-label{
+background:#c8a878;color:#2a1e14;padding:10px 14px;border-radius:3px;
+text-align:center;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;
+margin-bottom:12px;
+}
+.cassette-reels{display:flex;justify-content:space-around;align-items:center;padding:6px 0}
+.reel{
+width:40px;height:40px;border-radius:50%;border:3px solid #5a4a30;
+display:flex;align-items:center;justify-content:center;
+background:radial-gradient(circle,#2a1e14 30%,#3a2a18 70%);
+animation:spin 4s linear infinite;
+}
+.reel-inner{width:12px;height:12px;border-radius:50%;border:2px solid #5a4a30}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cassette-window{
+width:80px;height:16px;background:#0a0805;border-radius:3px;
+border:1px solid #3a3020;
+}
+.cassette-holes{display:flex;justify-content:center;gap:60px;margin-top:8px}
+.cassette-hole{width:8px;height:8px;border-radius:50%;background:#0a0805;border:1px solid #3a3020}
+
+/* Sections */
+section{position:relative;z-index:2;padding:80px 20px}
+.container{max-width:1100px;margin:0 auto}
+.section-tag{
+font-family:'Space Mono',monospace;font-size:.6rem;color:var(--cyan);
+letter-spacing:5px;text-transform:uppercase;margin-bottom:6px;
+}
+.section-title{
+font-family:'Rajdhani',sans-serif;font-size:clamp(1.6rem,4vw,2.8rem);
+font-weight:700;text-transform:uppercase;margin-bottom:30px;
+background:linear-gradient(135deg,var(--text),var(--dust-orange));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+background-clip:text;
+}
+
+/* Grid layouts */
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+
+/* Cards */
+.card{
+background:var(--panel-bg);border:1px solid var(--panel-border);
+padding:24px;position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,184,212,0.1)}
+.card::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+}
+.card-icon{font-size:2rem;margin-bottom:12px;display:block}
+.card-title{
+font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.2rem;
+text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;color:var(--sand);
+}
+.card-text{font-size:.85rem;color:var(--text-dim);line-height:1.7}
+.card-tag{
+font-family:'Space Mono',monospace;font-size:.55rem;color:var(--cyan);
+letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:block;
+}
+
+/* Episode mission cards */
+.episode-mission{
+background:var(--panel-bg);border:1px solid var(--panel-border);
+padding:0;overflow:hidden;transition:all .3s;
+}
+.episode-mission:hover{border-color:var(--cyan)}
+.episode-num{
+background:linear-gradient(135deg,var(--blood),#5a0000);
+padding:12px 18px;font-family:'Space Mono',monospace;font-size:.65rem;
+color:#e8dcc8;letter-spacing:3px;text-transform:uppercase;
+display:flex;justify-content:space-between;align-items:center;
+}
+.episode-num .rank{
+background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:2px;font-size:.6rem;
+}
+.episode-body{padding:18px}
+.episode-name{
+font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;
+text-transform:uppercase;margin-bottom:6px;
+}
+.episode-desc{font-size:.8rem;color:var(--text-dim);line-height:1.6}
+
+/* Buddy cards */
+.buddy-card{
+background:var(--panel-bg);border:1px solid var(--panel-border);
+padding:28px 22px;text-align:center;position:relative;transition:all .3s;
+}
+.buddy-card:hover{border-color:var(--golden)}
+.buddy-avatar{
+width:70px;height:70px;border-radius:50%;margin:0 auto 14px;
+display:flex;align-items:center;justify-content:center;font-size:2rem;
+background:linear-gradient(135deg,var(--steel),var(--earth));
+border:2px solid var(--golden);
+}
+.buddy-name{
+font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.15rem;
+text-transform:uppercase;letter-spacing:2px;color:var(--golden);margin-bottom:4px;
+}
+.buddy-code{
+font-family:'Space Mono',monospace;font-size:.55rem;color:var(--cyan);
+letter-spacing:2px;margin-bottom:10px;
+}
+.buddy-desc{font-size:.8rem;color:var(--text-dim);line-height:1.6}
+.buddy-ability{
+margin-top:12px;font-family:'Space Mono',monospace;font-size:.6rem;
+color:var(--dust-orange);letter-spacing:1px;
+padding:4px 10px;border:1px solid rgba(208,136,72,0.3);display:inline-block;
+}
+
+/* Motherbase departments */
+.dept-card{
+background:var(--panel-bg);border-left:3px solid var(--cyan);
+padding:18px 20px;transition:all .3s;
+}
+.dept-card:hover{border-left-color:var(--golden);background:rgba(0,20,30,0.9)}
+.dept-icon{font-size:1.4rem;margin-bottom:6px;display:inline-block}
+.dept-name{
+font-family:'Rajdhani',sans-serif;font-weight:600;font-size:1rem;
+text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;
+}
+.dept-desc{font-size:.75rem;color:var(--text-dim)}
+.dept-level{
+margin-top:8px;height:3px;background:rgba(0,184,212,0.15);border-radius:2px;overflow:hidden;
+}
+.dept-level-fill{height:100%;background:var(--cyan);border-radius:2px;transition:width 1.5s ease}
+
+/* Weapons/Equipment */
+.equip-item{
+display:flex;align-items:center;gap:14px;
+background:var(--panel-bg);border:1px solid var(--panel-border);
+padding:14px 18px;transition:all .3s;
+}
+.equip-item:hover{border-color:var(--dust-orange)}
+.equip-icon{font-size:1.6rem;flex-shrink:0}
+.equip-name{
+font-family:'Rajdhani',sans-serif;font-weight:600;font-size:.95rem;
+text-transform:uppercase;letter-spacing:1px;
+}
+.equip-detail{font-size:.7rem;color:var(--text-dim);margin-top:2px}
+.equip-gmp{
+margin-left:auto;font-family:'Space Mono',monospace;font-size:.6rem;
+color:var(--golden);white-space:nowrap;
+}
+
+/* Quote section */
+.quote-section{
+background:linear-gradient(180deg,rgba(139,0,0,0.05),var(--bg),rgba(139,0,0,0.05));
+text-align:center;padding:100px 20px;
+}
+.quote-mark{font-size:3rem;color:var(--blood);opacity:.4;font-family:Georgia,serif}
+.quote-text{
+font-family:'Rajdhani',sans-serif;font-size:clamp(1.2rem,3vw,2rem);
+font-weight:300;font-style:italic;max-width:700px;margin:10px auto;
+line-height:1.8;color:var(--sand);
+}
+.quote-attr{
+font-family:'Space Mono',monospace;font-size:.65rem;color:var(--blood-glow);
+letter-spacing:3px;text-transform:uppercase;margin-top:16px;
+}
+
+/* Nuclear counter */
+.nuke-counter{
+background:var(--panel-bg);border:1px solid var(--blood);
+padding:20px 30px;text-align:center;max-width:400px;margin:40px auto 0;
+}
+.nuke-label{
+font-family:'Space Mono',monospace;font-size:.6rem;color:var(--blood-glow);
+letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;
+}
+.nuke-num{
+font-family:'Space Mono',monospace;font-size:2.5rem;color:var(--blood);
+text-shadow:0 0 20px rgba(139,0,0,0.5);
+}
+.nuke-sub{font-size:.65rem;color:var(--text-dim);margin-top:4px;font-family:'Space Mono',monospace}
+
+/* Footer */
+footer{
+background:var(--earth);padding:40px 20px;text-align:center;
+border-top:1px solid var(--panel-border);position:relative;z-index:2;
+}
+footer p{font-size:.7rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px}
+.footer-diamond{color:var(--cyan);letter-spacing:8px;margin:10px 0;font-size:.8rem}
+
+/* Skull Face section */
+.skull-section{
+background:linear-gradient(180deg,var(--bg),rgba(20,10,5,1),var(--bg));
+}
+.skull-panel{
+background:linear-gradient(135deg,rgba(30,15,5,0.9),rgba(10,5,0,0.95));
+border:1px solid rgba(139,0,0,0.3);padding:30px;position:relative;
+}
+.skull-panel::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(--blood),transparent);
+}
+.skull-name{
+font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.8rem;
+text-transform:uppercase;color:var(--blood-glow);letter-spacing:4px;margin-bottom:6px;
+}
+.skull-org{
+font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);
+letter-spacing:4px;margin-bottom:16px;
+}
+
+/* Overview section */
+.overview-text{
+font-size:.95rem;line-height:2;color:var(--text-dim);max-width:800px;
+}
+.overview-text strong{color:var(--sand);font-weight:600}
+.dd-emblem{
+width:100px;height:100px;border:2px solid var(--golden);
+display:flex;align-items:center;justify-content:center;
+font-size:2.5rem;transform:rotate(45deg);margin:0 auto 20px;
+background:rgba(224,168,64,0.05);
+}
+.dd-emblem span{transform:rotate(-45deg)}
+
+/* Responsive */
+@media(max-width:600px){
+.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+section{padding:50px 16px}
+.cassette{width:100%;max-width:280px}
+.top-controls{padding:10px 12px;gap:4px}
+.ctrl-btn{padding:5px 10px;font-size:.6rem}
+}
+
+/* Chinese font */
+[data-lang="zh"] .section-title,
+[data-lang="zh"] .episode-title,
+[data-lang="zh"] .card-title,
+[data-lang="zh"] .buddy-name,
+[data-lang="zh"] .dept-name,
+[data-lang="zh"] .skull-name,
+[data-lang="zh"] .quote-text,
+[data-lang="zh"] .episode-name{
+font-family:'Noto Sans SC','Rajdhani',sans-serif;
+}
+</style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<canvas id="dustCanvas"></canvas>
+
+<!-- Controls -->
+<div class="top-controls">
+<button class="ctrl-btn" id="langToggle" onclick="toggleLang()">中文</button>
+<button class="ctrl-btn" id="themeToggle" onclick="toggleTheme()">LIGHT</button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+<div class="hero-overlay"></div>
+<div class="hero-vignette"></div>
+<div class="hero-content episode-card">
+<div class="episode-label" data-en="EPISODE 0" data-zh="第零章">EPISODE 0</div>
+<div class="episode-title">
+<span class="horn-accent"></span>
+<span data-en="THE PHANTOM PAIN" data-zh="幻痛">THE PHANTOM PAIN</span>
+</div>
+<div class="episode-subtitle" data-en="METAL GEAR SOLID V ◇ A HIDEO KOJIMA GAME" data-zh="合金装备5：幻痛 ◇ 小岛秀夫作品">METAL GEAR SOLID V ◇ A HIDEO KOJIMA GAME</div>
+<div style="margin-top:40px">
+<div class="credits-line" data-en="DIRECTED BY ◇ HIDEO KOJIMA" data-zh="导演 ◇ 小岛秀夫">DIRECTED BY ◇ HIDEO KOJIMA</div>
+<div class="credits-line" data-en="PRODUCED BY ◇ HIDEO KOJIMA" data-zh="制作 ◇ 小岛秀夫">PRODUCED BY ◇ HIDEO KOJIMA</div>
+<div class="credits-line" data-en="GAME DESIGN BY ◇ HIDEO KOJIMA" data-zh="游戏设计 ◇ 小岛秀夫">GAME DESIGN BY ◇ HIDEO KOJIMA</div>
+</div>
+<div style="margin-top:50px">
+<div class="cassette">
+<div class="cassette-label" data-en="THE MAN WHO SOLD THE WORLD - 1984" data-zh="出卖世界的人 - 1984">THE MAN WHO SOLD THE WORLD - 1984</div>
+<div class="cassette-reels">
+<div class="reel"><div class="reel-inner"></div></div>
+<div class="cassette-window"></div>
+<div class="reel" style="animation-direction:reverse"><div class="reel-inner"></div></div>
+</div>
+<div class="cassette-holes"><div class="cassette-hole"></div><div class="cassette-hole"></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Diamond Dogs Overview -->
+<section id="overview">
+<div class="container reveal">
+<div class="section-tag" data-en="◇ DIAMOND DOGS ◇" data-zh="◇ 钻石狗 ◇">◇ DIAMOND DOGS ◇</div>
+<div class="section-title" data-en="A Nation of Soldiers Without Borders" data-zh="无国界之军的国度">A Nation of Soldiers Without Borders</div>
+<div class="grid-2">
+<div>
+<div class="dd-emblem"><span>◇</span></div>
+<div class="overview-text" data-en="In <strong>1984</strong>, the legendary soldier <strong>Venom Snake</strong> awakens from a nine-year coma to find his world shattered. Driven by an insatiable thirst for <strong>revenge</strong>, he rebuilds his private military force — <strong>Diamond Dogs</strong> — from the ashes of Militaires Sans Frontieres. Operating from the offshore fortress <strong>Mother Base</strong>, Snake and his commander <strong>Kazuhira Miller</strong> wage a shadow war across the war-torn landscapes of <strong>Afghanistan</strong> and the <strong>Angola-Zaire border</strong>." data-zh="<strong>1984年</strong>，传奇士兵<strong>毒蛇</strong>从长达九年的昏迷中苏醒，发现自己的世界已经支离破碎。在无尽的<strong>复仇</strong>渴望驱动下，他从无国界军事的废墟中重建了自己的私人军事力量——<strong>钻石狗</strong>。从海上堡垒<strong>母基地</strong>出发，蛇与他的指挥官<strong>和泉一三</strong>在饱受战争蹂躏的<strong>阿富汗</strong>和<strong>安哥拉-扎伊尔边境</strong>展开了一场暗战。">In <strong>1984</strong>, the legendary soldier <strong>Venom Snake</strong> awakens from a nine-year coma to find his world shattered. Driven by an insatiable thirst for <strong>revenge</strong>, he rebuilds his private military force — <strong>Diamond Dogs</strong> — from the ashes of Militaires Sans Frontieres. Operating from the offshore fortress <strong>Mother Base</strong>, Snake and his commander <strong>Kazuhira Miller</strong> wage a shadow war across the war-torn landscapes of <strong>Afghanistan</strong> and the <strong>Angola-Zaire border</strong>.</div>
+</div>
+<div class="idroid-panel" style="padding:20px">
+<div class="panel-header" data-en="INTELLIGENCE BRIEFING" data-zh="情报简报">INTELLIGENCE BRIEFING</div>
+<div style="padding:16px;font-family:'Space Mono',monospace;font-size:.7rem;color:var(--cyan);line-height:2.2">
+<div>◇ <span data-en="YEAR: 1984" data-zh="年份：1984">YEAR: 1984</span></div>
+<div>◇ <span data-en="THEATER: AFGHANISTAN / AFRICA" data-zh="战区：阿富汗 / 非洲">THEATER: AFGHANISTAN / AFRICA</span></div>
+<div>◇ <span data-en="COMMANDER: VENOM SNAKE (BIG BOSS)" data-zh="指挥官：毒蛇（大首领）">COMMANDER: VENOM SNAKE (BIG BOSS)</span></div>
+<div>◇ <span data-en="ORGANIZATION: DIAMOND DOGS" data-zh="组织：钻石狗">ORGANIZATION: DIAMOND DOGS</span></div>
+<div>◇ <span data-en="BASE: MOTHER BASE (SEYCHELLES WATERS)" data-zh="基地：母基地（塞舌尔海域）">BASE: MOTHER BASE (SEYCHELLES WATERS)</span></div>
+<div>◇ <span data-en="STATUS: OPERATIONAL" data-zh="状态：运行中">STATUS: OPERATIONAL</span></div>
+<div>◇ <span data-en="OBJECTIVE: LOCATE SKULL FACE" data-zh="目标：追踪骷髅脸">OBJECTIVE: LOCATE SKULL FACE</span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="diamond-sep">◇ ◇ ◇ ◇ ◇</div>
+
+<!-- Episode Cards -->
+<section id="episodes">
+<div class="container reveal">
+<div class="section-tag" data-en="◇ MISSION SELECT ◇" data-zh="◇ 任务选择 ◇">◇ MISSION SELECT ◇</div>
+<div class="section-title" data-en="Key Episodes" data-zh="关键章节">Key Episodes</div>
+<div class="grid-3">
+<div class="episode-mission">
+<div class="episode-num"><span data-en="EPISODE 01" data-zh="第一章">EPISODE 01</span><span class="rank">S</span></div>
+<div class="episode-body">
+<div class="episode-name" data-en="Phantom Limbs" data-zh="幻肢">Phantom Limbs</div>
+<div class="episode-desc" data-en="Snake's first mission in Afghanistan. Rescue Kazuhira Miller from Soviet captivity and begin rebuilding Diamond Dogs." data-zh="蛇在阿富汗的首次任务。从苏军手中解救和泉一三，开始重建钻石狗。">Snake's first mission in Afghanistan. Rescue Kazuhira Miller from Soviet captivity and begin rebuilding Diamond Dogs.</div>
+</div>
+</div>
+<div class="episode-mission">
+<div class="episode-num"><span data-en="EPISODE 06" data-zh="第六章">EPISODE 06</span><span class="rank">A</span></div>
+<div class="episode-body">
+<div class="episode-name" data-en="Where Do the Bees Sleep?" data-zh="蜜蜂在哪里沉睡？">Where Do the Bees Sleep?</div>
+<div class="episode-desc" data-en="Infiltrate a fortress to recover a powerful weapon — the Honey Bee missile launcher. First encounter with the terrifying Skulls unit." data-zh="潜入要塞回收强力武器——蜜蜂导弹发射器。首次遭遇可怕的骷髅部队。">Infiltrate a fortress to recover a powerful weapon — the Honey Bee missile launcher. First encounter with the terrifying Skulls unit.</div>
+</div>
+</div>
+<div class="episode-mission">
+<div class="episode-num"><span data-en="EPISODE 11" data-zh="第十一章">EPISODE 11</span><span class="rank">S</span></div>
+<div class="episode-body">
+<div class="episode-name" data-en="Cloaked in Silence" data-zh="沉默的披风">Cloaked in Silence</div>
+<div class="episode-desc" data-en="Face the deadly sniper Quiet in a legendary duel among ancient ruins. She may become your greatest ally — or remain your deadliest enemy." data-zh="在古老废墟中与致命狙击手静静展开传奇对决。她可能成为你最强大的盟友——或你最致命的敌人。">Face the deadly sniper Quiet in a legendary duel among ancient ruins. She may become your greatest ally — or remain your deadliest enemy.</div>
+</div>
+</div>
+<div class="episode-mission">
+<div class="episode-num"><span data-en="EPISODE 20" data-zh="第二十章">EPISODE 20</span><span class="rank">S</span></div>
+<div class="episode-body">
+<div class="episode-name" data-en="Voices" data-zh="声音">Voices</div>
+<div class="episode-desc" data-en="Board a mysterious ship filled with child soldiers and uncover the horrifying truth about Skull Face's vocal cord parasites." data-zh="登上一艘满载少年兵的神秘船只，揭开骷髅脸声带寄生虫的恐怖真相。">Board a mysterious ship filled with child soldiers and uncover the horrifying truth about Skull Face's vocal cord parasites.</div>
+</div>
+</div>
+<div class="episode-mission">
+<div class="episode-num"><span data-en="EPISODE 30" data-zh="第三十章">EPISODE 30</span><span class="rank">S</span></div>
+<div class="episode-body">
+<div class="episode-name" data-en="Skull Face" data-zh="骷髅脸">Skull Face</div>
+<div class="episode-desc" data-en="The climactic confrontation. Assault OKB Zero and face Skull Face at last. But is revenge everything Snake hoped it would be?" data-zh="高潮对决。突击OKB Zero，终于面对骷髅脸。但复仇真的是蛇所期望的一切吗？">The climactic confrontation. Assault OKB Zero and face Skull Face at last. But is revenge everything Snake hoped it would be?</div>
+</div>
+</div>
+<div class="episode-mission">
+<div class="episode-num"><span data-en="EPISODE 46" data-zh="第四十六章">EPISODE 46</span><span class="rank">S+</span></div>
+<div class="episode-body">
+<div class="episode-name" data-en="Truth: The Man Who Sold the World" data-zh="真相：出卖世界的人">Truth: The Man Who Sold the World</div>
+<div class="episode-desc" data-en="The final truth is revealed. \"V has come to.\" The phantom and the legend become one — you are Big Boss." data-zh="最终真相揭晓。"V醒了。"幻影与传奇合而为一——你就是大首领。">The final truth is revealed. "V has come to." The phantom and the legend become one — you are Big Boss.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="diamond-sep">◇ ◇ ◇ ◇ ◇</div>
+
+<!-- Buddies -->
+<section id="buddies">
+<div class="container reveal">
+<div class="section-tag" data-en="◇ BUDDY SYSTEM ◇" data-zh="◇ 伙伴系统 ◇">◇ BUDDY SYSTEM ◇</div>
+<div class="section-title" data-en="Combat Companions" data-zh="战斗伙伴">Combat Companions</div>
+<div class="grid-4">
+<div class="buddy-card">
+<div class="buddy-avatar">&#x1F40E;</div>
+<div class="buddy-name" data-en="D-HORSE" data-zh="D-马">D-HORSE</div>
+<div class="buddy-code">BUDDY-001</div>
+<div class="buddy-desc" data-en="Snake's loyal steed. Provides rapid traversal across Afghanistan's vast deserts and Africa's open savannas. Can be used as mobile cover." data-zh="蛇的忠诚坐骑。在阿富汗广袤沙漠和非洲开阔草原上提供快速移动。可用作移动掩体。">Snake's loyal steed. Provides rapid traversal across Afghanistan's vast deserts and Africa's open savannas. Can be used as mobile cover.</div>
+<div class="buddy-ability" data-en="◇ RAPID TRAVERSE" data-zh="◇ 快速移动">◇ RAPID TRAVERSE</div>
+</div>
+<div class="buddy-card">
+<div class="buddy-avatar">&#x1F415;</div>
+<div class="buddy-name" data-en="D-DOG" data-zh="D-狗">D-DOG</div>
+<div class="buddy-code">BUDDY-002</div>
+<div class="buddy-desc" data-en="A wolf pup raised on Mother Base, trained into an elite combat companion. Marks enemies, detects mines, plants, and prisoners through scent." data-zh="在母基地饲养长大的狼犬，训练成精英战斗伙伴。通过嗅觉标记敌人、探测地雷、植物和囚犯。">A wolf pup raised on Mother Base, trained into an elite combat companion. Marks enemies, detects mines, plants, and prisoners through scent.</div>
+<div class="buddy-ability" data-en="◇ AUTO-MARK ENEMIES" data-zh="◇ 自动标记敌人">◇ AUTO-MARK ENEMIES</div>
+</div>
+<div class="buddy-card">
+<div class="buddy-avatar">&#x1F3AF;</div>
+<div class="buddy-name" data-en="QUIET" data-zh="静静">QUIET</div>
+<div class="buddy-code">BUDDY-003</div>
+<div class="buddy-desc" data-en="An enigmatic sniper with supernatural abilities. She breathes through her skin, moves with inhuman speed, and never misses her mark. A tragic bond." data-zh="拥有超自然能力的神秘狙击手。她通过皮肤呼吸，以超人速度移动，弹无虚发。一段悲剧般的羁绊。">An enigmatic sniper with supernatural abilities. She breathes through her skin, moves with inhuman speed, and never misses her mark. A tragic bond.</div>
+<div class="buddy-ability" data-en="◇ COVER FIRE / SCOUT" data-zh="◇ 火力支援 / 侦察">◇ COVER FIRE / SCOUT</div>
+</div>
+<div class="buddy-card">
+<div class="buddy-avatar">&#x1F916;</div>
+<div class="buddy-name" data-en="D-WALKER" data-zh="D-步行者">D-WALKER</div>
+<div class="buddy-code">BUDDY-004</div>
+<div class="buddy-desc" data-en="A bipedal weapons platform designed by Huey Emmerich. Armed with a minigun, rocket launcher, or fulton device. The precursor to Metal Gear." data-zh="由赫伊·艾默里奇设计的双足武器平台。装备机枪、火箭发射器或弹射装置。金属齿轮的前身。">A bipedal weapons platform designed by Huey Emmerich. Armed with a minigun, rocket launcher, or fulton device. The precursor to Metal Gear.</div>
+<div class="buddy-ability" data-en="◇ HEAVY FIREPOWER" data-zh="◇ 重火力">◇ HEAVY FIREPOWER</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="diamond-sep">◇ ◇ ◇ ◇ ◇</div>
+
+<!-- Skull Face & XOF -->
+<section id="skullface" class="skull-section">
+<div class="container reveal">
+<div class="section-tag" data-en="◇ THE ENEMY ◇" data-zh="◇ 敌人 ◇">◇ THE ENEMY ◇</div>
+<div class="section-title" data-en="The Man Who Stole Our Past" data-zh="窃取我们过去的人">The Man Who Stole Our Past</div>
+<div class="grid-2">
+<div class="skull-panel">
+<div class="skull-name" data-en="SKULL FACE" data-zh="骷髅脸">SKULL FACE</div>
+<div class="skull-org" data-en="COMMANDER — XOF SPECIAL FORCES" data-zh="指挥官 — XOF特种部队">COMMANDER — XOF SPECIAL FORCES</div>
+<div class="card-text" data-en="A man consumed by vengeance against language itself. Horrifically burned and rebuilt, Skull Face commands the rogue unit XOF and wields the vocal cord parasites — biological weapons that can exterminate entire languages. His ultimate weapon: the bipedal nuclear-armed Metal Gear Sahelanthropus, piloted by the psychic child Tretij Rebenok." data-zh="一个被对语言本身的复仇所吞噬的人。经历恐怖烧伤后重生，骷髅脸指挥叛变部队XOF，并掌握声带寄生虫——一种能灭绝整个语言的生物武器。他的终极武器：由灵能少年特瑞缇驾驶的双足核武装金属齿轮撒海人。">A man consumed by vengeance against language itself. Horrifically burned and rebuilt, Skull Face commands the rogue unit XOF and wields the vocal cord parasites — biological weapons that can exterminate entire languages. His ultimate weapon: the bipedal nuclear-armed Metal Gear Sahelanthropus, piloted by the psychic child Tretij Rebenok.</div>
+</div>
+<div>
+<div class="card" style="margin-bottom:18px">
+<div class="card-tag" data-en="THREAT ASSESSMENT" data-zh="威胁评估">THREAT ASSESSMENT</div>
+<div class="card-title" data-en="XOF Special Forces" data-zh="XOF特种部队">XOF Special Forces</div>
+<div class="card-text" data-en="The mirror image of FOX — Cipher's black-ops unit responsible for the destruction of MSF and the nine-year coma of Big Boss. Operating outside any nation's authority." data-zh="FOX的镜像——密码组织的黑色行动部队，对MSF的毁灭和大首领的九年昏迷负有责任。在任何国家权力之外运作。">The mirror image of FOX — Cipher's black-ops unit responsible for the destruction of MSF and the nine-year coma of Big Boss. Operating outside any nation's authority.</div>
+</div>
+<div class="card">
+<div class="card-tag" data-en="BIOLOGICAL THREAT" data-zh="生物威胁">BIOLOGICAL THREAT</div>
+<div class="card-title" data-en="Vocal Cord Parasites" data-zh="声带寄生虫">Vocal Cord Parasites</div>
+<div class="card-text" data-en="Parasites that target speakers of specific languages. When activated, the host's vocal cords are consumed. Skull Face's weapon to create a world of silence — where only nuclear deterrence speaks." data-zh="针对特定语言使用者的寄生虫。激活时，宿主的声带会被吞噬。骷髅脸创造沉默世界的武器——只有核威慑在说话。">Parasites that target speakers of specific languages. When activated, the host's vocal cords are consumed. Skull Face's weapon to create a world of silence — where only nuclear deterrence speaks.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="diamond-sep">◇ ◇ ◇ ◇ ◇</div>
+
+<!-- Motherbase Departments -->
+<section id="motherbase">
+<div class="container reveal">
+<div class="section-tag" data-en="◇ MOTHER BASE ◇" data-zh="◇ 母基地 ◇">◇ MOTHER BASE ◇</div>
+<div class="section-title" data-en="Base Development" data-zh="基地开发">Base Development</div>
+<div class="grid-3">
+<div class="dept-card">
+<div class="dept-icon">&#9876;</div>
+<div class="dept-name" data-en="Combat Unit" data-zh="战斗部队">Combat Unit</div>
+<div class="dept-desc" data-en="Front-line soldiers for dispatch missions and FOB defense" data-zh="前线士兵，执行派遣任务和FOB防御">Front-line soldiers for dispatch missions and FOB defense</div>
+<div class="dept-level"><div class="dept-level-fill" style="width:85%"></div></div>
+</div>
+<div class="dept-card">
+<div class="dept-icon">&#128300;</div>
+<div class="dept-name" data-en="R&D Team" data-zh="研发部门">R&D Team</div>
+<div class="dept-desc" data-en="Develops new weapons, items, and equipment upgrades" data-zh="开发新武器、道具和装备升级">Develops new weapons, items, and equipment upgrades</div>
+<div class="dept-level"><div class="dept-level-fill" style="width:92%"></div></div>
+</div>
+<div class="dept-card">
+<div class="dept-icon">&#127891;</div>
+<div class="dept-name" data-en="Support Unit" data-zh="支援部队">Support Unit</div>
+<div class="dept-desc" data-en="Provides supply drops, air strikes, and bombardment support" data-zh="提供补给投放、空中打击和炮击支援">Provides supply drops, air strikes, and bombardment support</div>
+<div class="dept-level"><div class="dept-level-fill" style="width:78%"></div></div>
+</div>
+<div class="dept-card">
+<div class="dept-icon">&#128161;</div>
+<div class="dept-name" data-en="Intel Team" data-zh="情报部门">Intel Team</div>
+<div class="dept-desc" data-en="Gathers intelligence, marks enemies and resources on the map" data-zh="收集情报，在地图上标记敌人和资源">Gathers intelligence, marks enemies and resources on the map</div>
+<div class="dept-level"><div class="dept-level-fill" style="width:88%"></div></div>
+</div>
+<div class="dept-card">
+<div class="dept-icon">&#128137;</div>
+<div class="dept-name" data-en="Medical Team" data-zh="医疗部门">Medical Team</div>
+<div class="dept-desc" data-en="Treats wounded staff, develops parasite countermeasures" data-zh="治疗受伤人员，开发寄生虫对策">Treats wounded staff, develops parasite countermeasures</div>
+<div class="dept-level"><div class="dept-level-fill" style="width:70%"></div></div>
+</div>
+<div class="dept-card">
+<div class="dept-icon">&#9881;</div>
+<div class="dept-name" data-en="Base Development" data-zh="基地开发">Base Development</div>
+<div class="dept-desc" data-en="Expands Mother Base platforms and constructs new struts" data-zh="扩展母基地平台，建造新支柱">Expands Mother Base platforms and constructs new struts</div>
+<div class="dept-level"><div class="dept-level-fill" style="width:95%"></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="diamond-sep">◇ ◇ ◇ ◇ ◇</div>
+
+<!-- Weapons & Equipment -->
+<section id="equipment">
+<div class="container reveal">
+<div class="section-tag" data-en="◇ LOADOUT ◇" data-zh="◇ 装备 ◇">◇ LOADOUT ◇</div>
+<div class="section-title" data-en="Weapons & Equipment" data-zh="武器与装备">Weapons & Equipment</div>
+<div class="grid-2">
+<div class="equip-item">
+<div class="equip-icon">&#128299;</div>
+<div><div class="equip-name" data-en="AM MRS-4 Rifle" data-zh="AM MRS-4 步枪">AM MRS-4 Rifle</div>
+<div class="equip-detail" data-en="Modular assault rifle. Customizable barrel, stock, and optics." data-zh="模块化突击步枪。可自定义枪管、枪托和光学瞄准具。">Modular assault rifle. Customizable barrel, stock, and optics.</div></div>
+<div class="equip-gmp">◇ 15,000 GMP</div>
+</div>
+<div class="equip-item">
+<div class="equip-icon">&#128296;</div>
+<div><div class="equip-name" data-en="Bionic Arm" data-zh="仿生手臂">Bionic Arm</div>
+<div class="equip-detail" data-en="Prosthetic with rocket punch, sonar, and stun capabilities." data-zh="具有火箭拳、声呐和电击功能的义肢。">Prosthetic with rocket punch, sonar, and stun capabilities.</div></div>
+<div class="equip-gmp">◇ 50,000 GMP</div>
+</div>
+<div class="equip-item">
+<div class="equip-icon">&#127880;</div>
+<div><div class="equip-name" data-en="Fulton Device" data-zh="弹射装置">Fulton Device</div>
+<div class="equip-detail" data-en="Extracts soldiers, vehicles, and containers to Mother Base." data-zh="将士兵、车辆和集装箱弹射回母基地。">Extracts soldiers, vehicles, and containers to Mother Base.</div></div>
+<div class="equip-gmp">◇ 3,000 GMP</div>
+</div>
+<div class="equip-item">
+<div class="equip-icon">&#128225;</div>
+<div><div class="equip-name" data-en="iDroid Terminal" data-zh="iDroid终端">iDroid Terminal</div>
+<div class="equip-detail" data-en="Holographic tactical display. Map, missions, and Mother Base management." data-zh="全息战术显示器。地图、任务和母基地管理。">Holographic tactical display. Map, missions, and Mother Base management.</div></div>
+<div class="equip-gmp">◇ STANDARD</div>
+</div>
+<div class="equip-item">
+<div class="equip-icon">&#128163;</div>
+<div><div class="equip-name" data-en="C4 Explosives" data-zh="C4炸药">C4 Explosives</div>
+<div class="equip-detail" data-en="Remote-detonated plastic explosive for sabotage operations." data-zh="遥控引爆塑料炸药，用于破坏行动。">Remote-detonated plastic explosive for sabotage operations.</div></div>
+<div class="equip-gmp">◇ 8,000 GMP</div>
+</div>
+<div class="equip-item">
+<div class="equip-icon">&#128302;</div>
+<div><div class="equip-name" data-en="Stealth Camo" data-zh="光学迷彩">Stealth Camo</div>
+<div class="equip-detail" data-en="Optical camouflage rendering the user nearly invisible." data-zh="光学伪装装置，使用者几乎隐形。">Optical camouflage rendering the user nearly invisible.</div></div>
+<div class="equip-gmp">◇ 100,000 GMP</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="diamond-sep">◇ ◇ ◇ ◇ ◇</div>
+
+<!-- Quote -->
+<section class="quote-section">
+<div class="container reveal">
+<div class="quote-mark">"</div>
+<div class="quote-text" data-en="Why are we still here? Just to suffer? Every night, I can feel my leg... and my arm... even my fingers. The body I've lost... the comrades I've lost... won't stop hurting. It's like they're all still there." data-zh="我们为什么还在这里？只是为了受苦吗？每个夜晚，我都能感觉到我的腿……我的手臂……甚至我的手指。我失去的身体……我失去的战友……从未停止过疼痛。就好像它们还在那里一样。">Why are we still here? Just to suffer? Every night, I can feel my leg... and my arm... even my fingers. The body I've lost... the comrades I've lost... won't stop hurting. It's like they're all still there.</div>
+<div class="quote-attr" data-en="— KAZUHIRA MILLER" data-zh="— 和泉一三">— KAZUHIRA MILLER</div>
+
+<div class="nuke-counter">
+<div class="nuke-label" data-en="NUCLEAR WEAPONS ON MOTHER BASE" data-zh="母基地核武器数量">NUCLEAR WEAPONS ON MOTHER BASE</div>
+<div class="nuke-num" id="nukeCount">0</div>
+<div class="nuke-sub" data-en="◇ NUCLEAR DISARMAMENT ACHIEVED ◇" data-zh="◇ 已实现核裁军 ◇">◇ NUCLEAR DISARMAMENT ACHIEVED ◇</div>
+</div>
+</div>
+</section>
+
+<!-- Footer -->
+<footer>
+<div class="footer-diamond">◇ ◇ ◇ ◇ ◇ ◇ ◇</div>
+<p style="font-family:'Rajdhani',sans-serif;font-size:1rem;color:var(--sand);letter-spacing:3px;text-transform:uppercase" data-en="METAL GEAR SOLID V: THE PHANTOM PAIN" data-zh="合金装备5：幻痛">METAL GEAR SOLID V: THE PHANTOM PAIN</p>
+<p data-en="A HIDEO KOJIMA GAME ◇ 2015 ◇ KONAMI" data-zh="小岛秀夫作品 ◇ 2015 ◇ KONAMI">A HIDEO KOJIMA GAME ◇ 2015 ◇ KONAMI</p>
+<p style="margin-top:10px;font-size:.6rem;opacity:.4" data-en="\"V HAS COME TO\"" data-zh=""V醒了"">"V HAS COME TO"</p>
+<p style="margin-top:14px;font-size:.55rem;opacity:.3">Fan tribute page. All rights belong to their respective owners.</p>
+</footer>
+
+<script>
+// === LANGUAGE TOGGLE ===
+function toggleLang(){
+const html=document.documentElement;
+const cur=html.getAttribute('data-lang');
+const next=cur==='en'?'zh':'en';
+html.setAttribute('data-lang',next);
+document.getElementById('langToggle').textContent=next==='en'?'中文':'EN';
+document.querySelectorAll('[data-'+next+']').forEach(el=>{
+const val=el.getAttribute('data-'+next);
+if(val) el.innerHTML=val;
+});
+}
+
+// === THEME TOGGLE ===
+function toggleTheme(){
+const html=document.documentElement;
+const cur=html.getAttribute('data-theme');
+const next=cur==='dark'?'light':'dark';
+html.setAttribute('data-theme',next);
+document.getElementById('themeToggle').textContent=next==='dark'?'LIGHT':'DARK';
+}
+
+// === SCROLL REVEAL ===
+const observer=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// === DESERT DUST PARTICLES ===
+(function(){
+const canvas=document.getElementById('dustCanvas');
+const ctx=canvas.getContext('2d');
+let w,h;
+function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight}
+resize();
+window.addEventListener('resize',resize);
+
+const particles=[];
+const count=80;
+for(let i=0;i<count;i++){
+particles.push({
+x:Math.random()*w,
+y:Math.random()*h,
+r:Math.random()*2+0.5,
+dx:Math.random()*0.4+0.1,
+dy:Math.random()*0.2-0.1,
+alpha:Math.random()*0.4+0.1,
+color:Math.random()>0.5?'200,168,120':'224,168,64'
+});
+}
+
+let heatOffset=0;
+function draw(){
+ctx.clearRect(0,0,w,h);
+heatOffset+=0.005;
+
+// Heat shimmer (subtle)
+const scrollY=window.scrollY;
+if(scrollY<h){
+const shimmerAlpha=Math.max(0,(1-scrollY/h)*0.03);
+for(let y=0;y<h;y+=4){
+const offset=Math.sin(y*0.01+heatOffset*10)*2;
+ctx.fillStyle=`rgba(208,136,72,${shimmerAlpha*Math.sin(y*0.005+heatOffset*5)})`;
+ctx.fillRect(offset,y,w,2);
+}
+}
+
+// Dust particles
+particles.forEach(p=>{
+p.x+=p.dx;
+p.y+=p.dy+Math.sin(heatOffset*2+p.x*0.01)*0.3;
+if(p.x>w+10)p.x=-10;
+if(p.y<-10)p.y=h+10;
+if(p.y>h+10)p.y=-10;
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle=`rgba(${p.color},${p.alpha})`;
+ctx.fill();
+});
+
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// === NUKE COUNTER ANIMATION ===
+(function(){
+const el=document.getElementById('nukeCount');
+const counterObserver=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{
+if(e.isIntersecting){
+let n=9999;
+const interval=setInterval(()=>{
+n=Math.max(0,n-Math.floor(Math.random()*500+100));
+el.textContent=n.toString().padStart(4,'0');
+if(n<=0){clearInterval(interval);el.textContent='0000'}
+},80);
+counterObserver.unobserve(e.target);
+}
+});
+},{threshold:0.5});
+counterObserver.observe(el);
+})();
+</script>
+</body>
+</html>
