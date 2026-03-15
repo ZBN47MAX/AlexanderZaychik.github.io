@@ -64,6 +64,17 @@ html {
   overflow-x: hidden;
 }
 
+/* Lock scroll & hide scrollbar during intro */
+html.intro-locked,
+html.intro-locked body {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+html.intro-locked::-webkit-scrollbar,
+html.intro-locked body::-webkit-scrollbar {
+  display: none !important;
+}
+
 body {
   font-family: 'Rajdhani', 'Noto Sans SC', sans-serif;
   background: var(--bg);
@@ -73,12 +84,74 @@ body {
   position: relative;
 }
 
+/* ── CRT SCANLINES ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* ── NOISE/GRAIN TEXTURE ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+[data-theme="light"] body::before { opacity: 0.4; }
+[data-theme="light"] body::after { opacity: 0.02; }
+
 canvas#particles {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
   z-index: 0;
+}
+
+/* ── GLITCH EFFECT ── */
+@keyframes glitch {
+  0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+  10% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 1px); }
+  20% { clip-path: inset(60% 0 10% 0); transform: translate(3px, -1px); }
+  30% { clip-path: inset(0 0 0 0); transform: translate(0); }
+}
+
+@keyframes glitchBefore {
+  0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); opacity: 0; }
+  10% { clip-path: inset(20% 0 40% 0); transform: translate(4px, 0); opacity: 0.8; }
+  20% { clip-path: inset(50% 0 20% 0); transform: translate(-4px, 0); opacity: 0.6; }
+  30% { clip-path: inset(0 0 0 0); transform: translate(0); opacity: 0; }
+}
+
+@keyframes redAlertPulse {
+  0%, 100% { border-left-color: var(--red); box-shadow: none; }
+  50% { border-left-color: var(--red-glow); box-shadow: -4px 0 20px rgba(255,51,0,0.15); }
+}
+
+@keyframes screenFlicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.8; }
+  94% { opacity: 1; }
+  96% { opacity: 0.9; }
+  97% { opacity: 1; }
 }
 
 /* ── SCROLLBAR ── */
@@ -141,6 +214,20 @@ section {
   letter-spacing: 4px;
   text-transform: uppercase;
   margin-bottom: 12px;
+  position: relative;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+.transmission-tag::after {
+  content: '█';
+  animation: cursorBlink 1s step-end infinite;
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 .section-title {
@@ -150,6 +237,13 @@ section {
   letter-spacing: 6px;
   text-transform: uppercase;
   line-height: 1.1;
+  position: relative;
+  cursor: default;
+}
+
+/* glitch triggered by impact only, via JS class */
+.section-title.impact-glitch {
+  animation: glitch 0.5s ease;
 }
 
 .section-subtitle {
@@ -186,15 +280,37 @@ section {
   position: relative;
   padding: 120px 24px 80px;
   border-bottom: 4px solid var(--yellow);
+  animation: screenFlicker 8s ease infinite;
 }
 
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(255,208,0,0.06) 0%, transparent 70%);
+  background:
+    radial-gradient(ellipse at center, rgba(255,208,0,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(204,34,0,0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(58,110,165,0.04) 0%, transparent 40%);
   pointer-events: none;
 }
+
+/* CLASSIFIED watermark */
+.hero::after {
+  content: 'CLASSIFIED';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-35deg);
+  font-size: clamp(80px, 20vw, 200px);
+  font-weight: 900;
+  letter-spacing: 20px;
+  color: rgba(255,208,0,0.018);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+  z-index: 0;
+}
+
+[data-theme="light"] .hero::after { color: rgba(0,0,0,0.025); }
 
 .hero-eagle {
   font-size: 80px;
@@ -216,6 +332,33 @@ section {
   text-transform: uppercase;
   line-height: 1;
   text-shadow: 0 0 40px rgba(255,208,0,0.3), 0 4px 0 rgba(0,0,0,0.5);
+  position: relative;
+  animation: orbitalDrop 1s cubic-bezier(0.2, 0, 0.2, 1) both;
+}
+
+@keyframes orbitalDrop {
+  0% { transform: translateY(-120px) scale(1.3); opacity: 0; filter: blur(8px); }
+  60% { transform: translateY(8px) scale(0.98); opacity: 1; filter: blur(0); }
+  80% { transform: translateY(-3px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Glitch triggered once by impact, via JS class */
+.hero-title.impact-glitch {
+  animation: glitch 0.6s ease;
+}
+
+.hero-title::before {
+  content: attr(data-en);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  color: var(--red-glow);
+  z-index: -1;
+  opacity: 0;
+}
+.hero-title.impact-glitch::before {
+  animation: glitchBefore 0.6s ease forwards;
 }
 
 .hero-title-cn {
@@ -337,6 +480,13 @@ section {
   padding: 24px;
   text-align: center;
   position: relative;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  background: rgba(255,208,0,0.08);
+  box-shadow: 0 0 20px rgba(255,208,0,0.15);
 }
 
 .stat-card::before,
@@ -397,10 +547,29 @@ section {
   position: relative;
   overflow: hidden;
   transition: transform 0.3s, box-shadow 0.3s;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
 }
 
 .enemy-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px) scale(1.01);
+}
+
+/* Scan line on enemy card */
+.enemy-card::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(transparent, rgba(255,208,0,0.15), transparent);
+  z-index: 2;
+  pointer-events: none;
+  animation: cardScan 4s linear infinite;
+}
+@keyframes cardScan {
+  0% { top: -10%; }
+  100% { top: 110%; }
 }
 
 .enemy-card.terminid { border-color: var(--terminid-orange); }
@@ -504,11 +673,13 @@ section {
   padding: 24px;
   position: relative;
   transition: transform 0.3s, box-shadow 0.3s;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 
 .stratagem-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(255,208,0,0.15);
+  box-shadow: 0 8px 30px rgba(255,208,0,0.2);
+  border-color: var(--white);
 }
 
 .stratagem-card::before,
@@ -688,6 +859,8 @@ section {
   border-left: 5px solid var(--red);
   padding: 28px 32px;
   position: relative;
+  animation: redAlertPulse 2s ease-in-out infinite;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
 }
 
 .order-card::before {
@@ -893,6 +1066,81 @@ footer {
   margin-top: 8px;
 }
 
+/* ═══════════════════════════════════════════
+   HELLPOD DROP CINEMATIC INTRO
+   beacon → red beam → pod drop → impact → slide up
+   ═══════════════════════════════════════════ */
+
+.drop-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  overflow: hidden;
+  pointer-events: all;
+  transition: transform 0.9s cubic-bezier(0.6, 0, 0.2, 1);
+}
+
+/* When smashed, the whole scene slides UP off screen */
+.drop-scene.smashed {
+  transform: translateY(-100vh);
+  pointer-events: none;
+}
+
+/* Scene canvas — everything is drawn here */
+canvas#dropCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Impact white flash overlay */
+.impact-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+.impact-flash.bang {
+  animation: impactBang 0.8s ease-out forwards;
+}
+@keyframes impactBang {
+  0% { opacity: 1; background: #ffd000; }
+  10% { opacity: 0.95; background: #fff; }
+  30% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+/* Screen shake on impact */
+@keyframes impactShake {
+  0%, 100% { transform: translate(0,0); }
+  10% { transform: translate(-8px, 6px); }
+  20% { transform: translate(10px, -8px); }
+  30% { transform: translate(-6px, 4px); }
+  40% { transform: translate(4px, -6px); }
+  50% { transform: translate(-3px, 2px); }
+  70% { transform: translate(2px, -1px); }
+}
+
+body.shaking {
+  animation: impactShake 0.5s ease;
+}
+
+/* Crack lines overlay after impact */
+.crack-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.crack-overlay.show { opacity: 1; }
+.crack-overlay.fade { opacity: 0; transition: opacity 1.5s 0.5s; }
+
 /* ── SCROLL REVEAL ── */
 .reveal {
   opacity: 0;
@@ -928,6 +1176,24 @@ footer {
 </style>
 </head>
 <body>
+
+<!-- ═══ HELLPOD DROP CINEMATIC ═══ -->
+<div class="drop-scene" id="dropScene">
+  <canvas id="dropCanvas"></canvas>
+</div>
+<div class="impact-flash" id="impactFlash"></div>
+<svg class="crack-overlay" id="crackOverlay" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <line x1="960" y1="540" x2="750" y2="200" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
+  <line x1="960" y1="540" x2="1200" y2="150" stroke="rgba(255,255,255,0.4)" stroke-width="2.5"/>
+  <line x1="960" y1="540" x2="500" y2="450" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  <line x1="960" y1="540" x2="1400" y2="380" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+  <line x1="960" y1="540" x2="860" y2="100" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+  <line x1="960" y1="540" x2="1100" y2="50" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <line x1="960" y1="540" x2="300" y2="300" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <line x1="960" y1="540" x2="1600" y2="250" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <line x1="750" y1="200" x2="600" y2="50" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <line x1="1200" y1="150" x2="1350" y2="0" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+</svg>
 
 <canvas id="particles"></canvas>
 
@@ -1447,6 +1713,565 @@ function animateParticles() {
 }
 
 animateParticles();
+
+// ═══════════════════════════════════════════
+// HELLPOD DROP CINEMATIC — CANVAS ANIMATION
+// beacon → red beam → pod drop → impact → slide up
+// ═══════════════════════════════════════════
+(function() {
+  // Lock scroll & force top
+  document.documentElement.classList.add('intro-locked');
+  window.scrollTo(0, 0);
+
+  const scene = document.getElementById('dropScene');
+  const cvs = document.getElementById('dropCanvas');
+  const ctx = cvs.getContext('2d');
+  const flash = document.getElementById('impactFlash');
+  const crack = document.getElementById('crackOverlay');
+
+  let W, H;
+  function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── TIMING (ms) ──
+  const T = {
+    beaconStart: 200,
+    beaconLand: 800,       // beacon hits ground
+    beamStart: 1100,       // red beam shoots up
+    beamFull: 1800,        // beam at full height
+    podAppear: 2200,       // pod enters from top
+    podImpact: 3600,       // pod hits ground
+    slideUp: 3650,         // scene slides up IMMEDIATELY on impact
+    cleanup: 4800          // remove elements
+  };
+
+  const t0 = performance.now();
+  let phase = 'beacon-fall'; // phases: beacon-fall, beacon-land, beam, pod-fall, impact, done
+
+  // ── GROUND ──
+  const groundY = () => H * 0.78;
+  // rocky ground profile
+  const groundProfile = [];
+  for (let i = 0; i <= 60; i++) {
+    groundProfile.push(Math.random() * 8 - 4);
+  }
+
+  // ── STARS ──
+  const stars = [];
+  for (let i = 0; i < 120; i++) {
+    stars.push({
+      x: Math.random(),
+      y: Math.random() * 0.75,
+      s: Math.random() * 1.8 + 0.3,
+      b: Math.random() * 0.7 + 0.3,
+      tw: Math.random() * Math.PI * 2
+    });
+  }
+
+  // ── BEACON ──
+  const beacon = {
+    x: 0.5, // relative to W
+    startY: -0.05,
+    endY: 0, // set in draw, at ground level
+    size: 6,
+    landed: false,
+    glowIntensity: 0
+  };
+
+  // ── BEAM ──
+  const beam = {
+    height: 0,      // current height (upward from ground)
+    maxHeight: 0,    // set to groundY
+    width: 4,
+    opacity: 0,
+    particles: []
+  };
+
+  // ── POD ──
+  const pod = {
+    x: 0.5,
+    y: -0.15,       // starts above screen
+    targetY: 0,     // set at ground
+    width: 32,
+    height: 50,
+    speed: 0,
+    trail: [],
+    shake: { x: 0, y: 0 }
+  };
+
+  // ── DEBRIS ──
+  const debris = [];
+
+  // ── SMOKE PARTICLES ──
+  const smoke = [];
+
+  function elapsed() { return performance.now() - t0; }
+
+  function drawStars(t) {
+    for (const s of stars) {
+      const twinkle = Math.sin(t * 0.002 + s.tw) * 0.3 + 0.7;
+      ctx.beginPath();
+      ctx.arc(s.x * W, s.y * H, s.s, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,210,230,${s.b * twinkle})`;
+      ctx.fill();
+    }
+  }
+
+  function drawGround() {
+    const gy = groundY();
+    ctx.beginPath();
+    ctx.moveTo(0, gy);
+    for (let i = 0; i <= 60; i++) {
+      ctx.lineTo((i / 60) * W, gy + groundProfile[i]);
+    }
+    ctx.lineTo(W, H);
+    ctx.lineTo(0, H);
+    ctx.closePath();
+
+    const grd = ctx.createLinearGradient(0, gy, 0, H);
+    grd.addColorStop(0, '#2a2a28');
+    grd.addColorStop(0.3, '#1a1a18');
+    grd.addColorStop(1, '#0a0a08');
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Ground line highlight
+    ctx.beginPath();
+    ctx.moveTo(0, gy);
+    for (let i = 0; i <= 60; i++) {
+      ctx.lineTo((i / 60) * W, gy + groundProfile[i]);
+    }
+    ctx.strokeStyle = 'rgba(100,95,80,0.4)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function drawSky() {
+    const grd = ctx.createLinearGradient(0, 0, 0, groundY());
+    grd.addColorStop(0, '#020408');
+    grd.addColorStop(0.4, '#060a14');
+    grd.addColorStop(0.8, '#0a1220');
+    grd.addColorStop(1, '#12181e');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, groundY() + 10);
+  }
+
+  function drawBeacon(t) {
+    const e = elapsed();
+    const bx = beacon.x * W;
+    const gy = groundY();
+    beacon.endY = gy - beacon.size;
+
+    if (e < T.beaconStart) return;
+
+    let by;
+    if (e < T.beaconLand) {
+      // Falling
+      const progress = (e - T.beaconStart) / (T.beaconLand - T.beaconStart);
+      const eased = progress * progress; // accelerating
+      by = beacon.startY * H + (beacon.endY - beacon.startY * H) * eased;
+      // Motion trail
+      ctx.beginPath();
+      ctx.moveTo(bx, by - 30);
+      ctx.lineTo(bx, by);
+      ctx.strokeStyle = 'rgba(255,208,0,0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else {
+      // Landed
+      by = beacon.endY;
+      beacon.landed = true;
+
+      // Pulsing glow
+      const landedTime = e - T.beaconLand;
+      beacon.glowIntensity = Math.min(1, landedTime / 400);
+      const pulse = Math.sin(landedTime * 0.008) * 0.3 + 0.7;
+
+      // Ground glow
+      const ggrd = ctx.createRadialGradient(bx, gy, 0, bx, gy, 60 * beacon.glowIntensity);
+      ggrd.addColorStop(0, `rgba(255,50,0,${0.15 * pulse * beacon.glowIntensity})`);
+      ggrd.addColorStop(1, 'transparent');
+      ctx.fillStyle = ggrd;
+      ctx.fillRect(bx - 80, gy - 80, 160, 100);
+    }
+
+    // Beacon body (small arrow/marker shape)
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.beginPath();
+    ctx.moveTo(0, -beacon.size);
+    ctx.lineTo(beacon.size * 0.6, beacon.size * 0.3);
+    ctx.lineTo(-beacon.size * 0.6, beacon.size * 0.3);
+    ctx.closePath();
+    ctx.fillStyle = beacon.landed ? '#ff3300' : '#ffd000';
+    ctx.fill();
+    ctx.restore();
+
+    // Blinking light on beacon after landing
+    if (beacon.landed && Math.sin(e * 0.01) > 0) {
+      ctx.beginPath();
+      ctx.arc(bx, by - beacon.size + 2, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff0000';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bx, by - beacon.size + 2, 6, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,0,0,0.2)';
+      ctx.fill();
+    }
+  }
+
+  function drawBeam(t) {
+    const e = elapsed();
+    if (e < T.beamStart) return;
+
+    const bx = beacon.x * W;
+    const gy = groundY();
+    beam.maxHeight = gy;
+
+    if (e < T.beamFull) {
+      const progress = (e - T.beamStart) / (T.beamFull - T.beamStart);
+      // Beam shoots up fast then slows
+      const eased = 1 - Math.pow(1 - progress, 3);
+      beam.height = beam.maxHeight * eased;
+      beam.opacity = Math.min(1, progress * 2);
+    } else {
+      beam.height = beam.maxHeight;
+      // Pulsing
+      const pulseT = e - T.beamFull;
+      beam.opacity = 0.7 + Math.sin(pulseT * 0.006) * 0.3;
+    }
+
+    // Core beam
+    const beamTop = gy - beam.height;
+    const grd = ctx.createLinearGradient(bx, gy, bx, beamTop);
+    grd.addColorStop(0, `rgba(255,30,0,${beam.opacity * 0.9})`);
+    grd.addColorStop(0.3, `rgba(255,50,10,${beam.opacity * 0.7})`);
+    grd.addColorStop(0.7, `rgba(255,30,0,${beam.opacity * 0.4})`);
+    grd.addColorStop(1, `rgba(255,30,0,0)`);
+
+    ctx.beginPath();
+    ctx.moveTo(bx - beam.width / 2, gy);
+    ctx.lineTo(bx - beam.width * 0.3, beamTop);
+    ctx.lineTo(bx + beam.width * 0.3, beamTop);
+    ctx.lineTo(bx + beam.width / 2, gy);
+    ctx.closePath();
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Outer glow
+    const ogrd = ctx.createLinearGradient(bx, gy, bx, beamTop);
+    ogrd.addColorStop(0, `rgba(255,30,0,${beam.opacity * 0.15})`);
+    ogrd.addColorStop(0.5, `rgba(255,50,10,${beam.opacity * 0.06})`);
+    ogrd.addColorStop(1, 'transparent');
+
+    ctx.beginPath();
+    ctx.moveTo(bx - 20, gy);
+    ctx.lineTo(bx - 6, beamTop + beam.height * 0.3);
+    ctx.lineTo(bx + 6, beamTop + beam.height * 0.3);
+    ctx.lineTo(bx + 20, gy);
+    ctx.closePath();
+    ctx.fillStyle = ogrd;
+    ctx.fill();
+
+    // Rising particles along beam
+    if (e > T.beamStart + 200 && Math.random() > 0.5) {
+      beam.particles.push({
+        x: bx + (Math.random() - 0.5) * 16,
+        y: gy,
+        vy: -(Math.random() * 4 + 2),
+        life: 1,
+        size: Math.random() * 2 + 1
+      });
+    }
+
+    for (let i = beam.particles.length - 1; i >= 0; i--) {
+      const p = beam.particles[i];
+      p.y += p.vy;
+      p.life -= 0.015;
+      if (p.life <= 0 || p.y < beamTop) {
+        beam.particles.splice(i, 1);
+        continue;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,80,20,${p.life * beam.opacity})`;
+      ctx.fill();
+    }
+  }
+
+  function drawPod(t) {
+    const e = elapsed();
+    if (e < T.podAppear) return;
+
+    const bx = beacon.x * W;
+    const gy = groundY();
+    pod.x = bx;
+    pod.targetY = gy - pod.height / 2;
+
+    if (e < T.podImpact) {
+      const progress = (e - T.podAppear) / (T.podImpact - T.podAppear);
+      // Accelerating fall
+      const eased = progress * progress * progress;
+      pod.y = -pod.height + (pod.targetY + pod.height) * eased;
+
+      // Camera shake increases as pod approaches
+      const shake = progress * 3;
+      pod.shake.x = (Math.random() - 0.5) * shake;
+      pod.shake.y = (Math.random() - 0.5) * shake;
+
+      // Fire trail
+      if (pod.y > -pod.height) {
+        for (let i = 0; i < 3; i++) {
+          pod.trail.push({
+            x: bx + (Math.random() - 0.5) * 14,
+            y: pod.y - pod.height / 2 + (Math.random() - 0.5) * 8,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -(Math.random() * 2 + 1),
+            life: 1,
+            size: Math.random() * 4 + 2
+          });
+        }
+      }
+    } else {
+      pod.y = pod.targetY;
+    }
+
+    // Draw trail particles
+    for (let i = pod.trail.length - 1; i >= 0; i--) {
+      const p = pod.trail[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.03;
+      if (p.life <= 0) { pod.trail.splice(i, 1); continue; }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      const r = 255, g = Math.floor(100 + 156 * p.life), b = Math.floor(50 * p.life);
+      ctx.fillStyle = `rgba(${r},${g},${b},${p.life * 0.8})`;
+      ctx.fill();
+    }
+
+    // Draw pod body — angular capsule shape
+    ctx.save();
+    ctx.translate(pod.x + pod.shake.x, pod.y + pod.shake.y);
+
+    // Thruster glow under pod
+    if (e < T.podImpact) {
+      const tgrd = ctx.createRadialGradient(0, pod.height / 2 + 10, 0, 0, pod.height / 2 + 10, 40);
+      tgrd.addColorStop(0, 'rgba(255,150,30,0.6)');
+      tgrd.addColorStop(0.5, 'rgba(255,80,10,0.2)');
+      tgrd.addColorStop(1, 'transparent');
+      ctx.fillStyle = tgrd;
+      ctx.fillRect(-40, pod.height / 2 - 10, 80, 60);
+    }
+
+    // Pod shape
+    const pw = pod.width / 2;
+    const ph = pod.height / 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -ph);             // top point
+    ctx.lineTo(pw * 0.6, -ph + 10);  // top right bevel
+    ctx.lineTo(pw, -ph + 20);        // upper right
+    ctx.lineTo(pw, ph - 6);          // lower right
+    ctx.lineTo(pw - 4, ph);          // bottom right bevel
+    ctx.lineTo(-pw + 4, ph);         // bottom left bevel
+    ctx.lineTo(-pw, ph - 6);         // lower left
+    ctx.lineTo(-pw, -ph + 20);       // upper left
+    ctx.lineTo(-pw * 0.6, -ph + 10); // top left bevel
+    ctx.closePath();
+
+    ctx.fillStyle = '#3a3a3e';
+    ctx.fill();
+    ctx.strokeStyle = '#ffd000';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Yellow stripe across pod
+    ctx.fillStyle = '#ffd000';
+    ctx.fillRect(-pw + 2, -5, pod.width - 4, 4);
+
+    // Hatch line
+    ctx.strokeStyle = 'rgba(255,208,0,0.4)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-pw * 0.5, -ph + 18);
+    ctx.lineTo(-pw * 0.5, ph - 8);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pw * 0.5, -ph + 18);
+    ctx.lineTo(pw * 0.5, ph - 8);
+    ctx.stroke();
+
+    // SE logo (small diamond)
+    ctx.fillStyle = '#ffd000';
+    ctx.beginPath();
+    ctx.moveTo(0, -ph + 28);
+    ctx.lineTo(5, -ph + 34);
+    ctx.lineTo(0, -ph + 40);
+    ctx.lineTo(-5, -ph + 34);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawSmoke(t) {
+    const e = elapsed();
+    if (e < T.podImpact) return;
+
+    const bx = beacon.x * W;
+    const gy = groundY();
+    const age = e - T.podImpact;
+
+    // Generate impact smoke
+    if (age < 600 && Math.random() > 0.3) {
+      smoke.push({
+        x: bx + (Math.random() - 0.5) * 80,
+        y: gy + (Math.random() - 0.5) * 10,
+        vx: (Math.random() - 0.5) * 3,
+        vy: -(Math.random() * 2 + 0.5),
+        life: 1,
+        size: Math.random() * 20 + 10
+      });
+    }
+
+    // Generate debris
+    if (age < 100 && debris.length < 30) {
+      for (let i = 0; i < 8; i++) {
+        debris.push({
+          x: bx + (Math.random() - 0.5) * 40,
+          y: gy - Math.random() * 20,
+          vx: (Math.random() - 0.5) * 12,
+          vy: -(Math.random() * 10 + 3),
+          life: 1,
+          size: Math.random() * 4 + 1,
+          gravity: 0.3
+        });
+      }
+    }
+
+    // Draw debris
+    for (let i = debris.length - 1; i >= 0; i--) {
+      const d = debris[i];
+      d.x += d.vx;
+      d.y += d.vy;
+      d.vy += d.gravity;
+      d.life -= 0.012;
+      if (d.life <= 0 || d.y > H) { debris.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180,170,140,${d.life})`;
+      ctx.fill();
+    }
+
+    // Draw smoke
+    for (let i = smoke.length - 1; i >= 0; i--) {
+      const s = smoke[i];
+      s.x += s.vx;
+      s.y += s.vy;
+      s.size += 0.5;
+      s.life -= 0.008;
+      if (s.life <= 0) { smoke.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(60,55,45,${s.life * 0.4})`;
+      ctx.fill();
+    }
+  }
+
+  // ── HUD overlay text ──
+  function drawHUD(t) {
+    const e = elapsed();
+    ctx.font = '700 13px Rajdhani, sans-serif';
+    ctx.letterSpacing = '4px';
+
+    // Top-left: SEAF transmission
+    if (e > 200) {
+      ctx.fillStyle = `rgba(255,208,0,${Math.min(1, (e - 200) / 500) * 0.6})`;
+      ctx.fillText('SEAF — ORBITAL COMMAND', 30, 40);
+    }
+
+    // Beacon status
+    if (e > T.beaconLand && e < T.podImpact) {
+      ctx.fillStyle = `rgba(255,50,0,${0.6 + Math.sin(e * 0.01) * 0.3})`;
+      ctx.fillText('⚠ STRATAGEM BEACON ACTIVE', 30, 65);
+    }
+
+    // Pod status
+    if (e > T.podAppear && e < T.podImpact) {
+      const alt = Math.max(0, 45000 - Math.floor(45000 * Math.pow((e - T.podAppear) / (T.podImpact - T.podAppear), 3)));
+      ctx.fillStyle = 'rgba(255,208,0,0.7)';
+      ctx.fillText('HELLPOD INBOUND — ALT: ' + alt.toLocaleString() + 'm', 30, 90);
+    }
+
+    // Bottom HUD
+    if (e > 500) {
+      ctx.fillStyle = 'rgba(255,208,0,0.25)';
+      ctx.font = '600 11px Rajdhani, sans-serif';
+      ctx.fillText('FOR SUPER EARTH', W - 180, H - 30);
+    }
+  }
+
+  // ── MAIN LOOP ──
+  let running = true;
+  function frame(t) {
+    if (!running) return;
+    const e = elapsed();
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw scene layers
+    drawSky();
+    drawStars(t);
+    drawBeam(t);
+    drawGround();
+    drawBeacon(t);
+    drawPod(t);
+    drawSmoke(t);
+    drawHUD(t);
+
+    // ── IMPACT ──
+    if (e >= T.podImpact && e < T.podImpact + 50) {
+      flash.classList.add('bang');
+      document.body.classList.add('shaking');
+      crack.classList.add('show');
+      setTimeout(() => { document.body.classList.remove('shaking'); }, 500);
+
+      // One-shot glitch on titles
+      document.querySelectorAll('.hero-title, .section-title').forEach(el => {
+        el.classList.add('impact-glitch');
+      });
+      setTimeout(() => {
+        document.querySelectorAll('.impact-glitch').forEach(el => {
+          el.classList.remove('impact-glitch');
+        });
+      }, 700);
+    }
+
+    // ── SLIDE UP ──
+    if (e >= T.slideUp && !scene.classList.contains('smashed')) {
+      scene.classList.add('smashed');
+      crack.classList.add('fade');
+    }
+
+    // ── CLEANUP ──
+    if (e >= T.cleanup) {
+      running = false;
+      scene.style.display = 'none';
+      flash.style.display = 'none';
+      crack.style.display = 'none';
+      // Unlock scroll & ensure top
+      window.scrollTo(0, 0);
+      document.documentElement.classList.remove('intro-locked');
+      return;
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>

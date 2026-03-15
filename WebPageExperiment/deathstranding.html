@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>死亡搁浅 | DEATH STRANDING</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0b0d;
+    --bg2: #111215;
+    --bg3: #1a1b1f;
+    --text: #c8c4bc;
+    --text-dim: #6b6860;
+    --accent: #e8943a;
+    --accent2: #c46a1a;
+    --accent-glow: rgba(232, 148, 58, 0.15);
+    --strand: #3a7ca5;
+    --strand-dim: rgba(58, 124, 165, 0.2);
+    --danger: #8b2020;
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.06);
+    --shadow: 0 8px 32px rgba(0,0,0,0.6);
+    --font-zh: 'Noto Sans SC', sans-serif;
+    --font-en: 'Rajdhani', sans-serif;
+    --transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] {
+    --bg: #e8e4dc;
+    --bg2: #ddd9d0;
+    --bg3: #d0ccc3;
+    --text: #2a2825;
+    --text-dim: #8a8680;
+    --accent: #c46a1a;
+    --accent2: #a05010;
+    --accent-glow: rgba(196, 106, 26, 0.12);
+    --strand: #2a6085;
+    --strand-dim: rgba(42, 96, 133, 0.15);
+    --danger: #a03030;
+    --surface: rgba(0, 0, 0, 0.04);
+    --border: rgba(0, 0, 0, 0.08);
+    --shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent2) var(--bg2);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-zh);
+    line-height: 1.8;
+    transition: background var(--transition), color var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ===== Particles / Rain ===== */
+  #timefall-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  [data-theme="light"] #timefall-canvas { opacity: 0.15; }
+
+  /* ===== Controls ===== */
+  .controls {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    display: flex;
+    gap: 12px;
+  }
+
+  .ctrl-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s;
+  }
+  .ctrl-btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  /* ===== Navigation ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 90;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    backdrop-filter: blur(20px);
+    background: linear-gradient(to bottom, var(--bg), transparent);
+  }
+
+  .logo {
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-en);
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ===== Hero ===== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 50%, var(--strand-dim) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 80%, var(--accent-glow) 0%, transparent 50%);
+    z-index: 0;
+  }
+
+  .hero-content { position: relative; z-index: 1; }
+
+  .hero h1 {
+    font-family: var(--font-en);
+    font-weight: 300;
+    font-size: clamp(48px, 8vw, 120px);
+    letter-spacing: 16px;
+    text-transform: uppercase;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .hero h1 span {
+    display: block;
+    font-size: 0.35em;
+    letter-spacing: 24px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    margin-top: 24px;
+  }
+
+  .hero-line {
+    width: 1px;
+    height: 80px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    margin: 40px auto 0;
+  }
+
+  .handprint {
+    position: absolute;
+    bottom: 15%;
+    right: 10%;
+    width: 180px;
+    height: 220px;
+    opacity: 0.04;
+    background: var(--accent);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 115c-4 0-7-1-9-3l-1-2c-2-4-3-10-3-16 0-3 0-6 1-8-5 2-10 3-14 3-4 0-7-1-9-4-2-3-3-7-3-12 0-6 2-13 5-20 2-4 4-8 7-11l2-3c-1-3-2-7-2-11 0-5 1-9 3-12 2-4 5-6 9-6 2 0 4 1 6 2 1-4 3-7 5-9 3-3 6-4 9-4 4 0 7 2 9 5 2-2 5-3 8-3 4 0 7 2 9 5 2 4 3 9 3 14 0 4-1 8-2 11l2 3c3 3 5 7 7 11 3 7 5 14 5 20 0 5-1 9-3 12-2 3-5 4-9 4-4 0-9-1-14-3 1 2 1 5 1 8 0 6-1 12-3 16l-1 2c-2 2-5 3-9 3z'/%3E%3C/svg%3E");
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
+
+  /* ===== Sections ===== */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 100px clamp(24px, 5vw, 80px);
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--font-en);
+    font-size: 11px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::before {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 300;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 600px;
+    margin-bottom: 60px;
+    font-size: 15px;
+  }
+
+  /* ===== Cards Grid ===== */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 40px 32px;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 0;
+    background: var(--accent);
+    transition: height 0.4s;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow), 0 0 40px var(--accent-glow);
+    transform: translateY(-4px);
+  }
+  .card:hover::before { height: 100%; }
+
+  .card-icon {
+    font-size: 32px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .card h3 {
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+
+  .card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .card-tag {
+    display: inline-block;
+    margin-top: 16px;
+    font-family: var(--font-en);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+
+  /* ===== Timeline ===== */
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), var(--strand), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 60px;
+    padding-left: 20px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -44px;
+    top: 8px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .timeline-date {
+    font-family: var(--font-en);
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .timeline-title {
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  .timeline-text {
+    color: var(--text-dim);
+    font-size: 14px;
+    max-width: 560px;
+  }
+
+  /* ===== Stats ===== */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin: 60px 0;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .stat:hover {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+  }
+
+  .stat-num {
+    font-family: var(--font-en);
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== Quote ===== */
+  .quote-section {
+    text-align: center;
+    padding: 120px clamp(24px, 5vw, 80px);
+    position: relative;
+  }
+
+  .quote-mark {
+    font-family: var(--font-en);
+    font-size: 120px;
+    color: var(--accent);
+    opacity: 0.15;
+    line-height: 0.5;
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  blockquote {
+    font-size: clamp(20px, 3vw, 32px);
+    font-weight: 300;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .quote-author {
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--accent);
+    font-family: var(--font-en);
+    letter-spacing: 4px;
+  }
+
+  /* ===== Gallery ===== */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 260px 260px;
+    gap: 16px;
+  }
+
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s;
+    cursor: pointer;
+  }
+  .gallery-item:nth-child(1) { grid-row: span 2; }
+  .gallery-item:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+
+  .gallery-placeholder {
+    text-align: center;
+    color: var(--text-dim);
+  }
+  .gallery-placeholder .glyph {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.3;
+  }
+  .gallery-placeholder span {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: var(--font-en);
+  }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    text-align: center;
+    padding: 120px clamp(24px, 5vw, 80px);
+  }
+
+  .cta-btn {
+    display: inline-block;
+    font-family: var(--font-en);
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    padding: 16px 48px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .cta-btn:hover {
+    box-shadow: 0 0 40px var(--accent-glow);
+    transform: translateY(-2px);
+  }
+  .cta-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  .cta-btn:hover::after { transform: translateX(100%); }
+
+  /* ===== Footer ===== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    font-family: var(--font-en);
+  }
+
+  /* ===== Scroll Animations ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== Responsive — Tablet ===== */
+  @media (max-width: 1024px) {
+    nav { padding: 16px 24px; gap: 24px; }
+    .nav-links { gap: 20px; }
+    .nav-links a { font-size: 12px; letter-spacing: 2px; }
+    section { padding: 80px 24px; }
+    .cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .gallery { grid-template-columns: repeat(2, 1fr); grid-template-rows: 220px 220px; }
+    .gallery-item:nth-child(1) { grid-row: span 2; }
+  }
+
+  /* ===== Responsive — Mobile ===== */
+  @media (max-width: 768px) {
+    nav { padding: 14px 16px; gap: 12px; }
+    .logo { font-size: 12px; letter-spacing: 4px; }
+    .nav-links { display: none; }
+    section { padding: 60px 16px; }
+    .controls { top: 14px; right: 14px; gap: 8px; }
+    .ctrl-btn { width: 38px; height: 38px; font-size: 16px; }
+
+    .hero h1 { letter-spacing: 8px; }
+    .hero h1 span { letter-spacing: 10px; font-size: 0.3em; }
+    .hero-sub { font-size: 13px; letter-spacing: 2px; padding: 0 10px; }
+    .hero-line { height: 50px; margin-top: 28px; }
+    .handprint { width: 100px; height: 130px; right: 5%; bottom: 10%; }
+
+    .section-title { font-size: clamp(22px, 6vw, 36px); }
+    .section-desc { font-size: 14px; }
+    .section-label { font-size: 10px; letter-spacing: 4px; }
+
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 2px; margin: 40px 0; }
+    .stat { padding: 24px 12px; }
+    .stat-num { font-size: 32px; }
+    .stat-label { font-size: 11px; }
+
+    .cards { grid-template-columns: 1fr; gap: 16px; }
+    .card { padding: 28px 20px; }
+    .card h3 { font-size: 18px; }
+
+    .timeline { padding-left: 28px; }
+    .timeline-item { padding-left: 14px; margin-bottom: 40px; }
+    .timeline-item::before { left: -32px; width: 7px; height: 7px; }
+    .timeline-title { font-size: 18px; }
+    .timeline-text { font-size: 13px; }
+
+    .gallery { grid-template-columns: 1fr 1fr; grid-template-rows: 160px 160px 160px; gap: 10px; }
+    .gallery-item:nth-child(1) { grid-row: span 2; }
+    .gallery-placeholder .glyph { font-size: 36px; }
+
+    .quote-section { padding: 80px 20px; }
+    .quote-mark { font-size: 80px; }
+    blockquote { font-size: clamp(16px, 4vw, 24px); }
+
+    .cta-section { padding: 80px 16px; }
+    .cta-btn { padding: 14px 36px; font-size: 13px; letter-spacing: 4px; }
+
+    .strand-deco { left: 8px; opacity: 0.08; }
+
+    footer { padding: 28px 16px; font-size: 11px; }
+  }
+
+  /* ===== Responsive — Small Mobile ===== */
+  @media (max-width: 420px) {
+    .hero h1 { letter-spacing: 4px; font-size: clamp(36px, 10vw, 56px); }
+    .hero h1 span { letter-spacing: 6px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stat-num { font-size: 28px; }
+    .gallery { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .gallery-item { min-height: 140px; }
+    .gallery-item:nth-child(1) { grid-row: span 1; }
+    .controls { top: 10px; right: 10px; }
+    .ctrl-btn { width: 34px; height: 34px; font-size: 14px; }
+    .strand-deco { display: none; }
+  }
+
+  /* ===== Scanline effect ===== */
+  .scanline {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.015) 2px,
+      rgba(0,0,0,0.015) 4px
+    );
+  }
+
+  /* ===== Strand decoration ===== */
+  .strand-deco {
+    position: fixed;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      var(--strand) 20%,
+      var(--accent) 50%,
+      var(--strand) 80%,
+      transparent 100%
+    );
+    opacity: 0.15;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+<canvas id="timefall-canvas"></canvas>
+<div class="scanline"></div>
+<div class="strand-deco"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="lang-toggle" title="EN / 中文">文</button>
+  <button class="ctrl-btn" id="theme-toggle" title="Light / Dark">☀</button>
+</div>
+
+<!-- Nav -->
+<nav>
+  <div class="logo">BRIDGES</div>
+  <ul class="nav-links">
+    <li><a href="#about" data-zh="关于" data-en="About">关于</a></li>
+    <li><a href="#features" data-zh="特性" data-en="Features">特性</a></li>
+    <li><a href="#timeline" data-zh="时间线" data-en="Timeline">时间线</a></li>
+    <li><a href="#gallery" data-zh="画廊" data-en="Gallery">画廊</a></li>
+    <li><a href="#contact" data-zh="联系" data-en="Contact">联系</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <h1>
+      <span data-zh="连接即是力量" data-en="TOMORROW IS IN YOUR HANDS">连接即是力量</span>
+      DEATH<br>STRANDING
+    </h1>
+    <p class="hero-sub" data-zh="在断裂的世界中，重新连接每一个孤岛" data-en="Reconnect every isolated city in a fractured world">在断裂的世界中，重新连接每一个孤岛</p>
+    <div class="hero-line"></div>
+  </div>
+  <div class="handprint"></div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="reveal">
+    <div class="section-label" data-zh="// 关于项目" data-en="// ABOUT">// 关于项目</div>
+    <h2 class="section-title" data-zh="死亡搁浅：重建连接的使命" data-en="Death Stranding: A Mission to Rebuild Connection">死亡搁浅：重建连接的使命</h2>
+    <p class="section-desc" data-zh="在一场被称为"死亡搁浅"的神秘事件之后，爆炸在世界各地蔓延，超自然生物开始在地球上游荡。与此同时，"时间雨"——一种能加速万物时间流逝的降水——开始降临。人类文明陷入分裂，幸存者被迫躲入地下避难所。在这个支离破碎的世界中，你需要承担起重新连接每一座孤城的使命。" data-en="After a mysterious event known as the 'Death Stranding,' explosions rocked the planet and supernatural creatures began to roam the earth. Meanwhile, 'Timefall' — a rain that accelerates the passage of time for anything it touches — started to fall. Civilization fractured, and survivors retreated into underground shelters. In this shattered world, you must take on the mission of reconnecting every isolated city.">在一场被称为"死亡搁浅"的神秘事件之后，爆炸在世界各地蔓延，超自然生物开始在地球上游荡。与此同时，"时间雨"——一种能加速万物时间流逝的降水——开始降临。人类文明陷入分裂，幸存者被迫躲入地下避难所。在这个支离破碎的世界中，你需要承担起重新连接每一座孤城的使命。</p>
+  </div>
+
+  <div class="stats reveal">
+    <div class="stat">
+      <div class="stat-num">214</div>
+      <div class="stat-label" data-zh="已连接节点" data-en="Connected Nodes">已连接节点</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">89%</div>
+      <div class="stat-label" data-zh="开罗尔网络覆盖" data-en="Chiral Network Coverage">开罗尔网络覆盖</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1.2M</div>
+      <div class="stat-label" data-zh="货物已送达" data-en="Cargo Delivered">货物已送达</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label" data-zh="连接的羁绊" data-en="Strand Connections">连接的羁绊</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="reveal">
+    <div class="section-label" data-zh="// 核心系统" data-en="// CORE SYSTEMS">// 核心系统</div>
+    <h2 class="section-title" data-zh="布里吉斯连接系统" data-en="BRIDGES Connection Systems">布里吉斯连接系统</h2>
+    <p class="section-desc" data-zh="通过先进的开罗尔技术，我们正在逐步恢复美利坚大陆的通信与物流网络。" data-en="Through advanced chiral technology, we are gradually restoring communication and logistics networks across the continent.">通过先进的开罗尔技术，我们正在逐步恢复美利坚大陆的通信与物流网络。</p>
+  </div>
+
+  <div class="cards reveal">
+    <div class="card">
+      <span class="card-icon">◈</span>
+      <h3 data-zh="开罗尔网络" data-en="Chiral Network">开罗尔网络</h3>
+      <p data-zh="利用冥滩与现实世界之间的连接，建立跨区域的即时通信网络。数据通过开罗尔粒子进行加密传输，确保信息安全。" data-en="Utilizing the connection between the Beach and the real world to establish cross-regional instant communication. Data is encrypted through chiral particles, ensuring information security.">利用冥滩与现实世界之间的连接，建立跨区域的即时通信网络。数据通过开罗尔粒子进行加密传输，确保信息安全。</p>
+      <span class="card-tag">ONLINE</span>
+    </div>
+    <div class="card">
+      <span class="card-icon">⬡</span>
+      <h3 data-zh="布里吉宝宝 (BB)" data-en="Bridge Baby (BB)">布里吉宝宝 (BB)</h3>
+      <p data-zh="BB是连接生与死世界的桥梁。通过与送货员的神经链接，BB能够感知BT的存在，为穿越危险区域提供关键预警。" data-en="BBs are the bridge between the worlds of the living and the dead. Through neural links with porters, BBs can sense BTs, providing critical early warnings for traversing dangerous zones.">BB是连接生与死世界的桥梁。通过与送货员的神经链接，BB能够感知BT的存在，为穿越危险区域提供关键预警。</p>
+      <span class="card-tag">ACTIVE</span>
+    </div>
+    <div class="card">
+      <span class="card-icon">⏣</span>
+      <h3 data-zh="时间雨防护" data-en="Timefall Shelter">时间雨防护</h3>
+      <p data-zh="时间雨会加速一切物质的老化。我们开发了特殊的时间雨防护涂层和避难设施，保护送货员和货物免受时间侵蚀。" data-en="Timefall accelerates the aging of all matter. We've developed special timefall-resistant coatings and shelter facilities to protect porters and cargo from temporal erosion.">时间雨会加速一切物质的老化。我们开发了特殊的时间雨防护涂层和避难设施，保护送货员和货物免受时间侵蚀。</p>
+      <span class="card-tag">DEPLOYED</span>
+    </div>
+    <div class="card">
+      <span class="card-icon">◉</span>
+      <h3 data-zh="DOOMS 感知系统" data-en="DOOMS Detection">DOOMS 感知系统</h3>
+      <p data-zh="具有DOOMS能力的个体能够感知冥滩和BT。我们利用这种特殊能力开发了先进的预警系统，用于监测虚空噬灭的早期征兆。" data-en="Individuals with DOOMS abilities can sense the Beach and BTs. We leverage this special ability to develop advanced early warning systems for monitoring voidout precursors.">具有DOOMS能力的个体能够感知冥滩和BT。我们利用这种特殊能力开发了先进的预警系统，用于监测虚空噬灭的早期征兆。</p>
+      <span class="card-tag">CLASSIFIED</span>
+    </div>
+    <div class="card">
+      <span class="card-icon">⟐</span>
+      <h3 data-zh="异世界结构体" data-en="Otherworld Constructs">异世界结构体</h3>
+      <p data-zh="通过开罗尔3D打印技术，送货员可以在野外快速建造桥梁、公路和避难所。这些结构体利用开罗尔带宽进行共享，所有连接者都能使用。" data-en="Through chiral 3D printing, porters can rapidly construct bridges, roads, and shelters in the field. These constructs are shared via chiral bandwidth, accessible to all connected users.">通过开罗尔3D打印技术，送货员可以在野外快速建造桥梁、公路和避难所。这些结构体利用开罗尔带宽进行共享，所有连接者都能使用。</p>
+      <span class="card-tag">BUILDING</span>
+    </div>
+    <div class="card">
+      <span class="card-icon">◬</span>
+      <h3 data-zh="回收者防御" data-en="MULE Defense">回收者防御</h3>
+      <p data-zh="回收者（MULE）是对货物有执念的前送货员。我们开发了非致命性武器和反侦察技术，保护送货员的安全和货物完整。" data-en="MULEs are former porters obsessed with cargo. We've developed non-lethal weapons and counter-reconnaissance technology to protect porter safety and cargo integrity.">回收者（MULE）是对货物有执念的前送货员。我们开发了非致命性武器和反侦察技术，保护送货员的安全和货物完整。</p>
+      <span class="card-tag">ALERT</span>
+    </div>
+  </div>
+</section>
+
+<!-- Timeline -->
+<section id="timeline">
+  <div class="reveal">
+    <div class="section-label" data-zh="// 事件年表" data-en="// CHRONOLOGY">// 事件年表</div>
+    <h2 class="section-title" data-zh="关键事件记录" data-en="Key Event Records">关键事件记录</h2>
+    <p class="section-desc" data-zh="从死亡搁浅的发生到重建美利坚的漫长旅途中，每一个关键节点都改变了人类的命运。" data-en="From the occurrence of the Death Stranding to the long journey of rebuilding America, every key moment has altered humanity's destiny.">从死亡搁浅的发生到重建美利坚的漫长旅途中，每一个关键节点都改变了人类的命运。</p>
+  </div>
+
+  <div class="timeline reveal">
+    <div class="timeline-item">
+      <div class="timeline-date">YEAR 00</div>
+      <h3 class="timeline-title" data-zh="死亡搁浅事件" data-en="The Death Stranding">死亡搁浅事件</h3>
+      <p class="timeline-text" data-zh="生与死的界限被打破。超自然爆炸席卷全球，BT开始出现在人间。时间雨降临，文明进入崩溃。" data-en="The boundary between life and death shattered. Supernatural explosions swept the globe, BTs began appearing in the world. Timefall descended, and civilization entered collapse.">生与死的界限被打破。超自然爆炸席卷全球，BT开始出现在人间。时间雨降临，文明进入崩溃。</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">YEAR 02</div>
+      <h3 class="timeline-title" data-zh="地下避难所时代" data-en="The Underground Era">地下避难所时代</h3>
+      <p class="timeline-text" data-zh="幸存的人类转入地下生活。各城市之间的联系被切断，社会分裂成无数孤立的节点。" data-en="Surviving humans retreated underground. Connections between cities were severed, and society fragmented into countless isolated nodes.">幸存的人类转入地下生活。各城市之间的联系被切断，社会分裂成无数孤立的节点。</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">YEAR 05</div>
+      <h3 class="timeline-title" data-zh="布里吉斯成立" data-en="BRIDGES Founded">布里吉斯成立</h3>
+      <p class="timeline-text" data-zh="为了重建美利坚，布里吉斯组织应运而生。它的使命是通过开罗尔网络重新连接每一座孤城。" data-en="To rebuild America, the BRIDGES organization was born. Its mission: reconnect every isolated city through the Chiral Network.">为了重建美利坚，布里吉斯组织应运而生。它的使命是通过开罗尔网络重新连接每一座孤城。</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">YEAR 08</div>
+      <h3 class="timeline-title" data-zh="山姆·波特·布里吉斯的旅程" data-en="Sam Porter Bridges' Journey">山姆·波特·布里吉斯的旅程</h3>
+      <p class="timeline-text" data-zh="传奇送货员山姆踏上横跨大陆的旅程，一步一步将分裂的世界重新连接在一起。" data-en="The legendary porter Sam embarked on a cross-continental journey, reconnecting the fractured world one step at a time.">传奇送货员山姆踏上横跨大陆的旅程，一步一步将分裂的世界重新连接在一起。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Quote -->
+<section class="quote-section reveal">
+  <span class="quote-mark">"</span>
+  <blockquote data-zh="我们之间的绳索就是我们的连接。而棍棒是我们用来驱赶邪恶的第一件工具。我们需要的不是棍棒，而是绳索。" data-en="The rope we use to bind ourselves to others is our connection. The stick was the first tool created to drive away evil. What we need is not sticks, but ropes.">我们之间的绳索就是我们的连接。而棍棒是我们用来驱赶邪恶的第一件工具。我们需要的不是棍棒，而是绳索。</blockquote>
+  <div class="quote-author">— BRIDGES MEMORIAL</div>
+</section>
+
+<!-- Gallery -->
+<section id="gallery">
+  <div class="reveal">
+    <div class="section-label" data-zh="// 世界一瞥" data-en="// GLIMPSES">// 世界一瞥</div>
+    <h2 class="section-title" data-zh="来自前线的影像" data-en="Images from the Frontline">来自前线的影像</h2>
+    <p class="section-desc" data-zh="送货员们在旅途中记录下的断裂世界。" data-en="A fractured world documented by porters on their journeys.">送货员们在旅途中记录下的断裂世界。</p>
+  </div>
+
+  <div class="gallery reveal">
+    <div class="gallery-item">
+      <div class="gallery-placeholder">
+        <span class="glyph">⛰</span>
+        <span data-zh="冰封荒原" data-en="Frozen Wasteland">冰封荒原</span>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">
+        <span class="glyph">🌊</span>
+        <span data-zh="时间雨海岸" data-en="Timefall Shore">时间雨海岸</span>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">
+        <span class="glyph">⚡</span>
+        <span data-zh="BT 出没区" data-en="BT Territory">BT 出没区</span>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">
+        <span class="glyph">🏗</span>
+        <span data-zh="节点城市" data-en="Knot City">节点城市</span>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">
+        <span class="glyph">🌑</span>
+        <span data-zh="冥滩" data-en="The Beach">冥滩</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="contact" class="cta-section">
+  <div class="reveal">
+    <div class="section-label" style="justify-content: center;" data-zh="// 加入我们" data-en="// JOIN US">// 加入我们</div>
+    <h2 class="section-title" style="text-align:center;" data-zh="成为连接者" data-en="Become a Porter">成为连接者</h2>
+    <p class="section-desc" style="text-align:center; margin: 16px auto 40px;" data-zh="每一次投递都是一条纽带，每一条纽带都让世界更加完整。" data-en="Every delivery is a strand, and every strand makes the world more whole.">每一次投递都是一条纽带，每一条纽带都让世界更加完整。</p>
+    <button class="cta-btn" data-zh="接受委托" data-en="ACCEPT ORDER">接受委托</button>
+  </div>
+</section>
+
+<footer>
+  <p>BRIDGES CORP. — <span data-zh="重建美利坚" data-en="REBUILDING AMERICA">重建美利坚</span> — UCA</p>
+</footer>
+
+<script>
+// ===== Timefall Rain =====
+const canvas = document.getElementById('timefall-canvas');
+const ctx = canvas.getContext('2d');
+let drops = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function initDrops() {
+  drops = [];
+  const count = Math.floor(window.innerWidth / 8);
+  for (let i = 0; i < count; i++) {
+    drops.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      len: Math.random() * 20 + 10,
+      speed: Math.random() * 4 + 2,
+      opacity: Math.random() * 0.3 + 0.1
+    });
+  }
+}
+initDrops();
+
+function drawRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  drops.forEach(d => {
+    ctx.beginPath();
+    ctx.moveTo(d.x, d.y);
+    ctx.lineTo(d.x + 0.5, d.y + d.len);
+    ctx.strokeStyle = isDark
+      ? `rgba(180, 200, 220, ${d.opacity})`
+      : `rgba(60, 70, 80, ${d.opacity})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    d.y += d.speed;
+    if (d.y > canvas.height) {
+      d.y = -d.len;
+      d.x = Math.random() * canvas.width;
+    }
+  });
+  requestAnimationFrame(drawRain);
+}
+drawRain();
+
+// ===== Theme Toggle =====
+const themeBtn = document.getElementById('theme-toggle');
+themeBtn.addEventListener('click', () => {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeBtn.textContent = isDark ? '☾' : '☀';
+});
+
+// ===== Language Toggle =====
+const langBtn = document.getElementById('lang-toggle');
+langBtn.addEventListener('click', () => {
+  const html = document.documentElement;
+  const isZh = html.getAttribute('data-lang') === 'zh';
+  const newLang = isZh ? 'en' : 'zh';
+  html.setAttribute('data-lang', newLang);
+  html.setAttribute('lang', newLang === 'zh' ? 'zh-CN' : 'en');
+  langBtn.textContent = isZh ? '中' : '文';
+
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    const text = el.getAttribute(`data-${newLang}`);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = text;
+    } else {
+      el.textContent = text;
+    }
+  });
+});
+
+// ===== Scroll Reveal =====
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

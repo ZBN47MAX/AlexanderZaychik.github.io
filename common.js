@@ -114,10 +114,37 @@ function initHamburger() {
     });
 }
 
+// ---- Intro animation ----
+function initIntro() {
+    var overlay = document.getElementById('intro-overlay');
+    if (!overlay) return;
+
+    // Lock scroll & force top
+    document.documentElement.classList.add('intro-active');
+    window.scrollTo(0, 0);
+
+    // Total intro duration: ring animations (~1.5s) + text (~2s) + hold (0.5s) = ~3.5s
+    var INTRO_DURATION = 3500;
+
+    setTimeout(function () {
+        overlay.classList.add('done');
+        document.documentElement.classList.remove('intro-active');
+        window.scrollTo(0, 0);
+
+        // Remove overlay from DOM after fade-out completes
+        setTimeout(function () {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        }, 700);
+    }, INTRO_DURATION);
+}
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initLang();
+    initIntro();
     initReveal();
     initSmoothScroll();
     initHamburger();
