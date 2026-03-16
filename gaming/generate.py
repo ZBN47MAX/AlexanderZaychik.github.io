@@ -18,6 +18,15 @@ def encode_img_src(filename):
     """URL-encode the full image path for use in HTML src attributes."""
     return IMG_DIR_ENCODED + '/' + quote(filename, safe='')
 
+# Read translations (Chinese name -> English name)
+translations = {}
+with open(os.path.join(SCRIPT_DIR, 'game_name_translations.csv'), 'r', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    next(reader)  # skip header
+    for row in reader:
+        if len(row) >= 2 and row[0].strip() and row[1].strip():
+            translations[row[0].strip()] = row[1].strip()
+
 # Read image mapping
 image_map = {}
 with open(os.path.join(SCRIPT_DIR, 'game_image_mapping.csv'), 'r', encoding='utf-8') as f:
@@ -26,6 +35,19 @@ with open(os.path.join(SCRIPT_DIR, 'game_image_mapping.csv'), 'r', encoding='utf
     for row in reader:
         if len(row) >= 2:
             image_map[row[0].strip()] = row[1].strip()
+
+def has_chinese(s):
+    """Check if string contains Chinese characters."""
+    return any('\u4e00' <= c <= '\u9fff' or '\u3000' <= c <= '\u303f' or
+               '\uff00' <= c <= '\uffef' for c in s)
+
+def playtime_to_en(pt):
+    """Convert Chinese playtime to English: '23.8 小时' -> '23.8 hrs', '45 分钟' -> '45 min'."""
+    if '小时' in pt:
+        return pt.replace(' 小时', ' hrs')
+    elif '分钟' in pt:
+        return pt.replace(' 分钟', ' min')
+    return pt
 
 # Read game data
 games = []
@@ -38,8 +60,10 @@ with open(os.path.join(SCRIPT_DIR, 'SteamGames.csv'), 'r', encoding='utf-8') as 
             playtime = row[1].strip()
             achievements = row[3].strip() if len(row) > 3 else ''
             img = image_map.get(name, '')
+            en_name = translations.get(name, '')
             games.append({
                 'name': name,
+                'en_name': en_name,
                 'playtime': playtime,
                 'achievements': achievements,
                 'image': img
@@ -79,13 +103,28 @@ for g in games:
         except ValueError:
             ach_html = f'<div class="game-ach"><span>{achievements}</span></div>'
 
-    # Playtime display
-    time_html = f'<span class="game-time">{playtime}</span>' if playtime else ''
+    # Playtime display with i18n
+    if playtime:
+        playtime_en = html.escape(playtime_to_en(g['playtime']))
+        if playtime != playtime_en:
+            time_html = f'<span class="game-time" data-en="{playtime_en}">{playtime}</span>'
+        else:
+            time_html = f'<span class="game-time">{playtime}</span>'
+    else:
+        time_html = ''
+
+    # Game name with i18n
+    en_name = g['en_name']
+    if en_name and has_chinese(g['name']):
+        en_escaped = html.escape(en_name)
+        name_h4 = f'<h4 data-en="{en_escaped}">{name_escaped}</h4>'
+    else:
+        name_h4 = f'<h4>{name_escaped}</h4>'
 
     card = f'''        <div class="game-item">
             {img_html}
             <div class="game-info">
-                <h4>{name_escaped}</h4>
+                {name_h4}
                 {time_html}
                 {ach_html}
             </div>
@@ -200,7 +239,8 @@ const grid = document.getElementById('gamesGrid');
 function getTimeMinutes(el) {{
     const timeEl = el.querySelector('.game-time');
     if (!timeEl) return 0;
-    const t = timeEl.textContent;
+    // Use data-zh (original) if available, otherwise textContent
+    const t = timeEl.getAttribute('data-zh') || timeEl.textContent;
     if (t.includes('小时')) return parseFloat(t.replace(/,/g,'').replace(' 小时','')) * 60 || 0;
     if (t.includes('分钟')) return parseFloat(t.replace(/,/g,'').replace(' 分钟','')) || 0;
     return 0;
@@ -210,8 +250,11 @@ function filterAndSort() {{
     const q = searchInput.value.toLowerCase();
     const items = Array.from(grid.children);
     items.forEach(item => {{
-        const name = item.querySelector('h4').textContent.toLowerCase();
-        item.style.display = name.includes(q) ? '' : 'none';
+        const h4 = item.querySelector('h4');
+        const zhName = (h4.getAttribute('data-zh') || h4.textContent).toLowerCase();
+        const enName = (h4.getAttribute('data-en') || '').toLowerCase();
+        const visible = zhName.includes(q) || enName.includes(q);
+        item.style.display = visible ? '' : 'none';
     }});
     const sortVal = sortSelect.value;
     if (sortVal === 'default') return;
@@ -313,10 +356,18 @@ for score, hrs, ach_done, ach_total, g in top_games:
         meta_parts.append(ach_text)
     meta_str = ' · '.join(meta_parts)
 
+    # Brief card name with i18n
+    en_name = g['en_name']
+    if en_name and has_chinese(g['name']):
+        en_escaped = html.escape(en_name)
+        brief_name = f'<h3 data-en="{en_escaped}">{name_escaped}</h3>'
+    else:
+        brief_name = f'<h3>{name_escaped}</h3>'
+
     card = f'''        <a href="gaming.html" class="brief-card">
             {img_html}
             <div class="brief-body">
-                <h3>{name_escaped}</h3>
+                {brief_name}
                 <span class="brief-meta">{meta_str}</span>
             </div>
             <span class="brief-arrow">&rsaquo;</span>
