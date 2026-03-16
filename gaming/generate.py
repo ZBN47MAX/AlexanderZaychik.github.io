@@ -212,6 +212,8 @@ page_html = f'''<!DOCTYPE html>
             <option value="time-desc" data-en="Playtime ↓">游戏时间 ↓</option>
             <option value="time-asc" data-en="Playtime ↑">游戏时间 ↑</option>
             <option value="name" data-en="Name A-Z">名称 A-Z</option>
+            <option value="ach-count" data-en="Achievements ↓">成就数量 ↓</option>
+            <option value="ach-pct" data-en="Completion % ↓">成就比例 ↓</option>
         </select>
     </div>
 
@@ -244,6 +246,16 @@ function getTimeMinutes(el) {{
     return 0;
 }}
 
+function getAch(el) {{
+    const achEl = el.querySelector('.game-ach span');
+    if (!achEl) return {{ done: 0, total: 0, pct: -1 }};
+    const t = achEl.textContent;
+    const m = t.match(/(\d+)\/(\d+)/);
+    if (!m) return {{ done: 0, total: 0, pct: -1 }};
+    const done = parseInt(m[1]), total = parseInt(m[2]);
+    return {{ done, total, pct: total > 0 ? done / total : 0 }};
+}}
+
 function filterAndSort() {{
     const q = searchInput.value.toLowerCase();
     const items = Array.from(grid.children);
@@ -259,6 +271,8 @@ function filterAndSort() {{
         if (sortVal === 'name') return a.querySelector('h4').textContent.localeCompare(b.querySelector('h4').textContent);
         if (sortVal === 'time-desc') return getTimeMinutes(b) - getTimeMinutes(a);
         if (sortVal === 'time-asc') return getTimeMinutes(a) - getTimeMinutes(b);
+        if (sortVal === 'ach-count') return getAch(b).done - getAch(a).done;
+        if (sortVal === 'ach-pct') return getAch(b).pct - getAch(a).pct;
         return 0;
     }});
     sorted.forEach(item => grid.appendChild(item));
