@@ -924,7 +924,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header_schinese(177).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "人中之龙 维新！极",
@@ -1032,7 +1032,7 @@
     "last_played": "2025年11月18日",
     "achievements": "",
     "cover": "header_schinese(171).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "冲就完事模拟器",
@@ -1095,7 +1095,7 @@
     "last_played": "2025年11月8日",
     "achievements": "",
     "cover": "header_schinese(164).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "千恋＊万花",
@@ -1333,7 +1333,7 @@
   },
   {
     "zh_name": "孤女困魇",
-    "en_name": "Saya no Uta ~ The Song of Saya",
+    "en_name": "Silly Polly Beast",
     "playtime": "",
     "last_played": "",
     "achievements": "0/32",
@@ -1419,7 +1419,7 @@
     "last_played": "2025年11月18日",
     "achievements": "",
     "cover": "header_schinese(169).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "廖添丁：绝代凶贼之末日",
@@ -1653,7 +1653,7 @@
     "last_played": "2025年11月18日",
     "achievements": "",
     "cover": "header_schinese(174).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "机战佣兵™VI 境界天火™",
@@ -1734,7 +1734,7 @@
     "last_played": "2025年11月18日",
     "achievements": "",
     "cover": "header_schinese(172).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "检疫区：最后一站",
@@ -1792,7 +1792,7 @@
   },
   {
     "zh_name": "沙耶之歌",
-    "en_name": "",
+    "en_name": "Saya no Uta ~ The Song of Saya",
     "playtime": "",
     "last_played": "",
     "achievements": "",
@@ -2103,7 +2103,7 @@
     "last_played": "2022年9月24日",
     "achievements": "",
     "cover": "header_schinese(167).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "红怪",
@@ -2229,7 +2229,7 @@
     "last_played": "2025年11月18日",
     "achievements": "",
     "cover": "header_schinese(170).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "葬花·暗黑桃花源",
@@ -2544,7 +2544,7 @@
     "last_played": "2月6日",
     "achievements": "",
     "cover": "header_schinese(168).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -2832,7 +2832,7 @@
     "last_played": "2024年6月19日",
     "achievements": "1/76",
     "cover": "header(20).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
