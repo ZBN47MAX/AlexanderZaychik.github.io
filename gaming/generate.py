@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""Generate gaming.html and update index.html from games_db.csv
+"""Generate gaming.html and update index.html from games_db.json
 
 Run from project root:  python gaming/generate.py
 
-Data source: gaming/games_db.csv (single unified database)
-Columns: 游戏名称, 英文名, 总游戏时间, 最后运行日期, 成就完成情况, 封面图片, 黑名单
+Data source: gaming/games_db.json
 """
-import csv
 import html
 import os
 import re
@@ -51,44 +49,17 @@ def parse_ach(ach):
             pass
     return 0, 0, 0
 
-# ---- Read single database (auto-detect encoding: UTF-8 / GBK) ----
-def read_csv_auto(path):
-    """Read CSV with auto encoding detection. Tries UTF-8 first, falls back to GBK."""
-    raw = open(path, 'rb').read()
-    # Strip UTF-8 BOM if present
-    if raw.startswith(b'\xef\xbb\xbf'):
-        raw = raw[3:]
-    for enc in ('utf-8', 'gbk', 'gb18030'):
-        try:
-            return raw.decode(enc)
-        except (UnicodeDecodeError, LookupError):
-            continue
-    return raw.decode('utf-8', errors='replace')
+# ---- Read single database (JSON) ----
+import json
 
-import io
-db_path = os.path.join(SCRIPT_DIR, 'games_db.csv')
-db_text = read_csv_auto(db_path)
-
-# Parse all rows, stripping WPS padding
-all_csv_rows = []
-header = None
-with io.StringIO(db_text) as f:
-    reader = csv.reader(f)
-    header = next(reader)
-    for row in reader:
-        if row:
-            all_csv_rows.append([c.strip() for c in row])
-
-# Rewrite as clean UTF-8 BOM (strips WPS padding, fixes quoting)
-with open(db_path, 'w', encoding='utf-8-sig', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow([c.strip() for c in header])
-    writer.writerows(all_csv_rows)
+db_path = os.path.join(SCRIPT_DIR, 'games_db.json')
+with open(db_path, 'r', encoding='utf-8') as f:
+    db_raw = json.load(f)
 
 games = []
-for row in all_csv_rows:
-    zh_name = row[0]
-    en_name = row[1] if len(row) > 1 else ''
+for entry in db_raw:
+    zh_name = entry.get('zh_name', '').strip()
+    en_name = entry.get('en_name', '').strip()
     if not zh_name and not en_name:
         continue
     display_name = zh_name if zh_name else en_name
@@ -96,11 +67,11 @@ for row in all_csv_rows:
         'name':         display_name,
         'zh_name':      zh_name,
         'en_name':      en_name,
-        'playtime':     row[2] if len(row) > 2 else '',
-        'last_played':  row[3] if len(row) > 3 else '',
-        'achievements': row[4] if len(row) > 4 else '',
-        'image':        row[5] if len(row) > 5 else '',
-        'blacklisted':  row[6].upper() == 'TRUE' if len(row) > 6 else False,
+        'playtime':     entry.get('playtime', '').strip(),
+        'last_played':  entry.get('last_played', '').strip(),
+        'achievements': entry.get('achievements', '').strip(),
+        'image':        entry.get('cover', '').strip(),
+        'blacklisted':  bool(entry.get('blacklisted', False)),
     })
 
 # ---- Build game cards HTML (skip blacklisted) ----
