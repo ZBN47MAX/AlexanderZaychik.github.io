@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""Generate gaming.html from SteamGames.csv and game_image_mapping.csv"""
+"""Generate gaming.html from SteamGames.csv and game_image_mapping.csv
+
+Run from project root:  python gaming/generate.py
+"""
 import csv
 import html
+import os
 from urllib.parse import quote
 
-IMG_DIR = 'Steam 社区 __ [CN]Alexander-Zaychik __ 游戏_files'
-IMG_DIR_ENCODED = quote(IMG_DIR, safe='')
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+
+IMG_DIR = 'gaming/covers'
+IMG_DIR_ENCODED = quote(IMG_DIR, safe='/')
 
 def encode_img_src(filename):
     """URL-encode the full image path for use in HTML src attributes."""
@@ -13,7 +20,7 @@ def encode_img_src(filename):
 
 # Read image mapping
 image_map = {}
-with open('game_image_mapping.csv', 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'game_image_mapping.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
@@ -22,7 +29,7 @@ with open('game_image_mapping.csv', 'r', encoding='utf-8') as f:
 
 # Read game data
 games = []
-with open('SteamGames.csv', 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'SteamGames.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
@@ -224,7 +231,7 @@ sortSelect.addEventListener('change', filterAndSort);
 </html>
 '''
 
-with open('gaming.html', 'w', encoding='utf-8') as f:
+with open(os.path.join(ROOT_DIR, 'gaming.html'), 'w', encoding='utf-8') as f:
     f.write(page_html)
 
 print(f"Generated gaming.html with {total_games} games")
@@ -258,7 +265,7 @@ def parse_ach(ach):
 
 # Read brief blacklist
 blacklist = set()
-with open('brief_blacklist.csv', 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'brief_blacklist.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
@@ -319,7 +326,7 @@ for score, hrs, ach_done, ach_total, g in top_games:
 brief_html = '\n'.join(brief_cards)
 
 # Read index.html and replace the gaming brief section
-with open('index.html', 'r', encoding='utf-8') as f:
+with open(os.path.join(ROOT_DIR, 'index.html'), 'r', encoding='utf-8') as f:
     index_content = f.read()
 
 # Replace the gaming brief section specifically (between <!-- Gaming Brief --> and <!-- Contact -->)
@@ -331,7 +338,7 @@ if gaming_match:
     new_section = gaming_match.group(1) + brief_html + f'\n    </div>\n    <p style="text-align:center; margin-top:1.5rem;">\n        <a href="gaming.html" class="view-all" data-en="View all {total_games} titles ">查看全部 {total_games} 款游戏 </a>\n    </p>\n</section>'
     index_content = index_content[:gaming_match.start()] + new_section + index_content[gaming_match.end():]
 
-    with open('index.html', 'w', encoding='utf-8') as f:
+    with open(os.path.join(ROOT_DIR, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(index_content)
     print(f"\nUpdated index.html gaming brief with top {len(top_games)} games:")
     for score, hrs, ach_done, ach_total, g in top_games:
