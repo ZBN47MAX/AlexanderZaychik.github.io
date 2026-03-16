@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Generate gaming.html from SteamGames.csv and game_image_mapping.csv
+"""Generate gaming.html and update index.html from games_db.csv
 
 Run from project root:  python gaming/generate.py
+
+Data source: gaming/games_db.csv (single unified database)
+Columns: 游戏名称, 英文名, 总游戏时间, 最后运行日期, 成就完成情况, 封面图片, 黑名单
 """
 import csv
 import html
 import os
+import re
 from urllib.parse import quote
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,61 +19,57 @@ IMG_DIR = 'gaming/covers'
 IMG_DIR_ENCODED = quote(IMG_DIR, safe='/')
 
 def encode_img_src(filename):
-    """URL-encode the full image path for use in HTML src attributes."""
     return IMG_DIR_ENCODED + '/' + quote(filename, safe='')
 
-# Read translations (Chinese name -> English name)
-translations = {}
-with open(os.path.join(SCRIPT_DIR, 'game_name_translations.csv'), 'r', encoding='utf-8') as f:
-    reader = csv.reader(f)
-    next(reader)  # skip header
-    for row in reader:
-        if len(row) >= 2 and row[0].strip() and row[1].strip():
-            translations[row[0].strip()] = row[1].strip()
-
-# Read image mapping
-image_map = {}
-with open(os.path.join(SCRIPT_DIR, 'game_image_mapping.csv'), 'r', encoding='utf-8') as f:
-    reader = csv.reader(f)
-    next(reader)  # skip header
-    for row in reader:
-        if len(row) >= 2:
-            image_map[row[0].strip()] = row[1].strip()
-
 def has_chinese(s):
-    """Check if string contains Chinese characters."""
     return any('\u4e00' <= c <= '\u9fff' or '\u3000' <= c <= '\u303f' or
                '\uff00' <= c <= '\uffef' for c in s)
 
 def playtime_to_en(pt):
-    """Convert Chinese playtime to English: '23.8 小时' -> '23.8 hrs', '45 分钟' -> '45 min'."""
     if '小时' in pt:
         return pt.replace(' 小时', ' hrs')
     elif '分钟' in pt:
         return pt.replace(' 分钟', ' min')
     return pt
 
-# Read game data
+def parse_hours(pt):
+    if '小时' in pt:
+        try: return float(pt.replace(',', '').replace(' 小时', ''))
+        except: return 0
+    elif '分钟' in pt:
+        try: return float(pt.replace(',', '').replace(' 分钟', '')) / 60
+        except: return 0
+    return 0
+
+def parse_ach(ach):
+    if ach and '/' in ach:
+        parts = ach.split('/')
+        try:
+            done, total = int(parts[0]), int(parts[1])
+            return (done / total) if total > 0 else 0, done, total
+        except ValueError:
+            pass
+    return 0, 0, 0
+
+# ---- Read single database ----
 games = []
-with open(os.path.join(SCRIPT_DIR, 'SteamGames.csv'), 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'games_db.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
-        if len(row) >= 4:
-            name = row[0].strip()
-            playtime = row[1].strip()
-            achievements = row[3].strip() if len(row) > 3 else ''
-            img = image_map.get(name, '')
-            en_name = translations.get(name, '')
-            games.append({
-                'name': name,
-                'en_name': en_name,
-                'playtime': playtime,
-                'achievements': achievements,
-                'image': img
-            })
+        if not row or not row[0].strip():
+            continue
+        games.append({
+            'name':         row[0].strip(),
+            'en_name':      row[1].strip() if len(row) > 1 else '',
+            'playtime':     row[2].strip() if len(row) > 2 else '',
+            'last_played':  row[3].strip() if len(row) > 3 else '',
+            'achievements': row[4].strip() if len(row) > 4 else '',
+            'image':        row[5].strip() if len(row) > 5 else '',
+            'blacklisted':  row[6].strip().upper() == 'TRUE' if len(row) > 6 else False,
+        })
 
-# Build game cards HTML
+# ---- Build game cards HTML ----
 cards = []
 for g in games:
     name_escaped = html.escape(g['name'])
@@ -103,7 +103,7 @@ for g in games:
         except ValueError:
             ach_html = f'<div class="game-ach"><span>{achievements}</span></div>'
 
-    # Playtime display with i18n
+    # Playtime with i18n
     if playtime:
         playtime_en = html.escape(playtime_to_en(g['playtime']))
         if playtime != playtime_en:
@@ -133,25 +133,13 @@ for g in games:
 
 cards_html = '\n'.join(cards)
 
-# Stats
+# ---- Stats ----
 total_games = len(games)
-played_games = sum(1 for g in games if g['playtime'])
-total_hours = 0
-for g in games:
-    pt = g['playtime']
-    if '小时' in pt:
-        try:
-            total_hours += float(pt.replace(',', '').replace(' 小时', ''))
-        except:
-            pass
-    elif '分钟' in pt:
-        try:
-            total_hours += float(pt.replace(',', '').replace(' 分钟', '')) / 60
-        except:
-            pass
+total_hours = sum(parse_hours(g['playtime']) for g in games)
+full_ach = sum(1 for g in games if g['achievements'] and '/' in g['achievements']
+               and g['achievements'].split('/')[0] == g['achievements'].split('/')[1])
 
-full_ach = sum(1 for g in games if g['achievements'] and '/' in g['achievements'] and g['achievements'].split('/')[0] == g['achievements'].split('/')[1])
-
+# ---- Write gaming.html ----
 page_html = f'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -231,7 +219,6 @@ page_html = f'''<!DOCTYPE html>
 
 <script src="common.js"></script>
 <script>
-// Search & Sort
 const searchInput = document.getElementById('gameSearch');
 const sortSelect = document.getElementById('gameSort');
 const grid = document.getElementById('gamesGrid');
@@ -239,7 +226,6 @@ const grid = document.getElementById('gamesGrid');
 function getTimeMinutes(el) {{
     const timeEl = el.querySelector('.game-time');
     if (!timeEl) return 0;
-    // Use data-zh (original) if available, otherwise textContent
     const t = timeEl.getAttribute('data-zh') || timeEl.textContent;
     if (t.includes('小时')) return parseFloat(t.replace(/,/g,'').replace(' 小时','')) * 60 || 0;
     if (t.includes('分钟')) return parseFloat(t.replace(/,/g,'').replace(' 分钟','')) || 0;
@@ -253,8 +239,7 @@ function filterAndSort() {{
         const h4 = item.querySelector('h4');
         const zhName = (h4.getAttribute('data-zh') || h4.textContent).toLowerCase();
         const enName = (h4.getAttribute('data-en') || '').toLowerCase();
-        const visible = zhName.includes(q) || enName.includes(q);
-        item.style.display = visible ? '' : 'none';
+        item.style.display = (zhName.includes(q) || enName.includes(q)) ? '' : 'none';
     }});
     const sortVal = sortSelect.value;
     if (sortVal === 'default') return;
@@ -278,109 +263,54 @@ with open(os.path.join(ROOT_DIR, 'gaming.html'), 'w', encoding='utf-8') as f:
     f.write(page_html)
 
 print(f"Generated gaming.html with {total_games} games")
-print(f"  {len(image_map)} image mappings loaded")
-print(f"  {sum(1 for g in games if g['image'])} games with images")
-print(f"  {sum(1 for g in games if not g['image'])} games without images")
-print(f"  Total hours: {total_hours:,.0f}")
-print(f"  Full achievements: {full_ach}")
+print(f"  {sum(1 for g in games if g['image'])} with covers, {sum(1 for g in games if g['en_name'])} with translations")
+print(f"  Total hours: {total_hours:,.0f}, Full achievements: {full_ach}")
 
-# ---- Update index.html gaming brief with top-scored games ----
-import re
-
-def parse_hours(pt):
-    if '小时' in pt:
-        try: return float(pt.replace(',', '').replace(' 小时', ''))
-        except: return 0
-    elif '分钟' in pt:
-        try: return float(pt.replace(',', '').replace(' 分钟', '')) / 60
-        except: return 0
-    return 0
-
-def parse_ach(ach):
-    if ach and '/' in ach:
-        parts = ach.split('/')
-        try:
-            done, total = int(parts[0]), int(parts[1])
-            return (done / total) if total > 0 else 0, done, total
-        except ValueError:
-            pass
-    return 0, 0, 0
-
-# Read brief blacklist
-blacklist = set()
-with open(os.path.join(SCRIPT_DIR, 'brief_blacklist.csv'), 'r', encoding='utf-8') as f:
-    reader = csv.reader(f)
-    next(reader)  # skip header
-    for row in reader:
-        if row and row[0].strip():
-            blacklist.add(row[0].strip())
-
-# Score each game: normalize playtime (0-1) + achievement rate (0-1)
+# ---- Update index.html gaming brief ----
 max_hours = max((parse_hours(g['playtime']) for g in games), default=1) or 1
 scored = []
 for g in games:
-    if g['name'] in blacklist:
+    if g['blacklisted']:
         continue
     hrs = parse_hours(g['playtime'])
     ach_rate, ach_done, ach_total = parse_ach(g['achievements'])
-    # Combined score: 50% playtime weight + 50% achievement weight
     score = 0.5 * (hrs / max_hours) + 0.5 * ach_rate
     scored.append((score, hrs, ach_done, ach_total, g))
 
 scored.sort(key=lambda x: x[0], reverse=True)
 top_games = scored[:5]
 
-# Build brief cards HTML
 brief_cards = []
 for score, hrs, ach_done, ach_total, g in top_games:
     name_escaped = html.escape(g['name'])
-    # Format hours
-    if hrs >= 1:
-        time_str = f'{hrs:,.0f}h'
-    else:
-        time_str = f'{hrs * 60:.0f}min'
-    # Achievement text
-    if ach_total > 0:
-        ach_text = f'{ach_done}/{ach_total}'
-    else:
-        ach_text = ''
-    # Cover image
+    time_str = f'{hrs:,.0f}h' if hrs >= 1 else f'{hrs * 60:.0f}min'
+    ach_text = f'{ach_done}/{ach_total}' if ach_total > 0 else ''
     if g['image']:
-        img_src = encode_img_src(g['image'])
-        img_html = f'<img class="brief-cover" src="{img_src}" alt="{name_escaped}" loading="lazy">'
+        img_html = f'<img class="brief-cover" src="{encode_img_src(g["image"])}" alt="{name_escaped}" loading="lazy">'
     else:
         img_html = '<div class="brief-cover-placeholder"></div>'
-    # Meta line
-    meta_parts = [time_str]
-    if ach_text:
-        meta_parts.append(ach_text)
-    meta_str = ' · '.join(meta_parts)
+    meta_str = ' · '.join([time_str] + ([ach_text] if ach_text else []))
 
-    # Brief card name with i18n
     en_name = g['en_name']
     if en_name and has_chinese(g['name']):
-        en_escaped = html.escape(en_name)
-        brief_name = f'<h3 data-en="{en_escaped}">{name_escaped}</h3>'
+        brief_name = f'<h3 data-en="{html.escape(en_name)}">{name_escaped}</h3>'
     else:
         brief_name = f'<h3>{name_escaped}</h3>'
 
-    card = f'''        <a href="gaming.html" class="brief-card">
+    brief_cards.append(f'''        <a href="gaming.html" class="brief-card">
             {img_html}
             <div class="brief-body">
                 {brief_name}
                 <span class="brief-meta">{meta_str}</span>
             </div>
             <span class="brief-arrow">&rsaquo;</span>
-        </a>'''
-    brief_cards.append(card)
+        </a>''')
 
 brief_html = '\n'.join(brief_cards)
 
-# Read index.html and replace the gaming brief section
 with open(os.path.join(ROOT_DIR, 'index.html'), 'r', encoding='utf-8') as f:
     index_content = f.read()
 
-# Replace the gaming brief section specifically (between <!-- Gaming Brief --> and <!-- Contact -->)
 gaming_match = re.search(
     r'(<!-- Gaming Brief -->\n<section id="gaming-brief">.*?<div class="brief-list">\n)(.*?)(    </div>\n    <p style="text-align:center.*?</p>\n</section>)',
     index_content, re.DOTALL
@@ -388,14 +318,8 @@ gaming_match = re.search(
 if gaming_match:
     new_section = gaming_match.group(1) + brief_html + f'\n    </div>\n    <p style="text-align:center; margin-top:1.5rem;">\n        <a href="gaming.html" class="view-all" data-en="View all {total_games} titles ">查看全部 {total_games} 款游戏 </a>\n    </p>\n</section>'
     index_content = index_content[:gaming_match.start()] + new_section + index_content[gaming_match.end():]
-
     with open(os.path.join(ROOT_DIR, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(index_content)
-    print(f"\nUpdated index.html gaming brief with top {len(top_games)} games:")
-    for score, hrs, ach_done, ach_total, g in top_games:
-        try:
-            print(f"  {g['name']}: {hrs:.0f}h, {ach_done}/{ach_total}, score={score:.3f}")
-        except UnicodeEncodeError:
-            print(f"  (name has special chars): {hrs:.0f}h, {ach_done}/{ach_total}, score={score:.3f}")
+    print(f"\nUpdated index.html brief with top {len(top_games)} games ({sum(1 for g in games if g['blacklisted'])} blacklisted)")
 else:
     print("\nWARNING: Could not find gaming brief section in index.html")

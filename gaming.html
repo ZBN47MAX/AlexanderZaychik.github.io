@@ -9483,7 +9483,6 @@
 
 <script src="common.js"></script>
 <script>
-// Search & Sort
 const searchInput = document.getElementById('gameSearch');
 const sortSelect = document.getElementById('gameSort');
 const grid = document.getElementById('gamesGrid');
@@ -9491,7 +9490,6 @@ const grid = document.getElementById('gamesGrid');
 function getTimeMinutes(el) {
     const timeEl = el.querySelector('.game-time');
     if (!timeEl) return 0;
-    // Use data-zh (original) if available, otherwise textContent
     const t = timeEl.getAttribute('data-zh') || timeEl.textContent;
     if (t.includes('小时')) return parseFloat(t.replace(/,/g,'').replace(' 小时','')) * 60 || 0;
     if (t.includes('分钟')) return parseFloat(t.replace(/,/g,'').replace(' 分钟','')) || 0;
@@ -9505,8 +9503,7 @@ function filterAndSort() {
         const h4 = item.querySelector('h4');
         const zhName = (h4.getAttribute('data-zh') || h4.textContent).toLowerCase();
         const enName = (h4.getAttribute('data-en') || '').toLowerCase();
-        const visible = zhName.includes(q) || enName.includes(q);
-        item.style.display = visible ? '' : 'none';
+        item.style.display = (zhName.includes(q) || enName.includes(q)) ? '' : 'none';
     });
     const sortVal = sortSelect.value;
     if (sortVal === 'default') return;
