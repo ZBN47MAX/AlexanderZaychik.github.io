@@ -51,9 +51,30 @@ def parse_ach(ach):
             pass
     return 0, 0, 0
 
-# ---- Read single database (UTF-8 with BOM, WPS compatible) ----
+# ---- Read single database (auto-detect encoding: UTF-8 / GBK) ----
+def read_csv_auto(path):
+    """Read CSV with auto encoding detection. Tries UTF-8 first, falls back to GBK."""
+    raw = open(path, 'rb').read()
+    # Strip UTF-8 BOM if present
+    if raw.startswith(b'\xef\xbb\xbf'):
+        raw = raw[3:]
+    for enc in ('utf-8', 'gbk', 'gb18030'):
+        try:
+            return raw.decode(enc)
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return raw.decode('utf-8', errors='replace')
+
+import io
+db_path = os.path.join(SCRIPT_DIR, 'games_db.csv')
+db_text = read_csv_auto(db_path)
+
+# Rewrite as UTF-8 BOM so WPS opens correctly next time
+with open(db_path, 'w', encoding='utf-8-sig', newline='') as f:
+    f.write(db_text.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\r\n'))
+
 games = []
-with open(os.path.join(SCRIPT_DIR, 'games_db.csv'), 'r', encoding='utf-8-sig') as f:
+with io.StringIO(db_text) as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
