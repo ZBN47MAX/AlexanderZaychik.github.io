@@ -1,28 +1,57 @@
 #!/usr/bin/env python3
-"""Generate gaming.html from SteamGames.csv and game_image_mapping.csv"""
+"""Generate gaming.html from SteamGames.csv and game_image_mapping.csv
+
+Run from project root:  python gaming/generate.py
+"""
 import csv
 import html
+import os
 from urllib.parse import quote
 
-IMG_DIR = 'Steam 社区 __ [CN]Alexander-Zaychik __ 游戏_files'
-IMG_DIR_ENCODED = quote(IMG_DIR, safe='')
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+
+IMG_DIR = 'gaming/covers'
+IMG_DIR_ENCODED = quote(IMG_DIR, safe='/')
 
 def encode_img_src(filename):
     """URL-encode the full image path for use in HTML src attributes."""
     return IMG_DIR_ENCODED + '/' + quote(filename, safe='')
 
+# Read translations (Chinese name -> English name)
+translations = {}
+with open(os.path.join(SCRIPT_DIR, 'game_name_translations.csv'), 'r', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    next(reader)  # skip header
+    for row in reader:
+        if len(row) >= 2 and row[0].strip() and row[1].strip():
+            translations[row[0].strip()] = row[1].strip()
+
 # Read image mapping
 image_map = {}
-with open('game_image_mapping.csv', 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'game_image_mapping.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
         if len(row) >= 2:
             image_map[row[0].strip()] = row[1].strip()
 
+def has_chinese(s):
+    """Check if string contains Chinese characters."""
+    return any('\u4e00' <= c <= '\u9fff' or '\u3000' <= c <= '\u303f' or
+               '\uff00' <= c <= '\uffef' for c in s)
+
+def playtime_to_en(pt):
+    """Convert Chinese playtime to English: '23.8 小时' -> '23.8 hrs', '45 分钟' -> '45 min'."""
+    if '小时' in pt:
+        return pt.replace(' 小时', ' hrs')
+    elif '分钟' in pt:
+        return pt.replace(' 分钟', ' min')
+    return pt
+
 # Read game data
 games = []
-with open('SteamGames.csv', 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'SteamGames.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
@@ -31,8 +60,10 @@ with open('SteamGames.csv', 'r', encoding='utf-8') as f:
             playtime = row[1].strip()
             achievements = row[3].strip() if len(row) > 3 else ''
             img = image_map.get(name, '')
+            en_name = translations.get(name, '')
             games.append({
                 'name': name,
+                'en_name': en_name,
                 'playtime': playtime,
                 'achievements': achievements,
                 'image': img
@@ -72,13 +103,28 @@ for g in games:
         except ValueError:
             ach_html = f'<div class="game-ach"><span>{achievements}</span></div>'
 
-    # Playtime display
-    time_html = f'<span class="game-time">{playtime}</span>' if playtime else ''
+    # Playtime display with i18n
+    if playtime:
+        playtime_en = html.escape(playtime_to_en(g['playtime']))
+        if playtime != playtime_en:
+            time_html = f'<span class="game-time" data-en="{playtime_en}">{playtime}</span>'
+        else:
+            time_html = f'<span class="game-time">{playtime}</span>'
+    else:
+        time_html = ''
+
+    # Game name with i18n
+    en_name = g['en_name']
+    if en_name and has_chinese(g['name']):
+        en_escaped = html.escape(en_name)
+        name_h4 = f'<h4 data-en="{en_escaped}">{name_escaped}</h4>'
+    else:
+        name_h4 = f'<h4>{name_escaped}</h4>'
 
     card = f'''        <div class="game-item">
             {img_html}
             <div class="game-info">
-                <h4>{name_escaped}</h4>
+                {name_h4}
                 {time_html}
                 {ach_html}
             </div>
@@ -193,7 +239,8 @@ const grid = document.getElementById('gamesGrid');
 function getTimeMinutes(el) {{
     const timeEl = el.querySelector('.game-time');
     if (!timeEl) return 0;
-    const t = timeEl.textContent;
+    // Use data-zh (original) if available, otherwise textContent
+    const t = timeEl.getAttribute('data-zh') || timeEl.textContent;
     if (t.includes('小时')) return parseFloat(t.replace(/,/g,'').replace(' 小时','')) * 60 || 0;
     if (t.includes('分钟')) return parseFloat(t.replace(/,/g,'').replace(' 分钟','')) || 0;
     return 0;
@@ -203,8 +250,11 @@ function filterAndSort() {{
     const q = searchInput.value.toLowerCase();
     const items = Array.from(grid.children);
     items.forEach(item => {{
-        const name = item.querySelector('h4').textContent.toLowerCase();
-        item.style.display = name.includes(q) ? '' : 'none';
+        const h4 = item.querySelector('h4');
+        const zhName = (h4.getAttribute('data-zh') || h4.textContent).toLowerCase();
+        const enName = (h4.getAttribute('data-en') || '').toLowerCase();
+        const visible = zhName.includes(q) || enName.includes(q);
+        item.style.display = visible ? '' : 'none';
     }});
     const sortVal = sortSelect.value;
     if (sortVal === 'default') return;
@@ -224,7 +274,7 @@ sortSelect.addEventListener('change', filterAndSort);
 </html>
 '''
 
-with open('gaming.html', 'w', encoding='utf-8') as f:
+with open(os.path.join(ROOT_DIR, 'gaming.html'), 'w', encoding='utf-8') as f:
     f.write(page_html)
 
 print(f"Generated gaming.html with {total_games} games")
@@ -258,7 +308,7 @@ def parse_ach(ach):
 
 # Read brief blacklist
 blacklist = set()
-with open('brief_blacklist.csv', 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'brief_blacklist.csv'), 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
@@ -306,10 +356,18 @@ for score, hrs, ach_done, ach_total, g in top_games:
         meta_parts.append(ach_text)
     meta_str = ' · '.join(meta_parts)
 
+    # Brief card name with i18n
+    en_name = g['en_name']
+    if en_name and has_chinese(g['name']):
+        en_escaped = html.escape(en_name)
+        brief_name = f'<h3 data-en="{en_escaped}">{name_escaped}</h3>'
+    else:
+        brief_name = f'<h3>{name_escaped}</h3>'
+
     card = f'''        <a href="gaming.html" class="brief-card">
             {img_html}
             <div class="brief-body">
-                <h3>{name_escaped}</h3>
+                {brief_name}
                 <span class="brief-meta">{meta_str}</span>
             </div>
             <span class="brief-arrow">&rsaquo;</span>
@@ -319,7 +377,7 @@ for score, hrs, ach_done, ach_total, g in top_games:
 brief_html = '\n'.join(brief_cards)
 
 # Read index.html and replace the gaming brief section
-with open('index.html', 'r', encoding='utf-8') as f:
+with open(os.path.join(ROOT_DIR, 'index.html'), 'r', encoding='utf-8') as f:
     index_content = f.read()
 
 # Replace the gaming brief section specifically (between <!-- Gaming Brief --> and <!-- Contact -->)
@@ -331,7 +389,7 @@ if gaming_match:
     new_section = gaming_match.group(1) + brief_html + f'\n    </div>\n    <p style="text-align:center; margin-top:1.5rem;">\n        <a href="gaming.html" class="view-all" data-en="View all {total_games} titles ">查看全部 {total_games} 款游戏 </a>\n    </p>\n</section>'
     index_content = index_content[:gaming_match.start()] + new_section + index_content[gaming_match.end():]
 
-    with open('index.html', 'w', encoding='utf-8') as f:
+    with open(os.path.join(ROOT_DIR, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(index_content)
     print(f"\nUpdated index.html gaming brief with top {len(top_games)} games:")
     for score, hrs, ach_done, ach_total, g in top_games:
