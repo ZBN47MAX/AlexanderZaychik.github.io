@@ -13,7 +13,16 @@
       "Bash(python -c \"\nimport csv, re\nwith open\\('SteamGames.csv', 'r', encoding='utf-8'\\) as f:\n    reader = csv.reader\\(f\\)\n    next\\(reader\\)\n    for row in reader:\n        name = row[0].strip\\(\\)\n        if re.search\\(r'[\\\\u4e00-\\\\u9fff\\\\u3000-\\\\u303f\\\\uff00-\\\\uffef]', name\\):\n            print\\(name\\)\n\")",
       "Bash(python -c \"\nimport csv, re, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\nwith open\\('SteamGames.csv', 'r', encoding='utf-8'\\) as f:\n    reader = csv.reader\\(f\\)\n    next\\(reader\\)\n    for row in reader:\n        name = row[0].strip\\(\\)\n        if re.search\\(r'[\\\\u4e00-\\\\u9fff\\\\u3000-\\\\u303f\\\\uff00-\\\\uffef]', name\\):\n            print\\(name\\)\n\")",
       "WebFetch(domain:fonts.googleapis.com)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(python:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
