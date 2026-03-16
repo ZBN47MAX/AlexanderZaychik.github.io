@@ -264,7 +264,8 @@ nav .nav-links a.active {
 /* Radial gradient background */
 .hero::before {
     content: '';
-    position: absolute; inset: 0;
+    position: absolute;
+    top: -20%; left: -20%; right: -20%; bottom: -20%;
     background:
         radial-gradient(ellipse at center, rgba(255, 68, 0, 0.08) 0%, transparent 50%),
         radial-gradient(ellipse at 20% 80%, rgba(107, 21, 48, 0.15) 0%, transparent 40%),
@@ -1623,4 +1624,80 @@ html.intro-active body {
 @keyframes dotPop {
     50% { transform: translate(-50%, -50%) scale(3); }
     100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ── Intro → Hero seamless morph ── */
+
+/* Suppress default hero animations & hide elements during intro */
+html.intro-active .hero-content {
+    animation: none !important;
+    filter: none;
+    transform: none;
+}
+html.intro-active .hero-avatar {
+    animation: none !important;
+    opacity: 0;
+}
+html.intro-active .hero h1,
+html.intro-active .hero .subtitle,
+html.intro-active .hero .bio,
+html.intro-active .hero-links {
+    opacity: 0;
+}
+
+/* Morphing state: fade decorations, keep name visible */
+#intro-overlay.morphing {
+    background: transparent !important;
+    transition: background 0.6s ease;
+    pointer-events: none;
+}
+#intro-overlay.morphing::before {
+    opacity: 0 !important;
+    transition: opacity 0.3s ease;
+}
+#intro-overlay.morphing .intro-ring,
+#intro-overlay.morphing .intro-cross-h,
+#intro-overlay.morphing .intro-cross-v,
+#intro-overlay.morphing .intro-bracket,
+#intro-overlay.morphing .intro-dot,
+#intro-overlay.morphing .intro-role,
+#intro-overlay.morphing .intro-decoline {
+    opacity: 0 !important;
+    transition: opacity 0.4s ease;
+}
+#intro-overlay.morphing .intro-name {
+    clip-path: inset(0 0% 0 0) !important;
+}
+
+/* After morph: staggered hero reveal */
+html.intro-done .hero-content {
+    animation: none !important;
+    filter: none;
+    transform: none;
+}
+html.intro-done .hero h1 {
+    opacity: 1;
+}
+html.intro-done .hero-avatar {
+    animation: avatarMorphIn 0.6s var(--ease-out) both,
+               avatarFloat 4s ease-in-out 0.8s infinite;
+}
+html.intro-done .hero .subtitle {
+    animation: heroFadeUp 0.5s ease 0.05s both;
+}
+html.intro-done .hero .bio {
+    animation: heroFadeUp 0.5s ease 0.15s both;
+}
+html.intro-done .hero-links {
+    animation: heroFadeUp 0.5s ease 0.25s both;
+}
+
+@keyframes heroFadeUp {
+    from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes avatarMorphIn {
+    from { opacity: 0; transform: scale(0.5); filter: blur(8px); }
+    to { opacity: 1; transform: scale(1); filter: blur(0); }
 }

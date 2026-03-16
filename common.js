@@ -3,8 +3,6 @@ function initTheme() {
     const saved = localStorage.getItem('theme');
     if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
-    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-        document.documentElement.setAttribute('data-theme', 'light');
     }
     updateToggleIcon();
 }
@@ -123,21 +121,61 @@ function initIntro() {
     document.documentElement.classList.add('intro-active');
     window.scrollTo(0, 0);
 
-    // Total intro duration: ring animations (~1.5s) + text (~2s) + hold (0.5s) = ~3.5s
-    var INTRO_DURATION = 3500;
+    var dismissed = false;
+    function dismissIntro() {
+        if (dismissed) return;
+        dismissed = true;
+        clearTimeout(autoTimer);
+        document.removeEventListener('mousedown', onSkip);
 
-    setTimeout(function () {
-        overlay.classList.add('done');
-        document.documentElement.classList.remove('intro-active');
-        window.scrollTo(0, 0);
+        var introName = overlay.querySelector('.intro-name');
+        var heroH1 = document.querySelector('.hero h1');
 
-        // Remove overlay from DOM after fade-out completes
+        // Fallback: if hero elements missing, simple fade-out
+        if (!introName || !heroH1) {
+            overlay.classList.add('done');
+            document.documentElement.classList.remove('intro-active');
+            window.scrollTo(0, 0);
+            setTimeout(function () {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            }, 700);
+            return;
+        }
+
+        // Step 1: fade out overlay decorations, keep intro-name
+        overlay.classList.add('morphing');
+
+        // Calculate transform: intro-name → hero h1 position
+        var introRect = introName.getBoundingClientRect();
+        var heroRect = heroH1.getBoundingClientRect();
+        var dx = (heroRect.left + heroRect.width / 2) - (introRect.left + introRect.width / 2);
+        var dy = (heroRect.top + heroRect.height / 2) - (introRect.top + introRect.height / 2);
+        var scale = heroRect.width / introRect.width;
+
+        introName.style.transition = 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
+        introName.style.transformOrigin = 'center center';
+        introName.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + scale + ')';
+
+        // Step 2: after morph lands, swap to hero content
         setTimeout(function () {
-            if (overlay.parentNode) {
-                overlay.parentNode.removeChild(overlay);
-            }
+            introName.style.visibility = 'hidden';
+            document.documentElement.classList.remove('intro-active');
+            document.documentElement.classList.add('intro-done');
+            window.scrollTo(0, 0);
+
+            setTimeout(function () {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            }, 500);
         }, 700);
-    }, INTRO_DURATION);
+    }
+
+    function onSkip(e) {
+        if (e.button === 0) dismissIntro();
+    }
+    document.addEventListener('mousedown', onSkip);
+
+    // Total intro duration: ring animations (~1.5s) + text (~2s) + hold (0.5s) = ~3.5s
+    var autoTimer = setTimeout(dismissIntro, 3500);
 }
 
 // ---- Init ----
