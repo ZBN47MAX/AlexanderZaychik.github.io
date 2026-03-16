@@ -51,17 +51,25 @@ def parse_ach(ach):
             pass
     return 0, 0, 0
 
-# ---- Read single database ----
+# ---- Read single database (UTF-8 with BOM, WPS compatible) ----
 games = []
-with open(os.path.join(SCRIPT_DIR, 'games_db.csv'), 'r', encoding='utf-8') as f:
+with open(os.path.join(SCRIPT_DIR, 'games_db.csv'), 'r', encoding='utf-8-sig') as f:
     reader = csv.reader(f)
     next(reader)  # skip header
     for row in reader:
-        if not row or not row[0].strip():
+        if not row:
             continue
+        zh_name = row[0].strip()
+        en_name = row[1].strip() if len(row) > 1 else ''
+        # Skip rows with neither name
+        if not zh_name and not en_name:
+            continue
+        # Display name: prefer Chinese, fallback to English
+        display_name = zh_name if zh_name else en_name
         games.append({
-            'name':         row[0].strip(),
-            'en_name':      row[1].strip() if len(row) > 1 else '',
+            'name':         display_name,
+            'zh_name':      zh_name,
+            'en_name':      en_name,
             'playtime':     row[2].strip() if len(row) > 2 else '',
             'last_played':  row[3].strip() if len(row) > 3 else '',
             'achievements': row[4].strip() if len(row) > 4 else '',
@@ -114,10 +122,14 @@ for g in games:
         time_html = ''
 
     # Game name with i18n
+    # 3 cases:
+    #   zh + en  → show zh, data-en for toggle
+    #   zh only  → show zh, no toggle (same name both languages)
+    #   en only  → show en, no toggle (same name both languages)
+    zh_name = g['zh_name']
     en_name = g['en_name']
-    if en_name and has_chinese(g['name']):
-        en_escaped = html.escape(en_name)
-        name_h4 = f'<h4 data-en="{en_escaped}">{name_escaped}</h4>'
+    if zh_name and en_name:
+        name_h4 = f'<h4 data-en="{html.escape(en_name)}">{name_escaped}</h4>'
     else:
         name_h4 = f'<h4>{name_escaped}</h4>'
 
@@ -291,9 +303,8 @@ for score, hrs, ach_done, ach_total, g in top_games:
         img_html = '<div class="brief-cover-placeholder"></div>'
     meta_str = ' · '.join([time_str] + ([ach_text] if ach_text else []))
 
-    en_name = g['en_name']
-    if en_name and has_chinese(g['name']):
-        brief_name = f'<h3 data-en="{html.escape(en_name)}">{name_escaped}</h3>'
+    if g['zh_name'] and g['en_name']:
+        brief_name = f'<h3 data-en="{html.escape(g["en_name"])}">{name_escaped}</h3>'
     else:
         brief_name = f'<h3>{name_escaped}</h3>'
 
