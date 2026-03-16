@@ -237,6 +237,9 @@ const searchInput = document.getElementById('gameSearch');
 const sortSelect = document.getElementById('gameSort');
 const grid = document.getElementById('gamesGrid');
 
+// Max playtime across all games (for normalizing score)
+let maxTime = 0;
+
 function getTimeMinutes(el) {{
     const timeEl = el.querySelector('.game-time');
     if (!timeEl) return 0;
@@ -248,12 +251,20 @@ function getTimeMinutes(el) {{
 
 function getAch(el) {{
     const achEl = el.querySelector('.game-ach span');
-    if (!achEl) return {{ done: 0, total: 0, pct: -1 }};
+    if (!achEl) return {{ done: 0, total: 0, pct: 0 }};
     const t = achEl.textContent;
     const m = t.match(/(\d+)\/(\d+)/);
-    if (!m) return {{ done: 0, total: 0, pct: -1 }};
+    if (!m) return {{ done: 0, total: 0, pct: 0 }};
     const done = parseInt(m[1]), total = parseInt(m[2]);
     return {{ done, total, pct: total > 0 ? done / total : 0 }};
+}}
+
+function getDefaultScore(el) {{
+    const time = getTimeMinutes(el);
+    const ach = getAch(el);
+    // Composite: 50% normalized playtime + 50% achievement completion %
+    const timeScore = maxTime > 0 ? time / maxTime : 0;
+    return 0.5 * timeScore + 0.5 * ach.pct;
 }}
 
 function filterAndSort() {{
@@ -266,8 +277,8 @@ function filterAndSort() {{
         item.style.display = (zhName.includes(q) || enName.includes(q)) ? '' : 'none';
     }});
     const sortVal = sortSelect.value;
-    if (sortVal === 'default') return;
     const sorted = items.sort((a, b) => {{
+        if (sortVal === 'default') return getDefaultScore(b) - getDefaultScore(a);
         if (sortVal === 'name') return a.querySelector('h4').textContent.localeCompare(b.querySelector('h4').textContent);
         if (sortVal === 'time-desc') return getTimeMinutes(b) - getTimeMinutes(a);
         if (sortVal === 'time-asc') return getTimeMinutes(a) - getTimeMinutes(b);
@@ -277,6 +288,15 @@ function filterAndSort() {{
     }});
     sorted.forEach(item => grid.appendChild(item));
 }}
+
+// Compute maxTime on load
+(function() {{
+    const items = Array.from(grid.children);
+    items.forEach(item => {{
+        const t = getTimeMinutes(item);
+        if (t > maxTime) maxTime = t;
+    }});
+}})()
 
 searchInput.addEventListener('input', filterAndSort);
 sortSelect.addEventListener('change', filterAndSort);
