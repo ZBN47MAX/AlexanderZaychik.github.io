@@ -69,38 +69,45 @@ import io
 db_path = os.path.join(SCRIPT_DIR, 'games_db.csv')
 db_text = read_csv_auto(db_path)
 
-# Rewrite as UTF-8 BOM so WPS opens correctly next time
-with open(db_path, 'w', encoding='utf-8-sig', newline='') as f:
-    f.write(db_text.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\r\n'))
-
-games = []
+# Parse all rows, stripping WPS padding
+all_csv_rows = []
+header = None
 with io.StringIO(db_text) as f:
     reader = csv.reader(f)
-    next(reader)  # skip header
+    header = next(reader)
     for row in reader:
-        if not row:
-            continue
-        zh_name = row[0].strip()
-        en_name = row[1].strip() if len(row) > 1 else ''
-        # Skip rows with neither name
-        if not zh_name and not en_name:
-            continue
-        # Display name: prefer Chinese, fallback to English
-        display_name = zh_name if zh_name else en_name
-        games.append({
-            'name':         display_name,
-            'zh_name':      zh_name,
-            'en_name':      en_name,
-            'playtime':     row[2].strip() if len(row) > 2 else '',
-            'last_played':  row[3].strip() if len(row) > 3 else '',
-            'achievements': row[4].strip() if len(row) > 4 else '',
-            'image':        row[5].strip() if len(row) > 5 else '',
-            'blacklisted':  row[6].strip().upper() == 'TRUE' if len(row) > 6 else False,
-        })
+        if row:
+            all_csv_rows.append([c.strip() for c in row])
 
-# ---- Build game cards HTML ----
+# Rewrite as clean UTF-8 BOM (strips WPS padding, fixes quoting)
+with open(db_path, 'w', encoding='utf-8-sig', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow([c.strip() for c in header])
+    writer.writerows(all_csv_rows)
+
+games = []
+for row in all_csv_rows:
+    zh_name = row[0]
+    en_name = row[1] if len(row) > 1 else ''
+    if not zh_name and not en_name:
+        continue
+    display_name = zh_name if zh_name else en_name
+    games.append({
+        'name':         display_name,
+        'zh_name':      zh_name,
+        'en_name':      en_name,
+        'playtime':     row[2] if len(row) > 2 else '',
+        'last_played':  row[3] if len(row) > 3 else '',
+        'achievements': row[4] if len(row) > 4 else '',
+        'image':        row[5] if len(row) > 5 else '',
+        'blacklisted':  row[6].upper() == 'TRUE' if len(row) > 6 else False,
+    })
+
+# ---- Build game cards HTML (skip blacklisted) ----
 cards = []
 for g in games:
+    if g['blacklisted']:
+        continue
     name_escaped = html.escape(g['name'])
     playtime = html.escape(g['playtime']) if g['playtime'] else ''
     achievements = html.escape(g['achievements']) if g['achievements'] else ''
@@ -167,7 +174,8 @@ for g in games:
 cards_html = '\n'.join(cards)
 
 # ---- Stats ----
-total_games = len(games)
+# Game count excludes blacklisted; hours and achievements include ALL games
+total_games = sum(1 for g in games if not g['blacklisted'])
 total_hours = sum(parse_hours(g['playtime']) for g in games)
 full_ach = sum(1 for g in games if g['achievements'] and '/' in g['achievements']
                and g['achievements'].split('/')[0] == g['achievements'].split('/')[1])
