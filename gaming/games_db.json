@@ -3435,7 +3435,7 @@
     "last_played": "2019年7月20日",
     "achievements": "",
     "cover": "header(192).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -3975,7 +3975,7 @@
     "last_played": "2021年9月27日",
     "achievements": "14/22",
     "cover": "",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -4578,7 +4578,7 @@
     "last_played": "2020年6月21日",
     "achievements": "3000/3000",
     "cover": "",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -4686,7 +4686,7 @@
     "last_played": "2021年5月1日",
     "achievements": "0/91",
     "cover": "header(313).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5028,7 +5028,7 @@
     "last_played": "2018年12月3日",
     "achievements": "",
     "cover": "header(575).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5145,7 +5145,7 @@
     "last_played": "2020年6月17日",
     "achievements": "21/21",
     "cover": "header(245).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5442,7 +5442,7 @@
     "last_played": "2019年5月3日",
     "achievements": "43/114",
     "cover": "",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5451,7 +5451,7 @@
     "last_played": "2022年1月22日",
     "achievements": "1/1",
     "cover": "header(475).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5460,7 +5460,7 @@
     "last_played": "2019年5月5日",
     "achievements": "",
     "cover": "header(567).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5478,7 +5478,7 @@
     "last_played": "2022年9月21日",
     "achievements": "12/104",
     "cover": "header(560).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5487,7 +5487,7 @@
     "last_played": "2022年9月21日",
     "achievements": "87/100",
     "cover": "header(390).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5667,7 +5667,7 @@
     "last_played": "2018年5月21日",
     "achievements": "",
     "cover": "header(307).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5676,7 +5676,7 @@
     "last_played": "2018年5月25日",
     "achievements": "",
     "cover": "header(441).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5685,7 +5685,7 @@
     "last_played": "2018年5月25日",
     "achievements": "",
     "cover": "header(319).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5694,7 +5694,7 @@
     "last_played": "2019年5月3日",
     "achievements": "",
     "cover": "header(473).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5703,7 +5703,7 @@
     "last_played": "2018年7月28日",
     "achievements": "12/13",
     "cover": "header(391).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5712,7 +5712,7 @@
     "last_played": "2017年10月1日",
     "achievements": "9/13",
     "cover": "header(482).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5721,7 +5721,7 @@
     "last_played": "2020年1月30日",
     "achievements": "12/14",
     "cover": "header(144).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5730,7 +5730,7 @@
     "last_played": "2020年1月30日",
     "achievements": "17/20",
     "cover": "header(261).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5739,7 +5739,7 @@
     "last_played": "2020年6月21日",
     "achievements": "25/27",
     "cover": "header(309).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -5748,7 +5748,7 @@
     "last_played": "2021年2月11日",
     "achievements": "12/19",
     "cover": "header(366).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6585,7 +6585,7 @@
     "last_played": "2017年10月24日",
     "achievements": "0/10",
     "cover": "header(580).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6594,7 +6594,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(671).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6603,7 +6603,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(672).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6612,7 +6612,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(673).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6621,7 +6621,7 @@
     "last_played": "2017年10月1日",
     "achievements": "0/37",
     "cover": "header(581).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6630,7 +6630,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(674).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6639,7 +6639,7 @@
     "last_played": "2017年10月24日",
     "achievements": "0/15",
     "cover": "header(582).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6648,7 +6648,7 @@
     "last_played": "",
     "achievements": "0/15",
     "cover": "header(675).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6657,7 +6657,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(676).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6666,7 +6666,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(677).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6675,7 +6675,7 @@
     "last_played": "",
     "achievements": "",
     "cover": "header(678).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6684,7 +6684,7 @@
     "last_played": "2017年9月25日",
     "achievements": "",
     "cover": "header(549).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6693,7 +6693,7 @@
     "last_played": "2017年9月27日",
     "achievements": "",
     "cover": "header(540).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6738,7 +6738,7 @@
     "last_played": "2022年9月21日",
     "achievements": "135/160",
     "cover": "header(535).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6747,7 +6747,7 @@
     "last_played": "2020年6月17日",
     "achievements": "35/35",
     "cover": "header(568).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6756,7 +6756,7 @@
     "last_played": "2020年6月17日",
     "achievements": "35/35",
     "cover": "header(483).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6765,7 +6765,7 @@
     "last_played": "2020年6月25日",
     "achievements": "35/35",
     "cover": "header(484).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -6774,7 +6774,7 @@
     "last_played": "2020年6月18日",
     "achievements": "0/100",
     "cover": "header(513).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7161,7 +7161,7 @@
     "last_played": "2024年11月3日",
     "achievements": "0/52",
     "cover": "",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7170,7 +7170,7 @@
     "last_played": "2022年9月5日",
     "achievements": "7/30",
     "cover": "header(320).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7179,7 +7179,7 @@
     "last_played": "2022年9月19日",
     "achievements": "",
     "cover": "header_schinese(95).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7188,7 +7188,7 @@
     "last_played": "2021年2月5日",
     "achievements": "",
     "cover": "header(435).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7305,7 +7305,7 @@
     "last_played": "2020年11月1日",
     "achievements": "5/12",
     "cover": "header(557).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7458,7 +7458,7 @@
     "last_played": "2019年7月20日",
     "achievements": "",
     "cover": "header(285).jpg",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -7881,7 +7881,7 @@
     "last_played": "2018年5月27日",
     "achievements": "",
     "cover": "",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
@@ -8187,7 +8187,7 @@
     "last_played": "2019年6月10日",
     "achievements": "",
     "cover": "",
-    "blacklisted": false
+    "blacklisted": true
   },
   {
     "zh_name": "",
