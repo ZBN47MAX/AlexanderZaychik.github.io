@@ -1115,43 +1115,54 @@ section {
 .bio-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 1.2rem;
 }
 
 .bio-card {
-    padding: 1.5rem 1.8rem;
+    padding: 1.8rem 2rem;
     background: var(--bg-card);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
+    border-top: 3px solid var(--turquoise);
     backdrop-filter: blur(10px);
     position: relative;
-    transition: border-color 0.3s, transform 0.3s;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 .bio-card:hover {
     border-color: var(--orange);
-    transform: translateY(-2px);
+    border-top-color: var(--orange);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px var(--accent-glow);
 }
 
 .bio-card-label {
     font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--turquoise);
-    letter-spacing: 2px;
-    margin-bottom: 1rem;
+    letter-spacing: 3px;
+    margin-bottom: 1.2rem;
     text-transform: uppercase;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
 }
 
 .bio-main {
     grid-column: 1 / -1;
-    border-left: 3px solid var(--orange);
+    border-top: 3px solid var(--orange);
+    border-left: none;
     line-height: 1.9;
     font-size: 1.05rem;
     color: var(--text);
 }
 
+.bio-main .bio-card-label {
+    color: var(--orange);
+}
+
 .bio-stat-row {
-    margin-bottom: 0.8rem;
+    margin-bottom: 1rem;
 }
 
 .bio-stat-row:last-child {
@@ -1160,16 +1171,17 @@ section {
 
 .bio-stat-name {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: var(--text-bright);
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
     letter-spacing: 0.5px;
 }
 
 .bio-bar {
-    height: 6px;
-    background: var(--border);
+    height: 10px;
+    background: rgba(245, 230, 200, 0.1);
+    border: 1px solid var(--border);
     overflow: hidden;
 }
 
@@ -1177,12 +1189,13 @@ section {
     height: 100%;
     background: linear-gradient(90deg, var(--orange), var(--burgundy));
     transition: width 1s var(--ease-out);
+    box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .bio-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.6rem;
 }
 
 .bio-highlights {
@@ -1192,9 +1205,9 @@ section {
 
 .bio-highlights li {
     position: relative;
-    padding-left: 1rem;
-    margin-bottom: 0.6rem;
-    font-size: 0.9rem;
+    padding-left: 1.2rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.92rem;
     color: var(--text);
     line-height: 1.5;
 }
@@ -1204,11 +1217,11 @@ section {
 }
 
 .bio-highlights li::before {
-    content: '▸';
+    content: '\25B8';
     position: absolute;
     left: 0;
     color: var(--orange);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
 @media (max-width: 640px) {
