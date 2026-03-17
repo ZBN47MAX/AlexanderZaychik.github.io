@@ -1528,6 +1528,26 @@ footer a:hover {
         border-bottom: 2px solid var(--orange);
     }
 
+    nav .logo {
+        font-size: 1rem;
+        letter-spacing: 1px;
+    }
+
+    nav .logo .logo-suffix {
+        display: none;
+    }
+
+    nav .nav-right {
+        gap: 0.8rem;
+    }
+
+    .theme-toggle,
+    .lang-toggle {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
     nav .nav-links.open { display: flex; }
     .hamburger { display: flex; }
 

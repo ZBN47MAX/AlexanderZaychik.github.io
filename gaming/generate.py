@@ -164,7 +164,7 @@ page_html = f'''<!DOCTYPE html>
 
 <nav>
     <div class="nav-inner">
-        <a href="index.html" class="logo">Alexander.dev</a>
+        <a href="index.html" class="logo">Alexander.<span class="logo-suffix">dev</span></a>
         <div class="nav-right">
             <button class="hamburger" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
