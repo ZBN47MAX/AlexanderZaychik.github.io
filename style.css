@@ -1804,8 +1804,10 @@ html.intro-active .hero-links {
 #intro-overlay.morphing .intro-dot,
 #intro-overlay.morphing .intro-role,
 #intro-overlay.morphing .intro-decoline {
+    animation: none !important;
     opacity: 0 !important;
-    transition: opacity 0.4s ease;
+    width: 0 !important;
+    transition: opacity 0.15s ease;
 }
 #intro-overlay.morphing .intro-name {
     clip-path: inset(0 0% 0 0) !important;
