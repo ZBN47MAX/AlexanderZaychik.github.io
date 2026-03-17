@@ -36,10 +36,11 @@
             </button>
             <ul class="nav-links">
                 <li><a href="#about" class="active" data-en="About">关于我</a></li>
+                <li><a href="#bio" data-en="Bio">个人简介</a></li>
                 <li><a href="#skills" data-en="Skills">技能</a></li>
-                <li><a href="education.html" data-en="Education">教育</a></li>
-                <li><a href="projects.html" data-en="Projects">项目</a></li>
-                <li><a href="gaming.html" data-en="Gaming">游戏经历</a></li>
+                <li><a href="#education-brief" data-en="Education">教育</a></li>
+                <li><a href="#projects-brief" data-en="Projects">项目</a></li>
+                <li><a href="#gaming-brief" data-en="Gaming">游戏经历</a></li>
                 <li><a href="#contact" data-en="Contact">联系</a></li>
             </ul>
             <button class="lang-toggle" onclick="toggleLang()"></button>
@@ -53,10 +54,8 @@
     <div class="hero-content">
         <div class="hero-avatar">AZ</div>
         <h1>Alexander Zaychik</h1>
-        <p class="subtitle">Game Developer / MSc Games Engineering</p>
-        <p class="bio" data-en="A game development graduate specializing in computer games engineering. Experienced with Unity (C#) and Unreal 5 (C++, Blueprint), covering 2D platformers, FPS, and top-down shooters. Participated in Global Game Jam with full project pipeline experience.">
-            游戏开发方向硕士，专注于电脑游戏工程。拥有 Unity（C#）和虚幻 5（C++、蓝图）开发经验，并具备 2D 平台跳跃、FPS、俯视角射击等多种类型的游戏制作经验。参与过 Global Game Jam，熟悉项目全流程。
-        </p>
+        <p class="subtitle">Game Developer<br>MSc Games Engineering</p>
+        <p class="bio">Keep on Keeping on</p>
         <div class="hero-links">
             <a href="mailto:alexanderzaychik47@gmail.com">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -70,6 +69,50 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Notion
             </a>
+        </div>
+    </div>
+</section>
+
+<!-- Bio -->
+<section id="bio">
+    <h2 class="section-title" data-en="About Me">个人简介</h2>
+    <p class="section-subtitle">About Me</p>
+    <div class="bio-grid">
+        <div class="bio-card bio-main">
+            <div class="bio-card-label">PROFILE</div>
+            <p data-en="A game development graduate specializing in computer games engineering. Experienced with Unity (C#) and Unreal 5 (C++, Blueprint), covering 2D platformers, FPS, and top-down shooters. Participated in Global Game Jam with full project pipeline experience.">
+                游戏开发方向硕士，专注于电脑游戏工程。拥有 Unity（C#）和虚幻 5（C++、蓝图）开发经验，并具备 2D 平台跳跃、FPS、俯视角射击等多种类型的游戏制作经验。参与过 Global Game Jam，熟悉项目全流程。
+            </p>
+        </div>
+        <div class="bio-card bio-stat">
+            <div class="bio-card-label">ENGINES</div>
+            <div class="bio-stat-row">
+                <span class="bio-stat-name">Unity (C#)</span>
+                <div class="bio-bar"><div class="bio-bar-fill" style="width:85%"></div></div>
+            </div>
+            <div class="bio-stat-row">
+                <span class="bio-stat-name">Unreal 5 (C++ / BP)</span>
+                <div class="bio-bar"><div class="bio-bar-fill" style="width:70%"></div></div>
+            </div>
+        </div>
+        <div class="bio-card bio-stat">
+            <div class="bio-card-label">GENRES</div>
+            <div class="bio-tags">
+                <span class="tag" data-en="2D Platformer">2D 平台跳跃</span>
+                <span class="tag">FPS</span>
+                <span class="tag" data-en="Top-down Shooter">俯视角射击</span>
+                <span class="tag" data-en="Stealth Action">动作潜行</span>
+                <span class="tag" data-en="Sim + RTS">模拟经营 + RTS</span>
+            </div>
+        </div>
+        <div class="bio-card bio-stat">
+            <div class="bio-card-label">HIGHLIGHTS</div>
+            <ul class="bio-highlights">
+                <li data-en="Global Game Jam participant">Global Game Jam 参赛经验</li>
+                <li data-en="PS5 SDK development">PS5 SDK 开发经验</li>
+                <li data-en="LLM-assisted development">擅长 LLM 辅助开发</li>
+                <li data-en="IELTS Band 6">雅思 6 分</li>
+            </ul>
         </div>
     </div>
 </section>
@@ -348,7 +391,7 @@
 </section>
 
 <footer>
-    <p>&copy; 2026 Alexander Zaychik &mdash; Built with passion for games.</p>
+    <p>&copy; 2026 Alexander Zaychik &mdash; Keep on Keeping on</p>
 </footer>
 
 <script src="common.js"></script>
