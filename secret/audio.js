@@ -17,15 +17,15 @@ var GameAudio = (function () {
     }
 
     function init() {
-        load('press', 'button_press.mp3', 0.4);
-        load('error', 'button_press_error.mp3', 0.4);
-        load('success', 'sequence_success.mp3', 0.5);
-        load('roundStart', 'round_start_coin.mp3', 0.5);
-        load('roundOver', 'round_over.mp3', 0.5);
-        load('gameOver', 'game_over.mp3', 0.6);
+        load('press', 'button_press.mp3', 0.6);
+        load('error', 'button_press_error.mp3', 0.6);
+        load('success', 'sequence_success.mp3', 0.7);
+        load('roundStart', 'round_start_coin.mp3', 0.7);
+        load('roundOver', 'round_over.mp3', 0.7);
+        load('gameOver', 'game_over.mp3', 0.8);
 
         music = new Audio(BASE + 'game_music.mp3');
-        music.volume = 0.55;
+        music.volume = 1.0;
         music.loop = true;
     }
 
