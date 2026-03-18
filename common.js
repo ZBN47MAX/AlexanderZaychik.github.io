@@ -178,6 +178,71 @@ function initIntro() {
     var autoTimer = setTimeout(dismissIntro, 3500);
 }
 
+// ---- Easter Egg: 0451 / two-finger double-tap ----
+function initEasterEgg() {
+    var seq = '';
+    var code = '0451';
+    var egg = document.getElementById('easter-egg');
+    var input = document.getElementById('easter-egg-input');
+    if (!egg || !input) return;
+
+    function showEgg() {
+        if (egg.style.display !== 'none' && egg.style.display !== '') return;
+        egg.style.display = '';
+    }
+
+    // Keyboard: type 0451
+    document.addEventListener('keydown', function (e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        seq += e.key;
+        if (seq.length > code.length) seq = seq.slice(-code.length);
+        if (seq === code) {
+            showEgg();
+            seq = '';
+        }
+    });
+
+    // Mobile: two-finger double-tap
+    var lastTwoFingerTap = 0;
+    document.addEventListener('touchend', function (e) {
+        // Detect a two-finger tap (touchend after 2 touches)
+        if (e.touches.length === 0 && e.changedTouches.length === 2) {
+            var now = Date.now();
+            if (now - lastTwoFingerTap < 500) {
+                showEgg();
+                lastTwoFingerTap = 0;
+            } else {
+                lastTwoFingerTap = now;
+            }
+        }
+    });
+
+    // Submit answer
+    input.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var val = input.value.replace(/\s+/g, '').toLowerCase();
+        var answer = 'keeponkeepingon';
+        if (val === answer) {
+            egg.classList.add('success');
+            input.disabled = true;
+            // Glitch transition
+            var glitch = document.createElement('div');
+            glitch.className = 'glitch-transition';
+            document.body.appendChild(glitch);
+            setTimeout(function () {
+                window.location.href = 'secret.html';
+            }, 900);
+        } else {
+            input.style.borderColor = '#ff2222';
+            input.style.boxShadow = '0 0 12px rgba(255,34,34,0.3)';
+            setTimeout(function () {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            }, 500);
+        }
+    });
+}
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -186,4 +251,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     initSmoothScroll();
     initHamburger();
+    initEasterEgg();
 });

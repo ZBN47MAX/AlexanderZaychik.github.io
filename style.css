@@ -1348,6 +1348,171 @@ footer a:hover {
     text-decoration: underline;
 }
 
+/* ── Easter Egg ── */
+.easter-egg {
+    margin-top: 1.5rem;
+    animation: eggFadeIn 0.5s ease both;
+}
+
+.easter-egg input {
+    background: transparent;
+    border: 1px solid var(--orange);
+    color: var(--orange);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    letter-spacing: 2px;
+    outline: none;
+    width: 280px;
+    max-width: 80vw;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.easter-egg input::placeholder {
+    color: var(--text-dim);
+    opacity: 0.5;
+}
+
+.easter-egg input:focus {
+    border-color: var(--turquoise);
+    box-shadow: 0 0 12px rgba(0, 212, 170, 0.2);
+}
+
+.easter-egg.success input {
+    border-color: var(--turquoise);
+    color: var(--turquoise);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+}
+
+@keyframes eggFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Glitch page transition ── */
+.glitch-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: #0a0a0a;
+    animation: glitchIn 0.9s steps(1) both;
+    pointer-events: all;
+}
+
+.glitch-transition::before,
+.glitch-transition::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+
+.glitch-transition::before {
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 68, 0, 0.08) 2px,
+        rgba(255, 68, 0, 0.08) 4px
+    );
+    animation: glitchScanlines 0.1s steps(1) infinite;
+}
+
+.glitch-transition::after {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.15),
+        rgba(0, 255, 0, 0.15),
+        rgba(0, 0, 255, 0.15)
+    );
+    mix-blend-mode: screen;
+    animation: glitchRGB 0.15s steps(1) infinite;
+}
+
+@keyframes glitchIn {
+    0%   { opacity: 0; clip-path: inset(80% 0 0 0); }
+    10%  { opacity: 1; clip-path: inset(20% 0 60% 0); }
+    20%  { clip-path: inset(0 0 40% 0); }
+    30%  { clip-path: inset(50% 0 10% 0); }
+    40%  { clip-path: inset(10% 0 30% 0); }
+    50%  { clip-path: inset(0 0 0 0); }
+    55%  { clip-path: inset(30% 0 20% 0); }
+    60%  { clip-path: inset(0 0 0 0); }
+    100% { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+
+@keyframes glitchScanlines {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-2px); }
+    100% { transform: translateY(1px); }
+}
+
+@keyframes glitchRGB {
+    0%   { transform: translate(2px, 0); }
+    25%  { transform: translate(-2px, 1px); }
+    50%  { transform: translate(1px, -1px); }
+    75%  { transform: translate(-1px, 0); }
+    100% { transform: translate(0, 1px); }
+}
+
+/* ── Secret page glitch intro ── */
+.secret-glitch-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #0a0a0a;
+    animation: secretGlitchOut 1.2s ease 0.3s both;
+}
+
+.secret-glitch-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 68, 0, 0.06) 2px,
+        rgba(255, 68, 0, 0.06) 4px
+    );
+    animation: glitchScanlines 0.08s steps(1) infinite;
+}
+
+.secret-glitch-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.7rem, 2vw, 1rem);
+    color: var(--orange, #ff4400);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    animation: glitchTextFlicker 0.2s steps(1) infinite;
+    white-space: nowrap;
+}
+
+@keyframes secretGlitchOut {
+    0%   { opacity: 1; }
+    60%  { opacity: 1; clip-path: inset(0 0 0 0); }
+    70%  { clip-path: inset(0 0 50% 0); }
+    75%  { clip-path: inset(30% 0 0 0); }
+    80%  { clip-path: inset(0 0 0 0); }
+    85%  { clip-path: inset(0 60% 0 0); }
+    90%  { clip-path: inset(0 0 0 40%); }
+    95%  { clip-path: inset(0 0 0 0); opacity: 0.5; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes glitchTextFlicker {
+    0%   { opacity: 1; transform: translate(-50%, -50%) skewX(0deg); }
+    20%  { opacity: 0.8; transform: translate(-48%, -50%) skewX(-2deg); }
+    40%  { opacity: 1; transform: translate(-52%, -50%) skewX(1deg); }
+    60%  { opacity: 0.6; transform: translate(-50%, -52%) skewX(0deg); }
+    80%  { opacity: 1; transform: translate(-50%, -48%) skewX(-1deg); }
+    100% { opacity: 0.9; transform: translate(-50%, -50%) skewX(0deg); }
+}
+
 /* ════════════════════════════════════════════
    ANIMATIONS
    ════════════════════════════════════════════ */
