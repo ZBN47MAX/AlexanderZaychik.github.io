@@ -442,23 +442,29 @@
     (function () {
         var area = el.swipeArea;
         if (!area) return;
-        var sx, sy, threshold = 30;
+        var sx, sy, threshold = 20;
         area.addEventListener('touchstart', function (e) {
             sx = e.touches[0].clientX;
             sy = e.touches[0].clientY;
         }, { passive: true });
+        area.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+        }, { passive: false });
         area.addEventListener('touchend', function (e) {
             if (sx === undefined) return;
             var dx = e.changedTouches[0].clientX - sx;
             var dy = e.changedTouches[0].clientY - sy;
-            sx = undefined;
+            sx = sy = undefined;
             if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
             handleDirection(
                 Math.abs(dx) > Math.abs(dy)
                     ? (dx > 0 ? 'right' : 'left')
                     : (dy > 0 ? 'down' : 'up')
             );
-        }, { passive: true });
+        });
+        area.addEventListener('touchcancel', function () {
+            sx = sy = undefined;
+        });
     })();
 
     // ── Restart button ──
