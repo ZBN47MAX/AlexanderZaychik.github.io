@@ -438,19 +438,20 @@
         }
     });
 
-    // ── Swipe (mobile) ──
-    (function () {
-        var area = el.swipeArea;
+    // ── Swipe (mobile) — bind to a specific area ──
+    function bindSwipeArea(area) {
         if (!area) return;
         var sx, sy, threshold = 20;
         area.addEventListener('touchstart', function (e) {
             sx = e.touches[0].clientX;
             sy = e.touches[0].clientY;
+            area.classList.add('touching');
         }, { passive: true });
         area.addEventListener('touchmove', function (e) {
             e.preventDefault();
         }, { passive: false });
         area.addEventListener('touchend', function (e) {
+            area.classList.remove('touching');
             if (sx === undefined) return;
             var dx = e.changedTouches[0].clientX - sx;
             var dy = e.changedTouches[0].clientY - sy;
@@ -464,8 +465,13 @@
         });
         area.addEventListener('touchcancel', function () {
             sx = sy = undefined;
+            area.classList.remove('touching');
         });
-    })();
+    }
+
+    // Bind both swipe areas
+    bindSwipeArea(el.swipeArea);
+    bindSwipeArea(document.getElementById('title-swipe-area'));
 
     // ── Restart button ──
     el.btnRestart.addEventListener('click', function () {
