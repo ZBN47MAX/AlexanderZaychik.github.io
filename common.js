@@ -202,20 +202,21 @@ function initEasterEgg() {
         }
     });
 
-    // Mobile: two-finger double-tap
-    var lastTwoFingerTap = 0;
-    document.addEventListener('touchend', function (e) {
-        // Detect a two-finger tap (touchend after 2 touches)
-        if (e.touches.length === 0 && e.changedTouches.length === 2) {
+    // Mobile: double-tap footer tagline
+    var lastFooterTap = 0;
+    var footerP = document.querySelector('footer > p');
+    if (footerP) {
+        footerP.addEventListener('touchend', function (e) {
             var now = Date.now();
-            if (now - lastTwoFingerTap < 500) {
+            if (now - lastFooterTap < 400) {
+                e.preventDefault();
                 showEgg();
-                lastTwoFingerTap = 0;
+                lastFooterTap = 0;
             } else {
-                lastTwoFingerTap = now;
+                lastFooterTap = now;
             }
-        }
-    });
+        });
+    }
 
     // Submit answer
     input.addEventListener('keydown', function (e) {
