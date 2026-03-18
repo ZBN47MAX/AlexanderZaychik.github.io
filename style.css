@@ -1338,6 +1338,12 @@ footer {
     z-index: 2;
 }
 
+footer > p {
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
 footer a {
     color: var(--orange);
     text-decoration: none;
